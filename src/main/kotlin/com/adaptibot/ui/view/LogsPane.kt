@@ -38,23 +38,39 @@ class LogsPane : BorderPane() {
         return TableView<LogEntry>().apply {
             placeholder = Label("No logs yet")
             
-            columns.addAll(
-                TableColumn<LogEntry, String>("Timestamp").apply {
-                    prefWidth = 150.0
-                },
-                TableColumn<LogEntry, String>("Step").apply {
-                    prefWidth = 200.0
-                },
-                TableColumn<LogEntry, String>("Status").apply {
-                    prefWidth = 100.0
-                },
-                TableColumn<LogEntry, String>("Duration").apply {
-                    prefWidth = 100.0
-                },
-                TableColumn<LogEntry, String>("Message").apply {
-                    prefWidth = 400.0
+            val timestampCol = TableColumn<LogEntry, String>("Timestamp").apply {
+                prefWidth = 120.0
+                setCellValueFactory { javafx.beans.property.SimpleStringProperty(it.value.timestamp) }
+            }
+            
+            val stepCol = TableColumn<LogEntry, String>("Step").apply {
+                prefWidth = 250.0
+                setCellValueFactory { javafx.beans.property.SimpleStringProperty(it.value.stepName) }
+            }
+            
+            val statusCol = TableColumn<LogEntry, String>("Status").apply {
+                prefWidth = 120.0
+                setCellValueFactory { javafx.beans.property.SimpleStringProperty(it.value.status) }
+            }
+            
+            val durationCol = TableColumn<LogEntry, String>("Duration").apply {
+                prefWidth = 100.0
+                setCellValueFactory { 
+                    val duration = if (it.value.durationMs > 0) {
+                        "${it.value.durationMs}ms"
+                    } else {
+                        "-"
+                    }
+                    javafx.beans.property.SimpleStringProperty(duration)
                 }
-            )
+            }
+            
+            val messageCol = TableColumn<LogEntry, String>("Message").apply {
+                prefWidth = 350.0
+                setCellValueFactory { javafx.beans.property.SimpleStringProperty(it.value.message) }
+            }
+            
+            columns.addAll(timestampCol, stepCol, statusCol, durationCol, messageCol)
         }
     }
 }

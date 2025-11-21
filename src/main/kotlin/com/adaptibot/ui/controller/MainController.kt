@@ -25,8 +25,14 @@ class MainController : Initializable {
         mainView = MainView()
         setupMenuHandlers()
         setupControlHandlers()
+        setupLogsBinding()
         
         rootPane.center = mainView
+    }
+    
+    private fun setupLogsBinding() {
+        // Bind ExecutionLogger to LogsPane TableView
+        mainView.logsPane.logsTableView.items = com.adaptibot.ui.model.ExecutionLogger.logs
     }
     
     private fun setupMenuHandlers() {
@@ -65,6 +71,16 @@ class MainController : Initializable {
         }
         
         mainView.logsPane.clearButton.setOnAction { handleClearLogs() }
+        
+        // Double-click to edit step
+        mainView.scriptEditorPane.stepsTreeView.setOnMouseClicked { event ->
+            if (event.clickCount == 2) {
+                val selectedItem = mainView.scriptEditorPane.stepsTreeView.selectionModel.selectedItem
+                if (selectedItem != null && selectedItem.value != null) {
+                    handleEditStep(selectedItem.value)
+                }
+            }
+        }
     }
     
     private fun handleNewScript() {
@@ -90,11 +106,22 @@ class MainController : Initializable {
     }
     
     private fun handleAddStep() {
-        // TODO: Open add step dialog
+        val dialog = com.adaptibot.ui.dialog.StepEditorDialog()
+        val result = dialog.showAndWait()
+        
+        result.ifPresent { newStep ->
+            scriptService.addStep(newStep)
+            updateUI()
+        }
     }
     
     private fun handleDeleteStep() {
-        // TODO: Delete selected step
+        val selectedItem = mainView.scriptEditorPane.stepsTreeView.selectionModel.selectedItem
+        if (selectedItem != null && selectedItem.value != null) {
+            val stepNode = selectedItem.value
+            scriptService.deleteStep(stepNode.step.id)
+            updateUI()
+        }
     }
     
     private fun handleCopyStep() {
@@ -110,22 +137,43 @@ class MainController : Initializable {
     }
     
     private fun handleStart() {
-        executionService.start()
+        val script = scriptService.getCurrentScript()
+        if (script.steps.isEmpty()) {
+            showAlert("No Steps", "The script has no steps to execute.")
+            return
+        }
+        
+        executionService.start(script)
         updateExecutionState()
+        updateControlsState()
+    }
+    
+    private fun handleEditStep(stepNode: com.adaptibot.ui.model.StepNode) {
+        if (stepNode.step is com.adaptibot.common.model.Step.ActionStep) {
+            val dialog = com.adaptibot.ui.dialog.StepEditorDialog(stepNode.step)
+            val result = dialog.showAndWait()
+            
+            result.ifPresent { updatedStep ->
+                scriptService.updateStep(stepNode.step.id, updatedStep)
+                updateUI()
+            }
+        }
     }
     
     private fun handlePause() {
         executionService.pause()
         updateExecutionState()
+        updateControlsState()
     }
     
     private fun handleStop() {
         executionService.stop()
         updateExecutionState()
+        updateControlsState()
     }
     
     private fun handleClearLogs() {
-        mainView.logsPane.logsTableView.items.clear()
+        com.adaptibot.ui.model.ExecutionLogger.clear()
     }
     
     private fun handleDocumentation() {
@@ -142,13 +190,39 @@ class MainController : Initializable {
     
     private fun updateUI() {
         val script = scriptService.getCurrentScript()
-        mainView.scriptEditorPane.stepsTreeView.root.children.clear()
-        // TODO: Populate tree view with script steps
+        
+        // Build and set tree
+        val root = com.adaptibot.ui.view.ScriptTreeBuilder.buildTree(script.steps)
+        mainView.scriptEditorPane.stepsTreeView.root = root
+        
+        updateControlsState()
     }
     
     private fun updateExecutionState() {
         val state = executionService.getState()
         val statusLabel = mainView.controlToolBar.items[4] as javafx.scene.control.Label
         statusLabel.text = "Status: ${state.name.lowercase().replaceFirstChar { it.uppercase() }}"
+    }
+    
+    private fun updateControlsState() {
+        val hasSteps = scriptService.getCurrentScript().steps.isNotEmpty()
+        val isRunning = executionService.isRunning()
+        val isPaused = executionService.isPaused()
+        
+        val startBtn = mainView.controlToolBar.items[0] as javafx.scene.control.Button
+        val pauseBtn = mainView.controlToolBar.items[1] as javafx.scene.control.Button
+        val stopBtn = mainView.controlToolBar.items[2] as javafx.scene.control.Button
+        
+        startBtn.isDisable = !hasSteps || isRunning
+        pauseBtn.isDisable = !isRunning || isPaused
+        stopBtn.isDisable = !isRunning && !isPaused
+    }
+    
+    private fun showAlert(title: String, message: String) {
+        val alert = javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION)
+        alert.title = title
+        alert.headerText = null
+        alert.contentText = message
+        alert.showAndWait()
     }
 }

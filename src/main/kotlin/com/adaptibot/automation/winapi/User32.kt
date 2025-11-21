@@ -14,6 +14,8 @@ interface User32 : StdCallLibrary {
     
     fun mouse_event(dwFlags: Int, dx: Int, dy: Int, dwData: Int, dwExtraInfo: Int)
     
+    fun keybd_event(bVk: Byte, bScan: Short, dwFlags: Int, dwExtraInfo: Int)
+    
     companion object {
         val INSTANCE: User32 = Native.load("user32", User32::class.java)
         

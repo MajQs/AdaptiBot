@@ -76,6 +76,66 @@ class ScriptService {
         hasUnsavedChanges = true
     }
     
+    fun addStep(step: com.adaptibot.common.model.Step) {
+        currentScript = currentScript.copy(steps = currentScript.steps + step)
+        hasUnsavedChanges = true
+        logger.debug("Added step: ${step.id.value}")
+    }
+    
+    fun updateStep(stepId: com.adaptibot.common.model.StepId, updatedStep: com.adaptibot.common.model.Step) {
+        val updatedSteps = replaceStepRecursively(currentScript.steps, stepId, updatedStep)
+        currentScript = currentScript.copy(steps = updatedSteps)
+        hasUnsavedChanges = true
+        logger.debug("Updated step: ${stepId.value}")
+    }
+    
+    fun deleteStep(stepId: com.adaptibot.common.model.StepId) {
+        val updatedSteps = deleteStepRecursively(currentScript.steps, stepId)
+        currentScript = currentScript.copy(steps = updatedSteps)
+        hasUnsavedChanges = true
+        logger.debug("Deleted step: ${stepId.value}")
+    }
+    
+    private fun replaceStepRecursively(steps: List<com.adaptibot.common.model.Step>, targetId: com.adaptibot.common.model.StepId, newStep: com.adaptibot.common.model.Step): List<com.adaptibot.common.model.Step> {
+        return steps.map { step ->
+            if (step.id == targetId) {
+                newStep
+            } else {
+                when (step) {
+                    is com.adaptibot.common.model.Step.ConditionalBlock -> step.copy(
+                        thenSteps = replaceStepRecursively(step.thenSteps, targetId, newStep),
+                        elseSteps = replaceStepRecursively(step.elseSteps, targetId, newStep)
+                    )
+                    is com.adaptibot.common.model.Step.ObserverBlock -> step.copy(
+                        actionSteps = replaceStepRecursively(step.actionSteps, targetId, newStep)
+                    )
+                    is com.adaptibot.common.model.Step.GroupBlock -> step.copy(
+                        steps = replaceStepRecursively(step.steps, targetId, newStep)
+                    )
+                    else -> step
+                }
+            }
+        }
+    }
+    
+    private fun deleteStepRecursively(steps: List<com.adaptibot.common.model.Step>, targetId: com.adaptibot.common.model.StepId): List<com.adaptibot.common.model.Step> {
+        return steps.filter { it.id != targetId }.map { step ->
+            when (step) {
+                is com.adaptibot.common.model.Step.ConditionalBlock -> step.copy(
+                    thenSteps = deleteStepRecursively(step.thenSteps, targetId),
+                    elseSteps = deleteStepRecursively(step.elseSteps, targetId)
+                )
+                is com.adaptibot.common.model.Step.ObserverBlock -> step.copy(
+                    actionSteps = deleteStepRecursively(step.actionSteps, targetId)
+                )
+                is com.adaptibot.common.model.Step.GroupBlock -> step.copy(
+                    steps = deleteStepRecursively(step.steps, targetId)
+                )
+                else -> step
+            }
+        }
+    }
+    
     fun hasUnsavedChanges(): Boolean = hasUnsavedChanges
     
     private fun saveToFile(file: File): Boolean {

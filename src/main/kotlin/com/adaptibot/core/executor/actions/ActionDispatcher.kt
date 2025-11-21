@@ -71,8 +71,22 @@ class ActionDispatcher : IActionExecutor {
     }
     
     private fun executeKeyboard(action: Action.Keyboard): Boolean {
-        // TODO: Implement keyboard actions via WinAPI/JNA
-        return true
+        return try {
+            when (action) {
+                is Action.Keyboard.TypeText -> {
+                    com.adaptibot.automation.input.keyboard.KeyboardController.typeText(action.text)
+                }
+                is Action.Keyboard.PressKey -> {
+                    com.adaptibot.automation.input.keyboard.KeyboardController.pressKey(action.key)
+                }
+                is Action.Keyboard.PressKeyCombination -> {
+                    com.adaptibot.automation.input.keyboard.KeyboardController.pressKeyCombination(action.keys)
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("Keyboard action failed", e)
+            false
+        }
     }
     
     private fun executeSystem(action: Action.System): Boolean {

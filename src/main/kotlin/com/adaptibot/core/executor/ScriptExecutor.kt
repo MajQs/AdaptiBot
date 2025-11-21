@@ -38,6 +38,8 @@ class ScriptExecutor(
         }
         
         logger.info("Starting script execution: ${script.name}")
+        com.adaptibot.ui.model.ExecutionLogger.logExecutionStart(script.name)
+        
         shouldStop = false
         currentContext = ExecutionContext(
             script = script,
@@ -53,6 +55,7 @@ class ScriptExecutor(
     override fun pause() {
         if (currentContext.state == ExecutionState.RUNNING) {
             logger.info("Pausing script execution")
+            com.adaptibot.ui.model.ExecutionLogger.logExecutionPause()
             currentContext = currentContext.copy(state = ExecutionState.PAUSED)
         }
     }
@@ -60,12 +63,14 @@ class ScriptExecutor(
     override fun resume() {
         if (currentContext.state == ExecutionState.PAUSED) {
             logger.info("Resuming script execution")
+            com.adaptibot.ui.model.ExecutionLogger.logExecutionResume()
             currentContext = currentContext.copy(state = ExecutionState.RUNNING)
         }
     }
     
     override fun stop() {
         logger.info("Stopping script execution")
+        com.adaptibot.ui.model.ExecutionLogger.logExecutionStop()
         shouldStop = true
         currentContext = currentContext.copy(state = ExecutionState.STOPPED)
         executionScope?.cancel()
@@ -122,6 +127,9 @@ class ScriptExecutor(
     }
     
     private fun executeActionStep(step: Step.ActionStep) {
+        val stepName = step.label ?: step.action::class.simpleName ?: "Action"
+        val startTime = System.currentTimeMillis()
+        
         try {
             val coordinate = when (val action = step.action) {
                 is com.adaptibot.common.model.Action.Mouse -> {
@@ -138,14 +146,20 @@ class ScriptExecutor(
             }
             
             val success = actionExecutor.execute(step.action, coordinate)
+            val duration = System.currentTimeMillis() - startTime
             
-            if (!success) {
+            if (success) {
+                com.adaptibot.ui.model.ExecutionLogger.logStepSuccess(stepName, duration)
+            } else {
+                com.adaptibot.ui.model.ExecutionLogger.logStepFailure(stepName, duration, "Action failed")
                 logger.error("Action execution failed: ${step.label ?: step.id.value}")
             }
             
             handleFlowControl(step.action)
             
         } catch (e: Exception) {
+            val duration = System.currentTimeMillis() - startTime
+            com.adaptibot.ui.model.ExecutionLogger.logStepFailure(stepName, duration, e.message ?: "Exception")
             logger.error("Exception executing action step: ${step.label ?: step.id.value}", e)
         }
     }
