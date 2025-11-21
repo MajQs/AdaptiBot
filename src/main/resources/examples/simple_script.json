@@ -1,0 +1,77 @@
+{
+  "name": "Simple Example Script",
+  "description": "A basic example demonstrating mouse clicks and keyboard input",
+  "steps": [
+    {
+      "type": "com.adaptibot.common.model.Step.ActionStep",
+      "id": {
+        "value": "step_1"
+      },
+      "label": "Move to button",
+      "delayBefore": 0,
+      "delayAfter": 500,
+      "action": {
+        "type": "com.adaptibot.common.model.Action.Mouse.MoveTo",
+        "target": {
+          "type": "com.adaptibot.common.model.ElementIdentifier.ByCoordinate",
+          "coordinate": {
+            "x": 500,
+            "y": 300
+          }
+        }
+      }
+    },
+    {
+      "type": "com.adaptibot.common.model.Step.ActionStep",
+      "id": {
+        "value": "step_2"
+      },
+      "label": "Click button",
+      "delayBefore": 0,
+      "delayAfter": 1000,
+      "action": {
+        "type": "com.adaptibot.common.model.Action.Mouse.LeftClick",
+        "target": {
+          "type": "com.adaptibot.common.model.ElementIdentifier.ByCoordinate",
+          "coordinate": {
+            "x": 500,
+            "y": 300
+          }
+        }
+      }
+    },
+    {
+      "type": "com.adaptibot.common.model.Step.ActionStep",
+      "id": {
+        "value": "step_3"
+      },
+      "label": "Type text",
+      "delayBefore": 0,
+      "delayAfter": 500,
+      "action": {
+        "type": "com.adaptibot.common.model.Action.Keyboard.TypeText",
+        "text": "Hello from AdaptiBot!"
+      }
+    },
+    {
+      "type": "com.adaptibot.common.model.Step.ActionStep",
+      "id": {
+        "value": "step_4"
+      },
+      "label": "Press Enter",
+      "delayBefore": 0,
+      "delayAfter": 0,
+      "action": {
+        "type": "com.adaptibot.common.model.Action.Keyboard.PressKey",
+        "key": "Enter"
+      }
+    }
+  ],
+  "settings": {
+    "defaultDelayBefore": 0,
+    "defaultDelayAfter": 0,
+    "observerCheckDelay": 1000,
+    "defaultImageMatchThreshold": 0.7
+  }
+}
+
