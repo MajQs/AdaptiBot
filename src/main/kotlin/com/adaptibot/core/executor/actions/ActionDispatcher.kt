@@ -23,8 +23,51 @@ class ActionDispatcher : IActionExecutor {
     }
     
     private fun executeMouse(action: Action.Mouse, coordinate: Coordinate?): Boolean {
-        // TODO: Implement mouse actions via WinAPI/JNA
-        return true
+        return try {
+            when (action) {
+                is Action.Mouse.LeftClick -> {
+                    coordinate?.let { com.adaptibot.automation.input.mouse.MouseController.moveTo(it) }
+                    com.adaptibot.automation.input.mouse.MouseController.leftClick()
+                }
+                is Action.Mouse.RightClick -> {
+                    coordinate?.let { com.adaptibot.automation.input.mouse.MouseController.moveTo(it) }
+                    com.adaptibot.automation.input.mouse.MouseController.rightClick()
+                }
+                is Action.Mouse.DoubleClick -> {
+                    coordinate?.let { com.adaptibot.automation.input.mouse.MouseController.moveTo(it) }
+                    com.adaptibot.automation.input.mouse.MouseController.doubleClick()
+                }
+                is Action.Mouse.MoveTo -> {
+                    coordinate?.let { com.adaptibot.automation.input.mouse.MouseController.moveTo(it) } ?: false
+                }
+                is Action.Mouse.Drag -> {
+                    // Resolve both coordinates
+                    val fromCoord = when (action.from) {
+                        is com.adaptibot.common.model.ElementIdentifier.ByCoordinate -> 
+                            (action.from as com.adaptibot.common.model.ElementIdentifier.ByCoordinate).coordinate
+                        else -> null
+                    }
+                    val toCoord = when (action.to) {
+                        is com.adaptibot.common.model.ElementIdentifier.ByCoordinate -> 
+                            (action.to as com.adaptibot.common.model.ElementIdentifier.ByCoordinate).coordinate
+                        else -> null
+                    }
+                    
+                    if (fromCoord != null && toCoord != null) {
+                        com.adaptibot.automation.input.mouse.MouseController.dragTo(fromCoord, toCoord)
+                    } else {
+                        logger.error("Drag action requires both coordinates")
+                        false
+                    }
+                }
+                is Action.Mouse.Scroll -> {
+                    com.adaptibot.automation.input.mouse.MouseController.scroll(action.amount, action.direction)
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("Mouse action failed", e)
+            false
+        }
     }
     
     private fun executeKeyboard(action: Action.Keyboard): Boolean {

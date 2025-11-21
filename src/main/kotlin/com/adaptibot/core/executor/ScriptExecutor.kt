@@ -110,23 +110,111 @@ class ScriptExecutor(
         }
         
         when (step) {
-            is Step.ActionStep -> {
-                // TODO: Execute action
-            }
-            is Step.ConditionalBlock -> {
-                // TODO: Evaluate condition and execute branch
-            }
-            is Step.ObserverBlock -> {
-                // TODO: Register observer
-            }
-            is Step.GroupBlock -> {
-                // TODO: Execute group steps
-            }
+            is Step.ActionStep -> executeActionStep(step)
+            is Step.ConditionalBlock -> executeConditionalBlock(step)
+            is Step.ObserverBlock -> registerObserver(step)
+            is Step.GroupBlock -> executeGroupBlock(step)
         }
         
         if (step.delayAfter > 0) {
             delay(step.delayAfter)
         }
+    }
+    
+    private fun executeActionStep(step: Step.ActionStep) {
+        try {
+            val coordinate = when (val action = step.action) {
+                is com.adaptibot.common.model.Action.Mouse -> {
+                    val target = when (action) {
+                        is com.adaptibot.common.model.Action.Mouse.LeftClick -> action.target
+                        is com.adaptibot.common.model.Action.Mouse.RightClick -> action.target
+                        is com.adaptibot.common.model.Action.Mouse.DoubleClick -> action.target
+                        is com.adaptibot.common.model.Action.Mouse.MoveTo -> action.target
+                        else -> null
+                    }
+                    target?.let { elementFinder.find(it) }
+                }
+                else -> null
+            }
+            
+            val success = actionExecutor.execute(step.action, coordinate)
+            
+            if (!success) {
+                logger.error("Action execution failed: ${step.label ?: step.id.value}")
+            }
+            
+            handleFlowControl(step.action)
+            
+        } catch (e: Exception) {
+            logger.error("Exception executing action step: ${step.label ?: step.id.value}", e)
+        }
+    }
+    
+    private suspend fun executeConditionalBlock(block: Step.ConditionalBlock) {
+        try {
+            val conditionMet = conditionEvaluator.evaluate(block.condition)
+            
+            val stepsToExecute = if (conditionMet) {
+                block.thenSteps
+            } else {
+                block.elseSteps
+            }
+            
+            for (step in stepsToExecute) {
+                if (shouldStop || currentContext.state == ExecutionState.PAUSED) {
+                    return
+                }
+                executeStep(step)
+            }
+            
+        } catch (e: Exception) {
+            logger.error("Exception executing conditional block: ${block.label ?: block.id.value}", e)
+        }
+    }
+    
+    private fun registerObserver(block: Step.ObserverBlock) {
+        try {
+            val priority = calculateObserverPriority(block)
+            observerManager.registerObserver(block, priority)
+            
+        } catch (e: Exception) {
+            logger.error("Exception registering observer: ${block.label ?: block.id.value}", e)
+        }
+    }
+    
+    private suspend fun executeGroupBlock(block: Step.GroupBlock) {
+        try {
+            for (step in block.steps) {
+                if (shouldStop || currentContext.state == ExecutionState.PAUSED) {
+                    return
+                }
+                executeStep(step)
+            }
+            
+        } catch (e: Exception) {
+            logger.error("Exception executing group block: ${block.label ?: block.id.value}", e)
+        }
+    }
+    
+    private fun handleFlowControl(action: com.adaptibot.common.model.Action) {
+        when (action) {
+            is com.adaptibot.common.model.Action.Flow.Stop -> {
+                stop()
+            }
+            is com.adaptibot.common.model.Action.Flow.JumpTo -> {
+                // TODO: Implement jump logic
+                logger.warn("JumpTo not yet implemented")
+            }
+            is com.adaptibot.common.model.Action.Flow.Continue -> {
+                // Continue to next step (default behavior)
+            }
+            else -> {}
+        }
+    }
+    
+    private fun calculateObserverPriority(observer: Step.ObserverBlock): Int {
+        // Simple priority for now - can be enhanced later
+        return 100
     }
 }
 
