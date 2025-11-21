@@ -1,0 +1,37 @@
+# AdaptiBot - Code Collaboration Rules
+
+## Language & Communication
+- **All code in English**: variable names, function names, class names, comments
+- **All logs in English**: log messages, error messages, warnings
+- **All UI notifications in English**: user-facing messages, tooltips, dialogs
+
+## Logging Policy
+- **Minimize logging**: only add logs where truly necessary
+- **Essential logs only**:
+  - Application lifecycle events (startup, shutdown)
+  - Critical errors and exceptions
+  - State transitions in core executor
+  - Observer triggers (when conditions are met)
+- **Avoid excessive logging**:
+  - No debug logs for every method entry/exit
+  - No info logs for trivial operations
+  - No logs in hot paths (e.g., image matching loops)
+
+## Documentation Policy
+- **Minimal KDoc/JavaDoc**: only for complex classes that require explanation
+- **Document when necessary**:
+  - Public APIs and interfaces
+  - Complex algorithms (e.g., Observer priority logic, image matching)
+  - Non-obvious architectural decisions
+- **Skip documentation for**:
+  - Self-explanatory classes (DTOs, simple models)
+  - Trivial getters/setters
+  - Standard JavaFX controllers with obvious purpose
+  - Utility functions with clear names
+
+## Code Style
+- Kotlin idiomatic style (use data classes, sealed classes, extension functions)
+- Prefer immutability where possible
+- Use meaningful names that explain intent
+- Keep functions small and focused
+
