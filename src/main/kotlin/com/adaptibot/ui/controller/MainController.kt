@@ -1,18 +1,22 @@
 package com.adaptibot.ui.controller
 
+import com.adaptibot.ui.view.MainView
 import javafx.fxml.FXML
 import javafx.fxml.Initializable
-import javafx.scene.control.Label
+import javafx.scene.layout.BorderPane
 import java.net.URL
 import java.util.*
 
 class MainController : Initializable {
     
     @FXML
-    private lateinit var welcomeLabel: Label
+    private lateinit var rootPane: BorderPane
+    
+    private lateinit var mainView: MainView
     
     override fun initialize(location: URL?, resources: ResourceBundle?) {
-        welcomeLabel.text = "Welcome to AdaptiBot!"
+        mainView = MainView()
+        rootPane.center = mainView
     }
 }
 
