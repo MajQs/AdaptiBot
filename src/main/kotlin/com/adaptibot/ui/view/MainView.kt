@@ -90,8 +90,6 @@ class MainView : BorderPane() {
                 Button("Pause"),
                 Button("Stop"),
                 Separator(Orientation.VERTICAL),
-                Label("Iteration: 0"),
-                Separator(Orientation.VERTICAL),
                 Label("Status: Idle")
             )
         }

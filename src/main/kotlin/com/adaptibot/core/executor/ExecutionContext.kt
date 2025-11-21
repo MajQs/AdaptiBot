@@ -7,7 +7,6 @@ import com.adaptibot.common.model.StepId
 data class ExecutionContext(
     val script: Script,
     val currentStepId: StepId? = null,
-    val iterationCount: Long = 0,
     val state: ExecutionState = ExecutionState.IDLE
 )
 
