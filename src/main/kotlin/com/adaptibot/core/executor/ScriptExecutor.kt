@@ -8,6 +8,7 @@ import com.adaptibot.core.executor.actions.IElementFinder
 import com.adaptibot.core.executor.observer.IObserverManager
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Main script execution engine.
@@ -31,6 +32,8 @@ class ScriptExecutor(
     @Volatile
     private var shouldStop = false
     
+    private val triggeredObserver = AtomicReference<Step.ObserverBlock?>(null)
+    
     override fun start(script: Script) {
         if (currentContext.state != ExecutionState.IDLE) {
             logger.warn("Cannot start script - already running")
@@ -41,10 +44,16 @@ class ScriptExecutor(
         com.adaptibot.ui.model.ExecutionLogger.logExecutionStart(script.name)
         
         shouldStop = false
+        triggeredObserver.set(null)
         currentContext = ExecutionContext(
             script = script,
             state = ExecutionState.RUNNING
         )
+        
+        observerManager.setOnObserverTriggered { observer ->
+            triggeredObserver.set(observer)
+            logger.info("Observer queued for execution: ${observer.id.value}")
+        }
         
         executionScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
         executionScope?.launch {
@@ -108,6 +117,8 @@ class ScriptExecutor(
     }
     
     private suspend fun executeStep(step: Step) {
+        checkAndExecuteTriggeredObserver(step.id)
+        
         currentContext = currentContext.copy(currentStepId = step.id)
         
         if (step.delayBefore > 0) {
@@ -123,6 +134,33 @@ class ScriptExecutor(
         
         if (step.delayAfter > 0) {
             delay(step.delayAfter)
+        }
+    }
+    
+    private suspend fun checkAndExecuteTriggeredObserver(currentStepId: com.adaptibot.common.model.StepId) {
+        val observer = triggeredObserver.getAndSet(null)
+        if (observer != null) {
+            logger.info("Executing triggered observer: ${observer.id.value}, interrupting step: ${currentStepId.value}")
+            
+            currentContext = currentContext.copy(
+                interruptedStepId = currentStepId,
+                isExecutingObserver = true
+            )
+            
+            try {
+                for (actionStep in observer.actionSteps) {
+                    if (shouldStop || currentContext.state == ExecutionState.PAUSED) {
+                        break
+                    }
+                    executeStep(actionStep)
+                }
+            } finally {
+                currentContext = currentContext.copy(
+                    interruptedStepId = null,
+                    isExecutingObserver = false
+                )
+                logger.info("Observer execution completed, resuming from interrupted step")
+            }
         }
     }
     
@@ -226,8 +264,7 @@ class ScriptExecutor(
         }
     }
     
-    private fun calculateObserverPriority(observer: Step.ObserverBlock): Int {
-        // Simple priority for now - can be enhanced later
+    private fun calculateObserverPriority(@Suppress("UNUSED_PARAMETER") observer: Step.ObserverBlock): Int {
         return 100
     }
 }

@@ -22,6 +22,9 @@ class ObserverManager(
     private val isRunning = AtomicBoolean(false)
     private var observerScope: CoroutineScope? = null
     
+    @Volatile
+    private var onObserverTriggered: ((Step.ObserverBlock) -> Unit)? = null
+    
     init {
         startObserverThread()
     }
@@ -40,7 +43,17 @@ class ObserverManager(
         logger.debug("Unregistered observer: ${observer.id.value}")
     }
     
-    override fun checkObservers(): Step.ObserverBlock? {
+    override fun setOnObserverTriggered(callback: (Step.ObserverBlock) -> Unit) {
+        onObserverTriggered = callback
+    }
+    
+    override fun clearAll() {
+        logger.debug("Clearing all observers")
+        observers.clear()
+        stopObserverThread()
+    }
+    
+    private fun checkObservers() {
         val activeObservers = observers.values
             .filter { it.isActive }
             .sortedByDescending { it.priority }
@@ -49,20 +62,13 @@ class ObserverManager(
             try {
                 if (conditionEvaluator.evaluate(state.observer.condition)) {
                     logger.info("Observer triggered: ${state.observer.id.value}")
-                    return state.observer
+                    onObserverTriggered?.invoke(state.observer)
+                    return
                 }
             } catch (e: Exception) {
                 logger.error("Error checking observer: ${state.observer.id.value}", e)
             }
         }
-        
-        return null
-    }
-    
-    override fun clearAll() {
-        logger.debug("Clearing all observers")
-        observers.clear()
-        stopObserverThread()
     }
     
     private fun startObserverThread() {

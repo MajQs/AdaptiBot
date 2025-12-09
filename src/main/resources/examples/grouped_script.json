@@ -1,0 +1,179 @@
+{
+  "name": "Grouped Actions Example",
+  "description": "Example demonstrating grouped actions for better organization",
+  "steps": [
+    {
+      "type": "com.adaptibot.common.model.Step.GroupBlock",
+      "id": {
+        "value": "group_login"
+      },
+      "label": "User authentication flow",
+      "delayBefore": 0,
+      "delayAfter": 0,
+      "name": "Login Process",
+      "steps": [
+        {
+          "type": "com.adaptibot.common.model.Step.ActionStep",
+          "id": {
+            "value": "step_1"
+          },
+          "label": "Click username field",
+          "delayBefore": 0,
+          "delayAfter": 500,
+          "action": {
+            "type": "com.adaptibot.common.model.Action.Mouse.LeftClick",
+            "target": {
+              "type": "com.adaptibot.common.model.ElementIdentifier.ByCoordinate",
+              "coordinate": {
+                "x": 400,
+                "y": 200
+              }
+            }
+          }
+        },
+        {
+          "type": "com.adaptibot.common.model.Step.ActionStep",
+          "id": {
+            "value": "step_2"
+          },
+          "label": "Type username",
+          "delayBefore": 0,
+          "delayAfter": 500,
+          "action": {
+            "type": "com.adaptibot.common.model.Action.Keyboard.TypeText",
+            "text": "user@example.com"
+          }
+        },
+        {
+          "type": "com.adaptibot.common.model.Step.ActionStep",
+          "id": {
+            "value": "step_3"
+          },
+          "label": "Click password field",
+          "delayBefore": 0,
+          "delayAfter": 500,
+          "action": {
+            "type": "com.adaptibot.common.model.Action.Mouse.LeftClick",
+            "target": {
+              "type": "com.adaptibot.common.model.ElementIdentifier.ByCoordinate",
+              "coordinate": {
+                "x": 400,
+                "y": 250
+              }
+            }
+          }
+        },
+        {
+          "type": "com.adaptibot.common.model.Step.ActionStep",
+          "id": {
+            "value": "step_4"
+          },
+          "label": "Type password",
+          "delayBefore": 0,
+          "delayAfter": 500,
+          "action": {
+            "type": "com.adaptibot.common.model.Action.Keyboard.TypeText",
+            "text": "password123"
+          }
+        },
+        {
+          "type": "com.adaptibot.common.model.Step.ActionStep",
+          "id": {
+            "value": "step_5"
+          },
+          "label": "Click login button",
+          "delayBefore": 0,
+          "delayAfter": 2000,
+          "action": {
+            "type": "com.adaptibot.common.model.Action.Mouse.LeftClick",
+            "target": {
+              "type": "com.adaptibot.common.model.ElementIdentifier.ByCoordinate",
+              "coordinate": {
+                "x": 400,
+                "y": 300
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "com.adaptibot.common.model.Step.GroupBlock",
+      "id": {
+        "value": "group_search"
+      },
+      "label": null,
+      "delayBefore": 0,
+      "delayAfter": 0,
+      "name": "Search Product",
+      "steps": [
+        {
+          "type": "com.adaptibot.common.model.Step.ActionStep",
+          "id": {
+            "value": "step_6"
+          },
+          "label": "Click search box",
+          "delayBefore": 0,
+          "delayAfter": 300,
+          "action": {
+            "type": "com.adaptibot.common.model.Action.Mouse.LeftClick",
+            "target": {
+              "type": "com.adaptibot.common.model.ElementIdentifier.ByCoordinate",
+              "coordinate": {
+                "x": 600,
+                "y": 100
+              }
+            }
+          }
+        },
+        {
+          "type": "com.adaptibot.common.model.Step.ActionStep",
+          "id": {
+            "value": "step_7"
+          },
+          "label": "Type search query",
+          "delayBefore": 0,
+          "delayAfter": 500,
+          "action": {
+            "type": "com.adaptibot.common.model.Action.Keyboard.TypeText",
+            "text": "laptop"
+          }
+        },
+        {
+          "type": "com.adaptibot.common.model.Step.ActionStep",
+          "id": {
+            "value": "step_8"
+          },
+          "label": "Press Enter to search",
+          "delayBefore": 0,
+          "delayAfter": 1000,
+          "action": {
+            "type": "com.adaptibot.common.model.Action.Keyboard.PressKey",
+            "key": "Enter"
+          }
+        }
+      ]
+    },
+    {
+      "type": "com.adaptibot.common.model.Step.ActionStep",
+      "id": {
+        "value": "step_9"
+      },
+      "label": "Wait for results",
+      "delayBefore": 0,
+      "delayAfter": 0,
+      "action": {
+        "type": "com.adaptibot.common.model.Action.System.Wait",
+        "milliseconds": 2000
+      }
+    }
+  ],
+  "settings": {
+    "defaultDelayBefore": 0,
+    "defaultDelayAfter": 0,
+    "observerCheckDelay": 1000,
+    "defaultImageMatchThreshold": 0.7
+  }
+}
+
+

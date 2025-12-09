@@ -1,0 +1,198 @@
+{
+  "name": "Conditional Script Example",
+  "description": "Example script demonstrating IF/ELSE blocks with image-based conditions",
+  "steps": [
+    {
+      "type": "ActionStep",
+      "id": {
+        "value": "step-1"
+      },
+      "label": "Wait for application start",
+      "delayBefore": 0,
+      "delayAfter": 1000,
+      "action": {
+        "type": "Wait",
+        "milliseconds": 2000
+      }
+    },
+    {
+      "type": "ConditionalBlock",
+      "id": {
+        "value": "if-block-1"
+      },
+      "label": "Check if login button exists",
+      "delayBefore": 0,
+      "delayAfter": 0,
+      "condition": {
+        "type": "ElementExists",
+        "identifier": {
+          "type": "ByCoordinate",
+          "coordinate": {
+            "x": 500,
+            "y": 300
+          }
+        }
+      },
+      "thenSteps": [
+        {
+          "type": "ActionStep",
+          "id": {
+            "value": "then-1"
+          },
+          "label": "Click login button",
+          "delayBefore": 0,
+          "delayAfter": 500,
+          "action": {
+            "type": "LeftClick",
+            "target": {
+              "type": "ByCoordinate",
+              "coordinate": {
+                "x": 500,
+                "y": 300
+              }
+            }
+          }
+        },
+        {
+          "type": "ActionStep",
+          "id": {
+            "value": "then-2"
+          },
+          "label": "Type username",
+          "delayBefore": 0,
+          "delayAfter": 200,
+          "action": {
+            "type": "TypeText",
+            "text": "testuser"
+          }
+        }
+      ],
+      "elseSteps": [
+        {
+          "type": "ActionStep",
+          "id": {
+            "value": "else-1"
+          },
+          "label": "Wait longer",
+          "delayBefore": 0,
+          "delayAfter": 0,
+          "action": {
+            "type": "Wait",
+            "milliseconds": 5000
+          }
+        }
+      ]
+    },
+    {
+      "type": "ConditionalBlock",
+      "id": {
+        "value": "if-block-2"
+      },
+      "label": "Complex condition example (AND)",
+      "delayBefore": 0,
+      "delayAfter": 0,
+      "condition": {
+        "type": "And",
+        "conditions": [
+          {
+            "type": "ElementExists",
+            "identifier": {
+              "type": "ByCoordinate",
+              "coordinate": {
+                "x": 100,
+                "y": 100
+              }
+            }
+          },
+          {
+            "type": "ElementNotExists",
+            "identifier": {
+              "type": "ByCoordinate",
+              "coordinate": {
+                "x": 200,
+                "y": 200
+              }
+            }
+          }
+        ]
+      },
+      "thenSteps": [
+        {
+          "type": "ActionStep",
+          "id": {
+            "value": "and-then-1"
+          },
+          "label": "Both conditions met",
+          "delayBefore": 0,
+          "delayAfter": 0,
+          "action": {
+            "type": "Wait",
+            "milliseconds": 1000
+          }
+        }
+      ],
+      "elseSteps": []
+    },
+    {
+      "type": "ObserverBlock",
+      "id": {
+        "value": "observer-1"
+      },
+      "label": "Handle popup dialogs",
+      "delayBefore": 0,
+      "delayAfter": 0,
+      "condition": {
+        "type": "ElementExists",
+        "identifier": {
+          "type": "ByCoordinate",
+          "coordinate": {
+            "x": 640,
+            "y": 360
+          }
+        }
+      },
+      "actionSteps": [
+        {
+          "type": "ActionStep",
+          "id": {
+            "value": "observer-action-1"
+          },
+          "label": "Close popup",
+          "delayBefore": 0,
+          "delayAfter": 500,
+          "action": {
+            "type": "LeftClick",
+            "target": {
+              "type": "ByCoordinate",
+              "coordinate": {
+                "x": 640,
+                "y": 360
+              }
+            }
+          }
+        },
+        {
+          "type": "ActionStep",
+          "id": {
+            "value": "observer-action-2"
+          },
+          "label": "Press ESC key",
+          "delayBefore": 0,
+          "delayAfter": 0,
+          "action": {
+            "type": "PressKey",
+            "key": "ESCAPE"
+          }
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "defaultDelayBefore": 100,
+    "defaultDelayAfter": 100,
+    "observerCheckDelay": 1000,
+    "defaultImageMatchThreshold": 0.7
+  }
+}
+
+

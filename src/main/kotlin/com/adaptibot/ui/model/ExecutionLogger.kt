@@ -85,18 +85,27 @@ object ExecutionLogger {
     }
     
     fun clear() {
-        Platform.runLater {
+        runOnPlatform {
             logs.clear()
         }
     }
     
     private fun addLog(entry: LogEntry) {
-        Platform.runLater {
-            // Remove oldest entry if limit reached
+        runOnPlatform {
             if (logs.size >= MAX_LOG_ENTRIES) {
                 logs.removeAt(0)
             }
             logs.add(entry)
+        }
+    }
+    
+    private fun runOnPlatform(action: () -> Unit) {
+        try {
+            if (Platform.isImplicitExit()) {
+                Platform.runLater(action)
+            }
+        } catch (e: IllegalStateException) {
+            // JavaFX not initialized - ignore in tests
         }
     }
     

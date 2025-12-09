@@ -69,9 +69,17 @@ sealed class Step {
     data class ActionStep(...)        // Single action
     data class ConditionalBlock(...)  // IF/ELSE
     data class ObserverBlock(...)     // Event listener
-    data class GroupBlock(...)        // Named group
+    data class GroupBlock(...)        // Named group for organization
 }
 ```
+
+**GroupBlock** - Organizational container
+- Groups related actions into named blocks (e.g., "Login Process", "Search Flow")
+- Does not affect execution logic - steps execute sequentially
+- Can be nested within other blocks
+- Supports collapse/expand in UI for better readability
+- Validated to ensure non-blank name and non-empty content
+- Full support in serialization, validation, and UI
 
 **Action** - Sealed hierarchy of all automatable actions
 - `Action.Mouse.*` - LeftClick, RightClick, MoveTo, Drag, Scroll

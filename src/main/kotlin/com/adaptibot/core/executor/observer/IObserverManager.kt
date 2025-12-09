@@ -9,7 +9,7 @@ import com.adaptibot.common.model.Step
 interface IObserverManager {
     fun registerObserver(observer: Step.ObserverBlock, priority: Int)
     fun unregisterObserver(observer: Step.ObserverBlock)
-    fun checkObservers(): Step.ObserverBlock?
     fun clearAll()
+    fun setOnObserverTriggered(callback: (Step.ObserverBlock) -> Unit)
 }
 
