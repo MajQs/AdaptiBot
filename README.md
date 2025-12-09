@@ -97,6 +97,7 @@ cd AdaptiBot
 The MVP delivers the following MUST-HAVE capabilities (see PRD §4.1):
 
 - Basic **script editor** (list/table view) with unlimited steps & nesting.
+- **Action grouping** - organize related actions into named blocks for better readability.
 - Full set of **mouse & keyboard actions** (click, type, drag, scroll …).
 - Dual **element identification** strategies: coordinates & template-matching vision.
 - **Conditional logic** with IF/ELSE and logical operators AND/OR/NOT.

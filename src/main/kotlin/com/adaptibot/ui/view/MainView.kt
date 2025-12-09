@@ -51,6 +51,9 @@ class MainView : BorderPane() {
         return Menu("Edit").apply {
             items.addAll(
                 MenuItem("Add Step"),
+                MenuItem("Add Group Block"),
+                MenuItem("Add IF/ELSE Block"),
+                MenuItem("Add Observer Block"),
                 MenuItem("Delete Step"),
                 MenuItem("Copy Step"),
                 MenuItem("Paste Step"),

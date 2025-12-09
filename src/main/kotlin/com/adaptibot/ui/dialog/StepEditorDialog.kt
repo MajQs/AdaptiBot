@@ -18,6 +18,10 @@ class StepEditorDialog(private val existingStep: Step.ActionStep? = null) : Dial
     // Dynamic fields based on action type
     private var dynamicFields = mutableMapOf<String, Control>()
 
+    fun setInitialActionType(actionType: ActionType) {
+        actionTypeComboBox.value = actionType
+    }
+    
     init {
         title = if (existingStep == null) "Add New Action Step" else "Edit Action Step"
         headerText = "Configure the action step properties"

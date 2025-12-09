@@ -1,5 +1,6 @@
 package com.adaptibot.ui.controller
 
+import com.adaptibot.ui.dialog.StepEditorDialog
 import com.adaptibot.ui.service.ScriptService
 import com.adaptibot.ui.service.ExecutionService
 import com.adaptibot.ui.view.MainView
@@ -46,10 +47,13 @@ class MainController : Initializable {
             
             // Edit menu
             get(1).items[0].setOnAction { handleAddStep() }
-            get(1).items[1].setOnAction { handleDeleteStep() }
-            get(1).items[2].setOnAction { handleCopyStep() }
-            get(1).items[3].setOnAction { handlePasteStep() }
-            get(1).items[5].setOnAction { handleSettings() }
+            get(1).items[1].setOnAction { handleAddGroupBlock() }
+            get(1).items[2].setOnAction { handleAddConditionalBlock() }
+            get(1).items[3].setOnAction { handleAddObserverBlock() }
+            get(1).items[4].setOnAction { handleDeleteStep() }
+            get(1).items[5].setOnAction { handleCopyStep() }
+            get(1).items[6].setOnAction { handlePasteStep() }
+            get(1).items[8].setOnAction { handleSettings() }
             
             // Run menu
             get(2).items[0].setOnAction { handleStart() }
@@ -79,6 +83,119 @@ class MainController : Initializable {
                 if (selectedItem != null && selectedItem.value != null) {
                     handleEditStep(selectedItem.value)
                 }
+            }
+        }
+        
+        // Context menu handlers
+        setupContextMenuHandlers()
+    }
+    
+    private fun setupContextMenuHandlers() {
+        val contextMenu = mainView.scriptEditorPane.contextMenu
+        
+        contextMenu.items.forEach { item ->
+            when (item) {
+                is javafx.scene.control.Menu -> {
+                    item.items.forEach { subItem ->
+                        when (subItem) {
+                            is javafx.scene.control.Menu -> {
+                                subItem.items.forEach { actionItem ->
+                                    when (actionItem.id) {
+                                        "add-action-move" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.MOUSE_MOVE) }
+                                        "add-action-left-click" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.MOUSE_LEFT_CLICK) }
+                                        "add-action-right-click" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.MOUSE_RIGHT_CLICK) }
+                                        "add-action-double-click" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.MOUSE_DOUBLE_CLICK) }
+                                        "add-action-type" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.KEYBOARD_TYPE) }
+                                        "add-action-press-key" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.KEYBOARD_PRESS_KEY) }
+                                        "add-action-wait" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.WAIT) }
+                                        "add-action-jump" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.JUMP_TO_LABEL) }
+                                        "add-block-group" -> actionItem.setOnAction { handleAddBlockToContainer("group") }
+                                        "add-block-conditional" -> actionItem.setOnAction { handleAddBlockToContainer("conditional") }
+                                        "add-block-observer" -> actionItem.setOnAction { handleAddBlockToContainer("observer") }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            when (item.id) {
+                "edit" -> item.setOnAction { 
+                    val selected = mainView.scriptEditorPane.stepsTreeView.selectionModel.selectedItem
+                    if (selected?.value != null) handleEditStep(selected.value)
+                }
+                "delete" -> item.setOnAction { handleDeleteStep() }
+                "copy" -> item.setOnAction { handleCopyStep() }
+                "paste" -> item.setOnAction { handlePasteStep() }
+            }
+        }
+        
+        contextMenu.setOnShowing {
+            val selected = mainView.scriptEditorPane.stepsTreeView.selectionModel.selectedItem
+            val isContainerSelected = selected?.value?.isContainer() == true
+            
+            val addMenu = contextMenu.items.find { it is javafx.scene.control.Menu && it.text == "Add" }
+            addMenu?.isVisible = isContainerSelected
+            contextMenu.items.find { it.id == "paste" }?.isDisable = (clipboardStep == null)
+        }
+        
+        mainView.scriptEditorPane.onStepMoved = { stepId, targetContainerId, targetContainerType, targetIndex, parentBlockId ->
+            scriptService.moveStep(stepId, targetContainerId, targetContainerType, targetIndex, parentBlockId)
+            updateUI()
+        }
+    }
+    
+    private fun handleAddActionToContainer(actionType: com.adaptibot.ui.dialog.StepEditorDialog.ActionType) {
+        val selectedItem = mainView.scriptEditorPane.stepsTreeView.selectionModel.selectedItem
+        val selectedNode = selectedItem?.value
+        
+        if (selectedNode != null && selectedNode.isContainer()) {
+            val dialog = com.adaptibot.ui.dialog.StepEditorDialog()
+            dialog.setInitialActionType(actionType)
+            val result = dialog.showAndWait()
+            
+            result.ifPresent { newStep ->
+                scriptService.addStepToContainer(
+                    selectedNode.step.id,
+                    selectedNode.containerType,
+                    newStep,
+                    selectedNode.parentBlockId
+                )
+                updateUI()
+            }
+        }
+    }
+    
+    private fun handleAddBlockToContainer(blockType: String) {
+        val selectedItem = mainView.scriptEditorPane.stepsTreeView.selectionModel.selectedItem
+        val selectedNode = selectedItem?.value
+        
+        if (selectedNode != null && selectedNode.isContainer()) {
+            val result = when (blockType) {
+                "group" -> {
+                    val dialog = com.adaptibot.ui.dialog.GroupBlockEditorDialog()
+                    dialog.showAndWait()
+                }
+                "conditional" -> {
+                    val dialog = com.adaptibot.ui.dialog.ConditionalBlockEditorDialog()
+                    dialog.showAndWait()
+                }
+                "observer" -> {
+                    val dialog = com.adaptibot.ui.dialog.ObserverBlockEditorDialog()
+                    dialog.showAndWait()
+                }
+                else -> return
+            }
+            
+            result.ifPresent { newBlock ->
+                scriptService.addStepToContainer(
+                    selectedNode.step.id,
+                    selectedNode.containerType,
+                    newBlock,
+                    selectedNode.parentBlockId
+                )
+                updateUI()
             }
         }
     }
@@ -115,6 +232,38 @@ class MainController : Initializable {
         }
     }
     
+    private fun handleAddGroupBlock() {
+        val dialog = com.adaptibot.ui.dialog.GroupBlockEditorDialog()
+        val result = dialog.showAndWait()
+        
+        result.ifPresent { newGroup ->
+            scriptService.addStep(newGroup)
+            updateUI()
+        }
+    }
+    
+    private fun handleAddConditionalBlock() {
+        val dialog = com.adaptibot.ui.dialog.ConditionalBlockEditorDialog()
+        val result = dialog.showAndWait()
+        
+        result.ifPresent { newBlock ->
+            scriptService.addStep(newBlock)
+            updateUI()
+            showInfo("Block Added", "Conditional block added successfully")
+        }
+    }
+    
+    private fun handleAddObserverBlock() {
+        val dialog = com.adaptibot.ui.dialog.ObserverBlockEditorDialog()
+        val result = dialog.showAndWait()
+        
+        result.ifPresent { newBlock ->
+            scriptService.addStep(newBlock)
+            updateUI()
+            showInfo("Block Added", "Observer block added successfully")
+        }
+    }
+    
     private fun handleDeleteStep() {
         val selectedItem = mainView.scriptEditorPane.stepsTreeView.selectionModel.selectedItem
         if (selectedItem != null && selectedItem.value != null) {
@@ -124,12 +273,35 @@ class MainController : Initializable {
         }
     }
     
+    private var clipboardStep: com.adaptibot.common.model.Step? = null
+    
     private fun handleCopyStep() {
-        // TODO: Copy selected step
+        val selectedItem = mainView.scriptEditorPane.stepsTreeView.selectionModel.selectedItem
+        if (selectedItem != null && selectedItem.value != null) {
+            val stepNode = selectedItem.value
+            clipboardStep = scriptService.copyStep(stepNode.step.id)
+            if (clipboardStep != null) {
+                showInfo("Copied", "Step copied to clipboard")
+            }
+        }
     }
     
     private fun handlePasteStep() {
-        // TODO: Paste step from clipboard
+        if (clipboardStep == null) {
+            showAlert("Nothing to Paste", "No step in clipboard. Copy a step first.")
+            return
+        }
+        
+        val selectedItem = mainView.scriptEditorPane.stepsTreeView.selectionModel.selectedItem
+        val targetGroupId = if (selectedItem != null && selectedItem.value.step is com.adaptibot.common.model.Step.GroupBlock) {
+            selectedItem.value.step.id
+        } else {
+            null
+        }
+        
+        scriptService.pasteStep(clipboardStep!!, targetGroupId)
+        updateUI()
+        showInfo("Pasted", "Step pasted successfully")
     }
     
     private fun handleSettings() {
@@ -149,13 +321,42 @@ class MainController : Initializable {
     }
     
     private fun handleEditStep(stepNode: com.adaptibot.ui.model.StepNode) {
-        if (stepNode.step is com.adaptibot.common.model.Step.ActionStep) {
-            val dialog = com.adaptibot.ui.dialog.StepEditorDialog(stepNode.step)
-            val result = dialog.showAndWait()
-            
-            result.ifPresent { updatedStep ->
-                scriptService.updateStep(stepNode.step.id, updatedStep)
-                updateUI()
+        when (val step = stepNode.step) {
+            is com.adaptibot.common.model.Step.ActionStep -> {
+                val dialog = com.adaptibot.ui.dialog.StepEditorDialog(step)
+                val result = dialog.showAndWait()
+                
+                result.ifPresent { updatedStep ->
+                    scriptService.updateStep(step.id, updatedStep)
+                    updateUI()
+                }
+            }
+            is com.adaptibot.common.model.Step.GroupBlock -> {
+                val dialog = com.adaptibot.ui.dialog.GroupBlockEditorDialog(step)
+                val result = dialog.showAndWait()
+                
+                result.ifPresent { updatedGroup ->
+                    scriptService.updateStep(step.id, updatedGroup)
+                    updateUI()
+                }
+            }
+            is com.adaptibot.common.model.Step.ConditionalBlock -> {
+                val dialog = com.adaptibot.ui.dialog.ConditionalBlockEditorDialog(step)
+                val result = dialog.showAndWait()
+                
+                result.ifPresent { updatedBlock ->
+                    scriptService.updateStep(step.id, updatedBlock)
+                    updateUI()
+                }
+            }
+            is com.adaptibot.common.model.Step.ObserverBlock -> {
+                val dialog = com.adaptibot.ui.dialog.ObserverBlockEditorDialog(step)
+                val result = dialog.showAndWait()
+                
+                result.ifPresent { updatedBlock ->
+                    scriptService.updateStep(step.id, updatedBlock)
+                    updateUI()
+                }
             }
         }
     }
@@ -219,6 +420,14 @@ class MainController : Initializable {
     }
     
     private fun showAlert(title: String, message: String) {
+        val alert = javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING)
+        alert.title = title
+        alert.headerText = null
+        alert.contentText = message
+        alert.showAndWait()
+    }
+    
+    private fun showInfo(title: String, message: String) {
         val alert = javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION)
         alert.title = title
         alert.headerText = null

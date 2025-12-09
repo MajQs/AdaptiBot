@@ -7,14 +7,16 @@ import javafx.scene.control.TreeItem
 object ScriptTreeBuilder {
     
     fun buildTree(steps: List<Step>): TreeItem<StepNode> {
+        val rootStep = Step.GroupBlock(
+            id = com.adaptibot.common.model.StepId("root"),
+            name = "Script Root",
+            steps = steps
+        )
         val root = TreeItem(StepNode(
-            step = Step.GroupBlock(
-                id = com.adaptibot.common.model.StepId("root"),
-                name = "Script Root",
-                steps = steps
-            ),
+            step = rootStep,
             displayText = "Script Steps",
-            icon = "📜"
+            icon = "📜",
+            containerType = com.adaptibot.ui.model.ContainerType.ROOT
         ))
         root.isExpanded = true
         
@@ -32,39 +34,41 @@ object ScriptTreeBuilder {
         
         when (step) {
             is Step.ConditionalBlock -> {
-                if (step.thenSteps.isNotEmpty()) {
-                    val thenBranch = TreeItem(StepNode(
-                        step = Step.GroupBlock(
-                            id = com.adaptibot.common.model.StepId("then_${step.id.value}"),
-                            name = "THEN",
-                            steps = step.thenSteps
-                        ),
-                        displayText = "THEN",
-                        icon = "✓"
-                    ))
-                    thenBranch.isExpanded = true
-                    step.thenSteps.forEach { childStep ->
-                        thenBranch.children.add(buildTreeItem(childStep))
-                    }
-                    treeItem.children.add(thenBranch)
+                val thenBranchStep = Step.GroupBlock(
+                    id = com.adaptibot.common.model.StepId("then_${step.id.value}"),
+                    name = "THEN",
+                    steps = step.thenSteps
+                )
+                val thenBranch = TreeItem(StepNode(
+                    step = thenBranchStep,
+                    displayText = "THEN",
+                    icon = "✓",
+                    containerType = com.adaptibot.ui.model.ContainerType.CONDITIONAL_THEN,
+                    parentBlockId = step.id
+                ))
+                thenBranch.isExpanded = true
+                step.thenSteps.forEach { childStep ->
+                    thenBranch.children.add(buildTreeItem(childStep))
                 }
+                treeItem.children.add(thenBranch)
                 
-                if (step.elseSteps.isNotEmpty()) {
-                    val elseBranch = TreeItem(StepNode(
-                        step = Step.GroupBlock(
-                            id = com.adaptibot.common.model.StepId("else_${step.id.value}"),
-                            name = "ELSE",
-                            steps = step.elseSteps
-                        ),
-                        displayText = "ELSE",
-                        icon = "✗"
-                    ))
-                    elseBranch.isExpanded = true
-                    step.elseSteps.forEach { childStep ->
-                        elseBranch.children.add(buildTreeItem(childStep))
-                    }
-                    treeItem.children.add(elseBranch)
+                val elseBranchStep = Step.GroupBlock(
+                    id = com.adaptibot.common.model.StepId("else_${step.id.value}"),
+                    name = "ELSE",
+                    steps = step.elseSteps
+                )
+                val elseBranch = TreeItem(StepNode(
+                    step = elseBranchStep,
+                    displayText = "ELSE",
+                    icon = "✗",
+                    containerType = com.adaptibot.ui.model.ContainerType.CONDITIONAL_ELSE,
+                    parentBlockId = step.id
+                ))
+                elseBranch.isExpanded = true
+                step.elseSteps.forEach { childStep ->
+                    elseBranch.children.add(buildTreeItem(childStep))
                 }
+                treeItem.children.add(elseBranch)
             }
             is Step.ObserverBlock -> {
                 step.actionSteps.forEach { childStep ->

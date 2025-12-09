@@ -10,3 +10,9 @@ data class ExecutionContext(
     val iterationCount: Long = 0
 )
 
+enum class ExecutionState {
+    IDLE,
+    RUNNING,
+    PAUSED,
+    STOPPED
+}

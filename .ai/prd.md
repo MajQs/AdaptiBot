@@ -132,7 +132,7 @@ AdaptiBot rozwiązuje powyższe problemy poprzez:
 
 #### 3.3.2 Identyfikacja przez rozpoznawanie obrazu
 - RF-035: System umożliwia przechwycenie fragmentu ekranu jako wzorca do rozpoznawania
-- RF-036: System pozwala na wczytanie obrazu wzorca z pliku
+- RF-036: System pozwala na wczytanie teobrazu wzorca z pliku
 - RF-037: System przeszukuje ekran w celu znalezienia najlepszego dopasowania do wzorca
 - RF-038: System umożliwia ustawienie progu dopasowania obrazu (np. 70%)
 - RF-039: System wizualizuje przechwycony obszar wzorca w interfejsie użytkownika
