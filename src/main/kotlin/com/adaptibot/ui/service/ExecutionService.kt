@@ -3,7 +3,6 @@ package com.adaptibot.ui.service
 import com.adaptibot.common.model.Script
 import com.adaptibot.core.CoreModule
 import com.adaptibot.core.CoreFacade
-import com.adaptibot.core.dto.ScriptExecutionInputDto
 import com.adaptibot.core.dto.ExecutionStateDto
 import org.slf4j.LoggerFactory
 
@@ -11,7 +10,7 @@ class ExecutionService {
     
     private val logger = LoggerFactory.getLogger(ExecutionService::class.java)
     
-    private val coreFacade: CoreFacade = CoreModule.create()
+    private val coreFacade: CoreFacade = CoreModule.getFacade()
 
     private var currentScript: Script? = null
     
@@ -29,8 +28,7 @@ class ExecutionService {
         }
         
         currentScript = scriptToRun
-        val input = ScriptExecutionInputDto(scriptToRun)
-        coreFacade.startScript(input)
+        coreFacade.startScript(scriptToRun)
     }
     
     fun pause() {

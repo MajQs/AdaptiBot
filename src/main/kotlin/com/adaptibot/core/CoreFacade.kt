@@ -1,23 +1,20 @@
 package com.adaptibot.core
 
-import com.adaptibot.core.domain.ScriptExecutor
-import com.adaptibot.core.dto.ExecutionContextDto
+import com.adaptibot.common.model.Script
+import com.adaptibot.core.domain.ScriptOrchestrator
 import com.adaptibot.core.dto.ExecutionStateDto
-import com.adaptibot.core.dto.ScriptExecutionInputDto
 
 class CoreFacade internal constructor(
-    private val scriptExecutor: ScriptExecutor
+    private val scriptOrchestrator: ScriptOrchestrator
 ) {
 
-    fun startScript(input: ScriptExecutionInputDto) = scriptExecutor.start(input.script)
+    fun startScript(script: Script) = scriptOrchestrator.start(script)
 
-    fun pauseScript() = scriptExecutor.pause()
+    fun pauseScript() = scriptOrchestrator.pause()
 
-    fun resumeScript() = scriptExecutor.resume()
+    fun resumeScript() = scriptOrchestrator.resume()
 
-    fun stopScript() = scriptExecutor.stop()
+    fun stopScript() = scriptOrchestrator.stop()
 
-    fun getExecutionState(): ExecutionStateDto = scriptExecutor.getState()
-
+    fun getExecutionState(): ExecutionStateDto = scriptOrchestrator.getExecutionState()
 }
-
