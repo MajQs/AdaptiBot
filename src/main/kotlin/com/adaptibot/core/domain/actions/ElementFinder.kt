@@ -1,4 +1,4 @@
-package com.adaptibot.core.executor.actions
+package com.adaptibot.core.domain.actions
 
 import com.adaptibot.common.model.Coordinate
 import com.adaptibot.common.model.ElementIdentifier
@@ -7,12 +7,15 @@ import com.adaptibot.vision.capture.ScreenCapture
 import com.adaptibot.vision.match.ImageMatcher
 import org.slf4j.LoggerFactory
 
-class ElementFinderImpl : IElementFinder {
-    
-    private val logger = LoggerFactory.getLogger(ElementFinderImpl::class.java)
+/**
+ * INTERNAL - Finds UI elements on screen.
+ */
+internal class ElementFinder {
+
+    private val logger = LoggerFactory.getLogger(ElementFinder::class.java)
     private val imageMatcher = ImageMatcher()
-    
-    override fun find(identifier: ElementIdentifier): Coordinate? {
+
+    fun find(identifier: ElementIdentifier): Coordinate? {
         return when (identifier) {
             is ElementIdentifier.ByCoordinate -> {
                 identifier.coordinate
@@ -22,15 +25,15 @@ class ElementFinderImpl : IElementFinder {
             }
         }
     }
-    
+
     private fun findByImage(identifier: ElementIdentifier.ByImage): Coordinate? {
         return try {
             val screenshot = ScreenCapture.captureFullScreen()
             val template = ImageEncoder.decodeFromBase64(identifier.pattern.base64Data)
             val threshold = identifier.pattern.matchThreshold
-            
+
             val matchResult = imageMatcher.findMatch(screenshot, template, threshold)
-            
+
             if (matchResult != null) {
                 logger.debug("Element found at (${matchResult.coordinate.x}, ${matchResult.coordinate.y}) with confidence ${matchResult.confidence}")
                 matchResult.coordinate
@@ -44,4 +47,5 @@ class ElementFinderImpl : IElementFinder {
         }
     }
 }
+
 

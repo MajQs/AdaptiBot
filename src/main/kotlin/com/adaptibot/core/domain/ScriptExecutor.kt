@@ -1,83 +1,82 @@
-package com.adaptibot.core.executor
+package com.adaptibot.core.domain
 
 import com.adaptibot.common.model.Script
 import com.adaptibot.common.model.Step
-import com.adaptibot.core.executor.actions.IActionExecutor
-import com.adaptibot.core.executor.actions.IConditionEvaluator
-import com.adaptibot.core.executor.actions.IElementFinder
-import com.adaptibot.core.executor.observer.IObserverManager
+import com.adaptibot.core.dto.ExecutionStateDto
+import com.adaptibot.core.domain.actions.ActionExecutor
+import com.adaptibot.core.domain.actions.ConditionEvaluator
+import com.adaptibot.core.domain.actions.ElementFinder
+import com.adaptibot.core.domain.observer.ObserverManager
+import com.adaptibot.core.dto.ExecutionContext
+import com.adaptibot.core.dto.ExecutionState
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicReference
 
-/**
- * Main script execution engine.
- * Manages infinite loop execution, state transitions, and observer coordination.
- */
-class ScriptExecutor(
-    private val actionExecutor: IActionExecutor,
-    private val elementFinder: IElementFinder,
-    private val conditionEvaluator: IConditionEvaluator,
-    private val observerManager: IObserverManager
-) : IScriptExecutor {
-    
+internal class ScriptExecutor(
+    private val actionExecutor: ActionExecutor,
+    private val elementFinder: ElementFinder,
+    private val conditionEvaluator: ConditionEvaluator,
+    private val observerManager: ObserverManager
+) {
+
     private val logger = LoggerFactory.getLogger(ScriptExecutor::class.java)
-    
+
     private var executionScope: CoroutineScope? = null
     private var currentContext: ExecutionContext = ExecutionContext(
         script = Script("", steps = emptyList()),
         state = ExecutionState.IDLE
     )
-    
+
     @Volatile
     private var shouldStop = false
-    
+
     private val triggeredObserver = AtomicReference<Step.ObserverBlock?>(null)
-    
-    override fun start(script: Script) {
+
+    fun start(script: Script) {
         if (currentContext.state != ExecutionState.IDLE) {
             logger.warn("Cannot start script - already running")
             return
         }
-        
+
         logger.info("Starting script execution: ${script.name}")
         com.adaptibot.ui.model.ExecutionLogger.logExecutionStart(script.name)
-        
+
         shouldStop = false
         triggeredObserver.set(null)
         currentContext = ExecutionContext(
             script = script,
             state = ExecutionState.RUNNING
         )
-        
+
         observerManager.setOnObserverTriggered { observer ->
             triggeredObserver.set(observer)
             logger.info("Observer queued for execution: ${observer.id.value}")
         }
-        
+
         executionScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
         executionScope?.launch {
             executeInfiniteLoop()
         }
     }
-    
-    override fun pause() {
+
+    fun pause() {
         if (currentContext.state == ExecutionState.RUNNING) {
             logger.info("Pausing script execution")
             com.adaptibot.ui.model.ExecutionLogger.logExecutionPause()
             currentContext = currentContext.copy(state = ExecutionState.PAUSED)
         }
     }
-    
-    override fun resume() {
+
+    fun resume() {
         if (currentContext.state == ExecutionState.PAUSED) {
             logger.info("Resuming script execution")
             com.adaptibot.ui.model.ExecutionLogger.logExecutionResume()
             currentContext = currentContext.copy(state = ExecutionState.RUNNING)
         }
     }
-    
-    override fun stop() {
+
+    fun stop() {
         logger.info("Stopping script execution")
         com.adaptibot.ui.model.ExecutionLogger.logExecutionStop()
         shouldStop = true
@@ -85,28 +84,26 @@ class ScriptExecutor(
         executionScope?.cancel()
         observerManager.clearAll()
     }
-    
-    override fun getState(): ExecutionState = currentContext.state
-    
-    override fun getContext(): ExecutionContext = currentContext
-    
+
+    fun getState(): ExecutionStateDto = ExecutionStateDto.valueOf(currentContext.state.name)
+
     private suspend fun executeInfiniteLoop() {
         while (!shouldStop && currentContext.state != ExecutionState.STOPPED) {
             if (currentContext.state == ExecutionState.PAUSED) {
                 delay(100)
                 continue
             }
-            
+
             executeIteration()
-            
-            currentContext = currentContext.copy(
-                iterationCount = currentContext.iterationCount + 1
-            )
+
         }
-        
-        currentContext = currentContext.copy(state = ExecutionState.IDLE)
+
+        // Only set to IDLE if not explicitly stopped
+        if (currentContext.state != ExecutionState.STOPPED) {
+            currentContext = currentContext.copy(state = ExecutionState.IDLE)
+        }
     }
-    
+
     private suspend fun executeIteration() {
         currentContext.script.steps.forEach { step ->
             if (shouldStop || currentContext.state == ExecutionState.PAUSED) {
@@ -115,38 +112,38 @@ class ScriptExecutor(
             executeStep(step)
         }
     }
-    
+
     private suspend fun executeStep(step: Step) {
         checkAndExecuteTriggeredObserver(step.id)
-        
+
         currentContext = currentContext.copy(currentStepId = step.id)
-        
+
         if (step.delayBefore > 0) {
             delay(step.delayBefore)
         }
-        
+
         when (step) {
             is Step.ActionStep -> executeActionStep(step)
             is Step.ConditionalBlock -> executeConditionalBlock(step)
             is Step.ObserverBlock -> registerObserver(step)
             is Step.GroupBlock -> executeGroupBlock(step)
         }
-        
+
         if (step.delayAfter > 0) {
             delay(step.delayAfter)
         }
     }
-    
+
     private suspend fun checkAndExecuteTriggeredObserver(currentStepId: com.adaptibot.common.model.StepId) {
         val observer = triggeredObserver.getAndSet(null)
         if (observer != null) {
             logger.info("Executing triggered observer: ${observer.id.value}, interrupting step: ${currentStepId.value}")
-            
+
             currentContext = currentContext.copy(
                 interruptedStepId = currentStepId,
                 isExecutingObserver = true
             )
-            
+
             try {
                 for (actionStep in observer.actionSteps) {
                     if (shouldStop || currentContext.state == ExecutionState.PAUSED) {
@@ -163,11 +160,11 @@ class ScriptExecutor(
             }
         }
     }
-    
+
     private fun executeActionStep(step: Step.ActionStep) {
         val stepName = step.label ?: step.action::class.simpleName ?: "Action"
         val startTime = System.currentTimeMillis()
-        
+
         try {
             val coordinate = when (val action = step.action) {
                 is com.adaptibot.common.model.Action.Mouse -> {
@@ -182,58 +179,58 @@ class ScriptExecutor(
                 }
                 else -> null
             }
-            
+
             val success = actionExecutor.execute(step.action, coordinate)
             val duration = System.currentTimeMillis() - startTime
-            
+
             if (success) {
                 com.adaptibot.ui.model.ExecutionLogger.logStepSuccess(stepName, duration)
             } else {
                 com.adaptibot.ui.model.ExecutionLogger.logStepFailure(stepName, duration, "Action failed")
                 logger.error("Action execution failed: ${step.label ?: step.id.value}")
             }
-            
+
             handleFlowControl(step.action)
-            
+
         } catch (e: Exception) {
             val duration = System.currentTimeMillis() - startTime
             com.adaptibot.ui.model.ExecutionLogger.logStepFailure(stepName, duration, e.message ?: "Exception")
             logger.error("Exception executing action step: ${step.label ?: step.id.value}", e)
         }
     }
-    
+
     private suspend fun executeConditionalBlock(block: Step.ConditionalBlock) {
         try {
             val conditionMet = conditionEvaluator.evaluate(block.condition)
-            
+
             val stepsToExecute = if (conditionMet) {
                 block.thenSteps
             } else {
                 block.elseSteps
             }
-            
+
             for (step in stepsToExecute) {
                 if (shouldStop || currentContext.state == ExecutionState.PAUSED) {
                     return
                 }
                 executeStep(step)
             }
-            
+
         } catch (e: Exception) {
             logger.error("Exception executing conditional block: ${block.label ?: block.id.value}", e)
         }
     }
-    
+
     private fun registerObserver(block: Step.ObserverBlock) {
         try {
             val priority = calculateObserverPriority(block)
             observerManager.registerObserver(block, priority)
-            
+
         } catch (e: Exception) {
             logger.error("Exception registering observer: ${block.label ?: block.id.value}", e)
         }
     }
-    
+
     private suspend fun executeGroupBlock(block: Step.GroupBlock) {
         try {
             for (step in block.steps) {
@@ -242,12 +239,12 @@ class ScriptExecutor(
                 }
                 executeStep(step)
             }
-            
+
         } catch (e: Exception) {
             logger.error("Exception executing group block: ${block.label ?: block.id.value}", e)
         }
     }
-    
+
     private fun handleFlowControl(action: com.adaptibot.common.model.Action) {
         when (action) {
             is com.adaptibot.common.model.Action.Flow.Stop -> {
@@ -263,7 +260,7 @@ class ScriptExecutor(
             else -> {}
         }
     }
-    
+
     private fun calculateObserverPriority(@Suppress("UNUSED_PARAMETER") observer: Step.ObserverBlock): Int {
         return 100
     }

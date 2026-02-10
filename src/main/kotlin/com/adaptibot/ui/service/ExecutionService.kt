@@ -1,31 +1,18 @@
 package com.adaptibot.ui.service
 
 import com.adaptibot.common.model.Script
-import com.adaptibot.core.executor.ExecutionState
-import com.adaptibot.core.executor.IScriptExecutor
-import com.adaptibot.core.executor.ScriptExecutor
-import com.adaptibot.core.executor.actions.ActionDispatcher
-import com.adaptibot.core.executor.actions.ConditionEvaluatorImpl
-import com.adaptibot.core.executor.actions.ElementFinderImpl
-import com.adaptibot.core.executor.observer.ObserverManager
+import com.adaptibot.core.CoreModule
+import com.adaptibot.core.CoreFacade
+import com.adaptibot.core.dto.ScriptExecutionInputDto
+import com.adaptibot.core.dto.ExecutionStateDto
 import org.slf4j.LoggerFactory
 
 class ExecutionService {
     
     private val logger = LoggerFactory.getLogger(ExecutionService::class.java)
     
-    private val elementFinder = ElementFinderImpl()
-    private val actionExecutor = ActionDispatcher()
-    private val conditionEvaluator = ConditionEvaluatorImpl(elementFinder)
-    private val observerManager = ObserverManager(conditionEvaluator)
-    
-    private val executor: IScriptExecutor = ScriptExecutor(
-        actionExecutor = actionExecutor,
-        elementFinder = elementFinder,
-        conditionEvaluator = conditionEvaluator,
-        observerManager = observerManager
-    )
-    
+    private val coreFacade: CoreFacade = CoreModule.create()
+
     private var currentScript: Script? = null
     
     fun start(script: Script? = null) {
@@ -42,31 +29,32 @@ class ExecutionService {
         }
         
         currentScript = scriptToRun
-        executor.start(scriptToRun)
+        val input = ScriptExecutionInputDto(scriptToRun)
+        coreFacade.startScript(input)
     }
     
     fun pause() {
-        executor.pause()
+        coreFacade.pauseScript()
     }
     
     fun resume() {
-        executor.resume()
+        coreFacade.resumeScript()
     }
     
     fun stop() {
-        executor.stop()
+        coreFacade.stopScript()
     }
     
-    fun getState(): ExecutionState {
-        return executor.getState()
+    fun getState(): ExecutionStateDto {
+        return coreFacade.getExecutionState()
     }
     
     fun isRunning(): Boolean {
-        return executor.getState() == ExecutionState.RUNNING
+        return coreFacade.getExecutionState() == ExecutionStateDto.RUNNING
     }
     
     fun isPaused(): Boolean {
-        return executor.getState() == ExecutionState.PAUSED
+        return coreFacade.getExecutionState() == ExecutionStateDto.PAUSED
     }
 }
 

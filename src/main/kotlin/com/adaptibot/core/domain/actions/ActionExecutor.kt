@@ -1,14 +1,17 @@
-package com.adaptibot.core.executor.actions
+package com.adaptibot.core.domain.actions
 
 import com.adaptibot.common.model.Action
 import com.adaptibot.common.model.Coordinate
 import org.slf4j.LoggerFactory
 
-class ActionDispatcher : IActionExecutor {
-    
-    private val logger = LoggerFactory.getLogger(ActionDispatcher::class.java)
-    
-    override fun execute(action: Action, resolvedCoordinate: Coordinate?): Boolean {
+/**
+ * INTERNAL - Executes actions by dispatching to appropriate controllers.
+ */
+internal class ActionExecutor {
+
+    private val logger = LoggerFactory.getLogger(ActionExecutor::class.java)
+
+    fun execute(action: Action, resolvedCoordinate: Coordinate?): Boolean {
         return try {
             when (action) {
                 is Action.Mouse -> executeMouse(action, resolvedCoordinate)
@@ -21,7 +24,7 @@ class ActionDispatcher : IActionExecutor {
             false
         }
     }
-    
+
     private fun executeMouse(action: Action.Mouse, coordinate: Coordinate?): Boolean {
         return try {
             when (action) {
@@ -43,16 +46,16 @@ class ActionDispatcher : IActionExecutor {
                 is Action.Mouse.Drag -> {
                     // Resolve both coordinates
                     val fromCoord = when (action.from) {
-                        is com.adaptibot.common.model.ElementIdentifier.ByCoordinate -> 
+                        is com.adaptibot.common.model.ElementIdentifier.ByCoordinate ->
                             (action.from as com.adaptibot.common.model.ElementIdentifier.ByCoordinate).coordinate
                         else -> null
                     }
                     val toCoord = when (action.to) {
-                        is com.adaptibot.common.model.ElementIdentifier.ByCoordinate -> 
+                        is com.adaptibot.common.model.ElementIdentifier.ByCoordinate ->
                             (action.to as com.adaptibot.common.model.ElementIdentifier.ByCoordinate).coordinate
                         else -> null
                     }
-                    
+
                     if (fromCoord != null && toCoord != null) {
                         com.adaptibot.automation.input.mouse.MouseController.dragTo(fromCoord, toCoord)
                     } else {
@@ -69,7 +72,7 @@ class ActionDispatcher : IActionExecutor {
             false
         }
     }
-    
+
     private fun executeKeyboard(action: Action.Keyboard): Boolean {
         return try {
             when (action) {
@@ -88,7 +91,7 @@ class ActionDispatcher : IActionExecutor {
             false
         }
     }
-    
+
     private fun executeSystem(action: Action.System): Boolean {
         // TODO: Implement system actions
         return when (action) {
@@ -106,10 +109,11 @@ class ActionDispatcher : IActionExecutor {
             }
         }
     }
-    
+
     private fun executeFlow(action: Action.Flow): Boolean {
         // TODO: Implement flow control (handled by executor)
         return true
     }
 }
+
 
