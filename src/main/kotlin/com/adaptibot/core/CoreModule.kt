@@ -1,6 +1,7 @@
 package com.adaptibot.core
 
 import com.adaptibot.core.domain.ScriptExecutor
+import com.adaptibot.core.domain.StepExecutor
 import com.adaptibot.core.domain.actions.ActionExecutor
 import com.adaptibot.core.domain.actions.ConditionEvaluator
 import com.adaptibot.core.domain.actions.ElementFinder
@@ -10,18 +11,20 @@ internal object CoreModule {
 
     fun create(): CoreFacade {
         val elementFinder = ElementFinder()
-        val actionExecutor = ActionExecutor()
         val conditionEvaluator = ConditionEvaluator(elementFinder)
         val observerManager = ObserverManager(conditionEvaluator, 1000)
 
-        val scriptExecutor = ScriptExecutor(
-            actionExecutor = actionExecutor,
-            elementFinder = elementFinder,
-            conditionEvaluator = conditionEvaluator,
-            observerManager = observerManager
+        return CoreFacade(
+            scriptExecutor = ScriptExecutor(
+                stepExecutor = StepExecutor(
+                    actionExecutor = ActionExecutor(),
+                    elementFinder = elementFinder,
+                    conditionEvaluator = conditionEvaluator,
+                    observerManager = observerManager,
+                ),
+                observerManager = observerManager,
+            ),
         )
-
-        return CoreFacade(scriptExecutor)
     }
 
 }

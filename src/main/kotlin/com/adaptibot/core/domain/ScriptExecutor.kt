@@ -14,10 +14,8 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicReference
 
 internal class ScriptExecutor(
-    private val actionExecutor: ActionExecutor,
-    private val elementFinder: ElementFinder,
-    private val conditionEvaluator: ConditionEvaluator,
-    private val observerManager: ObserverManager
+    private val stepExecutor: StepExecutor,
+    private val observerManager: ObserverManager,
 ) {
 
     private val logger = LoggerFactory.getLogger(ScriptExecutor::class.java)
@@ -118,20 +116,7 @@ internal class ScriptExecutor(
 
         currentContext = currentContext.copy(currentStepId = step.id)
 
-        if (step.delayBefore > 0) {
-            delay(step.delayBefore)
-        }
-
-        when (step) {
-            is Step.ActionStep -> executeActionStep(step)
-            is Step.ConditionalBlock -> executeConditionalBlock(step)
-            is Step.ObserverBlock -> registerObserver(step)
-            is Step.GroupBlock -> executeGroupBlock(step)
-        }
-
-        if (step.delayAfter > 0) {
-            delay(step.delayAfter)
-        }
+        stepExecutor.execute(step, currentContext) { shouldStop }
     }
 
     private suspend fun checkAndExecuteTriggeredObserver(currentStepId: com.adaptibot.common.model.StepId) {
@@ -149,7 +134,7 @@ internal class ScriptExecutor(
                     if (shouldStop || currentContext.state == ExecutionState.PAUSED) {
                         break
                     }
-                    executeStep(actionStep)
+                    stepExecutor.execute(actionStep, currentContext) { shouldStop }
                 }
             } finally {
                 currentContext = currentContext.copy(
@@ -159,110 +144,6 @@ internal class ScriptExecutor(
                 logger.info("Observer execution completed, resuming from interrupted step")
             }
         }
-    }
-
-    private fun executeActionStep(step: Step.ActionStep) {
-        val stepName = step.label ?: step.action::class.simpleName ?: "Action"
-        val startTime = System.currentTimeMillis()
-
-        try {
-            val coordinate = when (val action = step.action) {
-                is com.adaptibot.common.model.Action.Mouse -> {
-                    val target = when (action) {
-                        is com.adaptibot.common.model.Action.Mouse.LeftClick -> action.target
-                        is com.adaptibot.common.model.Action.Mouse.RightClick -> action.target
-                        is com.adaptibot.common.model.Action.Mouse.DoubleClick -> action.target
-                        is com.adaptibot.common.model.Action.Mouse.MoveTo -> action.target
-                        else -> null
-                    }
-                    target?.let { elementFinder.find(it) }
-                }
-                else -> null
-            }
-
-            val success = actionExecutor.execute(step.action, coordinate)
-            val duration = System.currentTimeMillis() - startTime
-
-            if (success) {
-                com.adaptibot.ui.model.ExecutionLogger.logStepSuccess(stepName, duration)
-            } else {
-                com.adaptibot.ui.model.ExecutionLogger.logStepFailure(stepName, duration, "Action failed")
-                logger.error("Action execution failed: ${step.label ?: step.id.value}")
-            }
-
-            handleFlowControl(step.action)
-
-        } catch (e: Exception) {
-            val duration = System.currentTimeMillis() - startTime
-            com.adaptibot.ui.model.ExecutionLogger.logStepFailure(stepName, duration, e.message ?: "Exception")
-            logger.error("Exception executing action step: ${step.label ?: step.id.value}", e)
-        }
-    }
-
-    private suspend fun executeConditionalBlock(block: Step.ConditionalBlock) {
-        try {
-            val conditionMet = conditionEvaluator.evaluate(block.condition)
-
-            val stepsToExecute = if (conditionMet) {
-                block.thenSteps
-            } else {
-                block.elseSteps
-            }
-
-            for (step in stepsToExecute) {
-                if (shouldStop || currentContext.state == ExecutionState.PAUSED) {
-                    return
-                }
-                executeStep(step)
-            }
-
-        } catch (e: Exception) {
-            logger.error("Exception executing conditional block: ${block.label ?: block.id.value}", e)
-        }
-    }
-
-    private fun registerObserver(block: Step.ObserverBlock) {
-        try {
-            val priority = calculateObserverPriority(block)
-            observerManager.registerObserver(block, priority)
-
-        } catch (e: Exception) {
-            logger.error("Exception registering observer: ${block.label ?: block.id.value}", e)
-        }
-    }
-
-    private suspend fun executeGroupBlock(block: Step.GroupBlock) {
-        try {
-            for (step in block.steps) {
-                if (shouldStop || currentContext.state == ExecutionState.PAUSED) {
-                    return
-                }
-                executeStep(step)
-            }
-
-        } catch (e: Exception) {
-            logger.error("Exception executing group block: ${block.label ?: block.id.value}", e)
-        }
-    }
-
-    private fun handleFlowControl(action: com.adaptibot.common.model.Action) {
-        when (action) {
-            is com.adaptibot.common.model.Action.Flow.Stop -> {
-                stop()
-            }
-            is com.adaptibot.common.model.Action.Flow.JumpTo -> {
-                // TODO: Implement jump logic
-                logger.warn("JumpTo not yet implemented")
-            }
-            is com.adaptibot.common.model.Action.Flow.Continue -> {
-                // Continue to next step (default behavior)
-            }
-            else -> {}
-        }
-    }
-
-    private fun calculateObserverPriority(@Suppress("UNUSED_PARAMETER") observer: Step.ObserverBlock): Int {
-        return 100
     }
 }
 
