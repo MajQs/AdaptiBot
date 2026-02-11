@@ -5,7 +5,7 @@ import com.adaptibot.ui.model.StepNode
 import javafx.scene.control.TreeItem
 
 object ScriptTreeBuilder {
-    
+
     fun buildTree(steps: List<Step>): TreeItem<StepNode> {
         val rootStep = Step.GroupBlock(
             id = com.adaptibot.common.model.StepId("root"),
@@ -19,19 +19,19 @@ object ScriptTreeBuilder {
             containerType = com.adaptibot.ui.model.ContainerType.ROOT
         ))
         root.isExpanded = true
-        
+
         steps.forEach { step ->
             root.children.add(buildTreeItem(step))
         }
-        
+
         return root
     }
-    
+
     private fun buildTreeItem(step: Step): TreeItem<StepNode> {
         val node = StepNode.from(step)
         val treeItem = TreeItem(node)
         treeItem.isExpanded = node.isExpanded
-        
+
         when (step) {
             is Step.ConditionalBlock -> {
                 val thenBranchStep = Step.GroupBlock(
@@ -51,7 +51,7 @@ object ScriptTreeBuilder {
                     thenBranch.children.add(buildTreeItem(childStep))
                 }
                 treeItem.children.add(thenBranch)
-                
+
                 val elseBranchStep = Step.GroupBlock(
                     id = com.adaptibot.common.model.StepId("else_${step.id.value}"),
                     name = "ELSE",
@@ -84,22 +84,22 @@ object ScriptTreeBuilder {
                 // Leaf node - no children
             }
         }
-        
+
         return treeItem
     }
-    
+
     fun findTreeItem(root: TreeItem<StepNode>, stepId: com.adaptibot.common.model.StepId): TreeItem<StepNode>? {
         if (root.value.step.id == stepId) {
             return root
         }
-        
+
         for (child in root.children) {
             val found = findTreeItem(child, stepId)
             if (found != null) {
                 return found
             }
         }
-        
+
         return null
     }
 }

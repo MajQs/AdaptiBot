@@ -8,7 +8,7 @@ import javafx.scene.layout.VBox
 import javafx.stage.Modality
 import java.util.*
 
-class StepEditorDialog(private val existingStep: Step.ActionStep? = null) : Dialog<Step.ActionStep>() {
+class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<ActionStep>() {
 
     private val stepIdField = TextField()
     private val labelField = TextField()
@@ -21,7 +21,7 @@ class StepEditorDialog(private val existingStep: Step.ActionStep? = null) : Dial
     fun setInitialActionType(actionType: ActionType) {
         actionTypeComboBox.value = actionType
     }
-    
+
     init {
         title = if (existingStep == null) "Add New Action Step" else "Edit Action Step"
         headerText = "Configure the action step properties"
@@ -99,209 +99,100 @@ class StepEditorDialog(private val existingStep: Step.ActionStep? = null) : Dial
         }
     }
 
-    private fun updateParameterFields(actionType: ActionType?) {
-        parametersPane.children.clear()
-        dynamicFields.clear()
-
-        if (actionType == null) return
-
-        val grid = GridPane().apply {
-            hgap = 10.0
-            vgap = 10.0
-        }
-
-        var row = 0
-
-        when (actionType) {
-            ActionType.MOUSE_MOVE -> {
-                grid.add(Label("X Coordinate:"), 0, row)
-                val xField = TextField().apply { promptText = "100" }
-                grid.add(xField, 1, row)
-                dynamicFields["x"] = xField
-                row++
-
-                grid.add(Label("Y Coordinate:"), 0, row)
-                val yField = TextField().apply { promptText = "200" }
-                grid.add(yField, 1, row)
-                dynamicFields["y"] = yField
-            }
-
-            ActionType.MOUSE_LEFT_CLICK, ActionType.MOUSE_RIGHT_CLICK, ActionType.MOUSE_DOUBLE_CLICK -> {
-                grid.add(Label("X Coordinate:"), 0, row)
-                val xField = TextField().apply { promptText = "100 (optional)" }
-                grid.add(xField, 1, row)
-                dynamicFields["x"] = xField
-                row++
-
-                grid.add(Label("Y Coordinate:"), 0, row)
-                val yField = TextField().apply { promptText = "200 (optional)" }
-                grid.add(yField, 1, row)
-                dynamicFields["y"] = yField
-            }
-
-            ActionType.KEYBOARD_TYPE -> {
-                grid.add(Label("Text to Type:"), 0, row)
-                val textField = TextField().apply { promptText = "Hello World" }
-                grid.add(textField, 1, row)
-                dynamicFields["text"] = textField
-            }
-
-            ActionType.KEYBOARD_PRESS_KEY -> {
-                grid.add(Label("Key Name:"), 0, row)
-                val keyField = TextField().apply { promptText = "ENTER, TAB, etc." }
-                grid.add(keyField, 1, row)
-                dynamicFields["key"] = keyField
-            }
-
-            ActionType.WAIT -> {
-                grid.add(Label("Duration (ms):"), 0, row)
-                val durationField = TextField().apply { promptText = "1000" }
-                grid.add(durationField, 1, row)
-                dynamicFields["duration"] = durationField
-            }
-
-            ActionType.JUMP_TO_LABEL -> {
-                grid.add(Label("Target Label:"), 0, row)
-                val labelField = TextField().apply { promptText = "target-step-id" }
-                grid.add(labelField, 1, row)
-                dynamicFields["targetLabel"] = labelField
-            }
-        }
-
-        parametersPane.children.add(grid)
-    }
-
-    private fun loadStepData(step: Step.ActionStep) {
+    private fun loadStepData(step: ActionStep) {
         stepIdField.text = step.id.value
+        stepIdField.isDisable = true // Don't allow changing ID when editing
         labelField.text = step.label ?: ""
 
-        when (val action = step.action) {
+        val action = step.action
+        val actionType = ActionType.fromAction(action)
+        actionTypeComboBox.value = actionType
+
+        updateParameterFields(actionType)
+
+        when (action) {
             is Action.Mouse.MoveTo -> {
-                actionTypeComboBox.value = ActionType.MOUSE_MOVE
-                when (val target = action.target) {
-                    is ElementIdentifier.ByCoordinate -> {
-                        (dynamicFields["x"] as? TextField)?.text = target.coordinate.x.toString()
-                        (dynamicFields["y"] as? TextField)?.text = target.coordinate.y.toString()
-                    }
-                    else -> {}
-                }
+                (dynamicFields["target"] as TextField).text = action.target.value
             }
-
             is Action.Mouse.LeftClick -> {
-                actionTypeComboBox.value = ActionType.MOUSE_LEFT_CLICK
-                when (val target = action.target) {
-                    is ElementIdentifier.ByCoordinate -> {
-                        (dynamicFields["x"] as? TextField)?.text = target.coordinate.x.toString()
-                        (dynamicFields["y"] as? TextField)?.text = target.coordinate.y.toString()
-                    }
-                    else -> {}
-                }
+                (dynamicFields["target"] as TextField).text = action.target.value
             }
-
             is Action.Mouse.RightClick -> {
-                actionTypeComboBox.value = ActionType.MOUSE_RIGHT_CLICK
-                when (val target = action.target) {
-                    is ElementIdentifier.ByCoordinate -> {
-                        (dynamicFields["x"] as? TextField)?.text = target.coordinate.x.toString()
-                        (dynamicFields["y"] as? TextField)?.text = target.coordinate.y.toString()
-                    }
-                    else -> {}
-                }
+                (dynamicFields["target"] as TextField).text = action.target.value
             }
-            
             is Action.Mouse.DoubleClick -> {
-                actionTypeComboBox.value = ActionType.MOUSE_DOUBLE_CLICK
-                when (val target = action.target) {
-                    is ElementIdentifier.ByCoordinate -> {
-                        (dynamicFields["x"] as? TextField)?.text = target.coordinate.x.toString()
-                        (dynamicFields["y"] as? TextField)?.text = target.coordinate.y.toString()
-                    }
-                    else -> {}
-                }
+                (dynamicFields["target"] as TextField).text = action.target.value
             }
-
-            is Action.Keyboard.TypeText -> {
-                actionTypeComboBox.value = ActionType.KEYBOARD_TYPE
-                (dynamicFields["text"] as? TextField)?.text = action.text
+            is Action.Keyboard.Type -> {
+                (dynamicFields["text"] as TextField).text = action.text
             }
-
             is Action.Keyboard.PressKey -> {
-                actionTypeComboBox.value = ActionType.KEYBOARD_PRESS_KEY
-                (dynamicFields["key"] as? TextField)?.text = action.key
+                (dynamicFields["key"] as TextField).text = action.key
             }
-
             is Action.System.Wait -> {
-                actionTypeComboBox.value = ActionType.WAIT
-                (dynamicFields["duration"] as? TextField)?.text = action.milliseconds.toString()
+                (dynamicFields["duration"] as TextField).text = action.duration.toString()
             }
-
-            is Action.Flow.JumpTo -> {
-                actionTypeComboBox.value = ActionType.JUMP_TO_LABEL
-                (dynamicFields["targetLabel"] as? TextField)?.text = action.targetStepId.value
+            is Action.Flow.JumpToLabel -> {
+                (dynamicFields["label"] as TextField).text = action.label
             }
-
             else -> {}
         }
     }
 
-    private fun buildActionStep(): Step.ActionStep {
+    private fun buildActionStep(): ActionStep {
         val stepId = StepId(stepIdField.text)
         val label = labelField.text
         val actionType = actionTypeComboBox.value
 
         val action = when (actionType) {
-            ActionType.MOUSE_MOVE -> {
-                val x = (dynamicFields["x"] as TextField).text.toIntOrNull() ?: 0
-                val y = (dynamicFields["y"] as TextField).text.toIntOrNull() ?: 0
-                Action.Mouse.MoveTo(ElementIdentifier.ByCoordinate(Coordinate(x, y)))
-            }
-
-            ActionType.MOUSE_LEFT_CLICK -> {
-                val x = (dynamicFields["x"] as TextField).text.toIntOrNull() ?: 0
-                val y = (dynamicFields["y"] as TextField).text.toIntOrNull() ?: 0
-                Action.Mouse.LeftClick(ElementIdentifier.ByCoordinate(Coordinate(x, y)))
-            }
-
-            ActionType.MOUSE_RIGHT_CLICK -> {
-                val x = (dynamicFields["x"] as TextField).text.toIntOrNull() ?: 0
-                val y = (dynamicFields["y"] as TextField).text.toIntOrNull() ?: 0
-                Action.Mouse.RightClick(ElementIdentifier.ByCoordinate(Coordinate(x, y)))
-            }
-
-            ActionType.MOUSE_DOUBLE_CLICK -> {
-                val x = (dynamicFields["x"] as TextField).text.toIntOrNull() ?: 0
-                val y = (dynamicFields["y"] as TextField).text.toIntOrNull() ?: 0
-                Action.Mouse.DoubleClick(ElementIdentifier.ByCoordinate(Coordinate(x, y)))
-            }
-
-            ActionType.KEYBOARD_TYPE -> {
-                val text = (dynamicFields["text"] as TextField).text
-                Action.Keyboard.TypeText(text)
-            }
-
-            ActionType.KEYBOARD_PRESS_KEY -> {
-                val key = (dynamicFields["key"] as TextField).text
-                Action.Keyboard.PressKey(key)
-            }
-
-            ActionType.WAIT -> {
-                val duration = (dynamicFields["duration"] as TextField).text.toLongOrNull() ?: 1000L
-                Action.System.Wait(duration)
-            }
-
-            ActionType.JUMP_TO_LABEL -> {
-                val targetLabel = (dynamicFields["targetLabel"] as TextField).text
-                Action.Flow.JumpTo(StepId(targetLabel))
-            }
-
-            else -> Action.System.Wait(1000L) // Default fallback
+            ActionType.MOUSE_MOVE -> Action.Mouse.MoveTo(Target((dynamicFields["target"] as TextField).text))
+            ActionType.MOUSE_LEFT_CLICK -> Action.Mouse.LeftClick(Target((dynamicFields["target"] as TextField).text))
+            ActionType.MOUSE_RIGHT_CLICK -> Action.Mouse.RightClick(Target((dynamicFields["target"] as TextField).text))
+            ActionType.MOUSE_DOUBLE_CLICK -> Action.Mouse.DoubleClick(Target((dynamicFields["target"] as TextField).text))
+            ActionType.KEYBOARD_TYPE -> Action.Keyboard.Type((dynamicFields["text"] as TextField).text)
+            ActionType.KEYBOARD_PRESS_KEY -> Action.Keyboard.PressKey((dynamicFields["key"] as TextField).text)
+            ActionType.WAIT -> Action.System.Wait((dynamicFields["duration"] as TextField).text.toLong())
+            ActionType.JUMP_TO_LABEL -> Action.Flow.JumpToLabel((dynamicFields["label"] as TextField).text)
+            else -> throw IllegalStateException("Unsupported action type")
         }
 
-        return Step.ActionStep(
-            id = stepId,
+        return ActionStep(
+            id = existingStep?.id ?: stepId,
             label = label,
             action = action
         )
+    }
+
+    private fun updateParameterFields(actionType: ActionType?) {
+        parametersPane.children.clear()
+        dynamicFields.clear()
+
+        when (actionType) {
+            ActionType.MOUSE_MOVE, ActionType.MOUSE_LEFT_CLICK, ActionType.MOUSE_RIGHT_CLICK, ActionType.MOUSE_DOUBLE_CLICK -> {
+                addTextField("target", "Target (e.g., image.png)")
+            }
+            ActionType.KEYBOARD_TYPE -> {
+                addTextField("text", "Text to type")
+            }
+            ActionType.KEYBOARD_PRESS_KEY -> {
+                addTextField("key", "Key to press (e.g., ENTER)")
+            }
+            ActionType.WAIT -> {
+                addTextField("duration", "Duration (ms)")
+            }
+            ActionType.JUMP_TO_LABEL -> {
+                addTextField("label", "Jump to Label")
+            }
+            else -> {
+                // No parameters
+            }
+        }
+    }
+
+    private fun addTextField(id: String, prompt: String) {
+        val textField = TextField().apply { promptText = prompt }
+        dynamicFields[id] = textField
+        parametersPane.children.add(VBox(5.0, Label(prompt), textField))
     }
 
     enum class ActionType {
@@ -312,7 +203,22 @@ class StepEditorDialog(private val existingStep: Step.ActionStep? = null) : Dial
         KEYBOARD_TYPE,
         KEYBOARD_PRESS_KEY,
         WAIT,
-        JUMP_TO_LABEL
+        JUMP_TO_LABEL;
+
+        companion object {
+            fun fromAction(action: Action): ActionType {
+                return when (action) {
+                    is Action.Mouse.MoveTo -> MOUSE_MOVE
+                    is Action.Mouse.LeftClick -> MOUSE_LEFT_CLICK
+                    is Action.Mouse.RightClick -> MOUSE_RIGHT_CLICK
+                    is Action.Mouse.DoubleClick -> MOUSE_DOUBLE_CLICK
+                    is Action.Keyboard.Type -> KEYBOARD_TYPE
+                    is Action.Keyboard.PressKey -> KEYBOARD_PRESS_KEY
+                    is Action.System.Wait -> WAIT
+                    is Action.Flow.JumpToLabel -> JUMP_TO_LABEL
+                    else -> throw IllegalArgumentException("Unknown action type")
+                }
+            }
+        }
     }
 }
-

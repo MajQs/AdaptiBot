@@ -1,7 +1,7 @@
 package com.adaptibot.ui.dialog
 
 import com.adaptibot.common.model.Condition
-import com.adaptibot.common.model.Step
+import com.adaptibot.common.model.ObserverStep
 import com.adaptibot.common.model.StepId
 import com.adaptibot.ui.view.ConditionBuilderPane
 import javafx.geometry.Insets
@@ -10,7 +10,7 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
 import javafx.stage.Modality
 
-class ObserverBlockEditorDialog(private val existingBlock: Step.ObserverBlock? = null) : Dialog<Step.ObserverBlock>() {
+class ObserverStepEditorDialog(private val existingBlock: ObserverStep? = null) : Dialog<ObserverStep>() {
 
     private val stepIdField = TextField()
     private val labelField = TextField()
@@ -19,8 +19,8 @@ class ObserverBlockEditorDialog(private val existingBlock: Step.ObserverBlock? =
     private val conditionBuilder = ConditionBuilderPane()
 
     init {
-        title = if (existingBlock == null) "Add New Observer Block" else "Edit Observer Block"
-        headerText = "Configure the observer block properties"
+        title = if (existingBlock == null) "Add New Observer" else "Edit Observer"
+        headerText = "Configure the observer properties"
 
         initModality(Modality.APPLICATION_MODAL)
         isResizable = true
@@ -55,8 +55,8 @@ class ObserverBlockEditorDialog(private val existingBlock: Step.ObserverBlock? =
 
         val conditionSection = VBox(10.0).apply {
             children.addAll(
-                Label("Observer Condition (triggers when true):").apply { 
-                    style = "-fx-font-weight: bold; -fx-font-size: 14px;" 
+                Label("Observer Condition (triggers when true):").apply {
+                    style = "-fx-font-weight: bold; -fx-font-size: 14px;"
                 },
                 conditionBuilder
             )
@@ -78,7 +78,7 @@ class ObserverBlockEditorDialog(private val existingBlock: Step.ObserverBlock? =
 
         setResultConverter { buttonType ->
             if (buttonType == ButtonType.OK) {
-                buildObserverBlock()
+                buildObserverStep()
             } else {
                 null
             }
@@ -90,7 +90,7 @@ class ObserverBlockEditorDialog(private val existingBlock: Step.ObserverBlock? =
         stepIdField.textProperty().addListener { _, _, _ ->
             updateOkButtonState(okButton)
         }
-        
+
         conditionBuilder.conditionProperty.addListener { _, _, _ ->
             updateOkButtonState(okButton)
         }
@@ -100,32 +100,25 @@ class ObserverBlockEditorDialog(private val existingBlock: Step.ObserverBlock? =
         okButton.isDisable = stepIdField.text.isNullOrBlank() || conditionBuilder.getCondition() == null
     }
 
-    private fun loadBlockData(block: Step.ObserverBlock) {
+    private fun loadBlockData(block: ObserverStep) {
         stepIdField.text = block.id.value
-        stepIdField.isDisable = true
-        labelField.text = block.label ?: ""
+        labelField.text = block.label
         delayBeforeField.text = block.delayBefore.toString()
         delayAfterField.text = block.delayAfter.toString()
         conditionBuilder.setCondition(block.condition)
     }
 
-    private fun buildObserverBlock(): Step.ObserverBlock? {
-        val condition = conditionBuilder.getCondition() ?: return null
-        
-        val stepId = StepId(stepIdField.text)
-        val label = labelField.text.takeIf { it.isNotBlank() }
-        val delayBefore = delayBeforeField.text.toLongOrNull() ?: 0L
-        val delayAfter = delayAfterField.text.toLongOrNull() ?: 0L
+    private fun buildObserverStep(): ObserverStep {
+        val id = if (existingBlock != null) existingBlock.id else StepId(stepIdField.text)
+        val condition = conditionBuilder.getCondition() ?: throw IllegalStateException("Condition cannot be null")
 
-        return Step.ObserverBlock(
-            id = stepId,
-            label = label,
-            delayBefore = delayBefore,
-            delayAfter = delayAfter,
+        return ObserverStep(
+            id = id,
+            label = labelField.text.takeIf { it.isNotBlank() },
+            delayBefore = delayBeforeField.text.toLongOrNull() ?: 0,
+            delayAfter = delayAfterField.text.toLongOrNull() ?: 0,
             condition = condition,
             actionSteps = existingBlock?.actionSteps ?: emptyList()
         )
     }
 }
-
-

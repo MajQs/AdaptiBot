@@ -1,7 +1,6 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.common.model.Condition
-import com.adaptibot.common.model.Step
+import com.adaptibot.common.model.ConditionalBlock
 import com.adaptibot.common.model.StepId
 import com.adaptibot.ui.view.ConditionBuilderPane
 import javafx.geometry.Insets
@@ -10,7 +9,7 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
 import javafx.stage.Modality
 
-class ConditionalBlockEditorDialog(private val existingBlock: Step.ConditionalBlock? = null) : Dialog<Step.ConditionalBlock>() {
+class ConditionalBlockEditorDialog(private val existingBlock: ConditionalBlock? = null) : Dialog<ConditionalBlock>() {
 
     private val stepIdField = TextField()
     private val labelField = TextField()
@@ -100,28 +99,23 @@ class ConditionalBlockEditorDialog(private val existingBlock: Step.ConditionalBl
         okButton.isDisable = stepIdField.text.isNullOrBlank() || conditionBuilder.getCondition() == null
     }
 
-    private fun loadBlockData(block: Step.ConditionalBlock) {
+    private fun loadBlockData(block: ConditionalBlock) {
         stepIdField.text = block.id.value
-        stepIdField.isDisable = true
-        labelField.text = block.label ?: ""
+        labelField.text = block.label
         delayBeforeField.text = block.delayBefore.toString()
         delayAfterField.text = block.delayAfter.toString()
         conditionBuilder.setCondition(block.condition)
     }
 
-    private fun buildConditionalBlock(): Step.ConditionalBlock? {
-        val condition = conditionBuilder.getCondition() ?: return null
-        
-        val stepId = StepId(stepIdField.text)
-        val label = labelField.text.takeIf { it.isNotBlank() }
-        val delayBefore = delayBeforeField.text.toLongOrNull() ?: 0L
-        val delayAfter = delayAfterField.text.toLongOrNull() ?: 0L
+    private fun buildConditionalBlock(): ConditionalBlock {
+        val id = if (existingBlock != null) existingBlock.id else StepId(stepIdField.text)
+        val condition = conditionBuilder.getCondition() ?: throw IllegalStateException("Condition cannot be null")
 
-        return Step.ConditionalBlock(
-            id = stepId,
-            label = label,
-            delayBefore = delayBefore,
-            delayAfter = delayAfter,
+        return ConditionalBlock(
+            id = id,
+            label = labelField.text.takeIf { it.isNotBlank() },
+            delayBefore = delayBeforeField.text.toLongOrNull() ?: 0,
+            delayAfter = delayAfterField.text.toLongOrNull() ?: 0,
             condition = condition,
             thenSteps = existingBlock?.thenSteps ?: emptyList(),
             elseSteps = existingBlock?.elseSteps ?: emptyList()

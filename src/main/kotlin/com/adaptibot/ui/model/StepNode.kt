@@ -23,7 +23,7 @@ data class StepNode(
     fun isContainer(): Boolean {
         return containerType != ContainerType.NONE
     }
-    
+
     companion object {
         fun from(step: Step, containerType: ContainerType = ContainerType.NONE, parentBlockId: StepId? = null): StepNode {
             val (displayText, icon) = when (step) {
@@ -49,9 +49,6 @@ data class StepNode(
                     }
                     Pair(displayName, "📦")
                 }
-            }
-            
-            val actualContainerType = if (containerType != ContainerType.NONE) {
                 containerType
             } else {
                 when (step) {
@@ -60,10 +57,10 @@ data class StepNode(
                     else -> ContainerType.NONE
                 }
             }
-            
+
             return StepNode(step, displayText, icon, true, actualContainerType, parentBlockId)
         }
-        
+
         private fun getActionIcon(action: com.adaptibot.common.model.Action): String {
             return when (action) {
                 is com.adaptibot.common.model.Action.Mouse -> "🖱️"
