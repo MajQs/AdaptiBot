@@ -6,7 +6,6 @@ import javafx.scene.control.*
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
 import javafx.stage.Modality
-import java.util.*
 
 class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<ActionStep>() {
 
@@ -58,7 +57,7 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
             ActionType.KEYBOARD_TYPE,
             ActionType.KEYBOARD_PRESS_KEY,
             ActionType.WAIT,
-            ActionType.JUMP_TO_LABEL
+            ActionType.JUMP_TO_STEP
         )
 
         actionTypeComboBox.selectionModel.selectedItemProperty().addListener { _, _, newValue ->
@@ -112,28 +111,28 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
 
         when (action) {
             is Action.Mouse.MoveTo -> {
-                (dynamicFields["target"] as TextField).text = action.target.value
+                (dynamicFields["target"] as TextField).text = getElementIdentifierString(action.target)
             }
             is Action.Mouse.LeftClick -> {
-                (dynamicFields["target"] as TextField).text = action.target.value
+                (dynamicFields["target"] as TextField).text = getElementIdentifierString(action.target)
             }
             is Action.Mouse.RightClick -> {
-                (dynamicFields["target"] as TextField).text = action.target.value
+                (dynamicFields["target"] as TextField).text = getElementIdentifierString(action.target)
             }
             is Action.Mouse.DoubleClick -> {
-                (dynamicFields["target"] as TextField).text = action.target.value
+                (dynamicFields["target"] as TextField).text = getElementIdentifierString(action.target)
             }
-            is Action.Keyboard.Type -> {
+            is Action.Keyboard.TypeText -> {
                 (dynamicFields["text"] as TextField).text = action.text
             }
             is Action.Keyboard.PressKey -> {
                 (dynamicFields["key"] as TextField).text = action.key
             }
             is Action.System.Wait -> {
-                (dynamicFields["duration"] as TextField).text = action.duration.toString()
+                (dynamicFields["duration"] as TextField).text = action.milliseconds.toString()
             }
-            is Action.Flow.JumpToLabel -> {
-                (dynamicFields["label"] as TextField).text = action.label
+            is Action.Flow.JumpTo -> {
+                (dynamicFields["stepId"] as TextField).text = action.targetStepId.value
             }
             else -> {}
         }
@@ -145,14 +144,14 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
         val actionType = actionTypeComboBox.value
 
         val action = when (actionType) {
-            ActionType.MOUSE_MOVE -> Action.Mouse.MoveTo(Target((dynamicFields["target"] as TextField).text))
-            ActionType.MOUSE_LEFT_CLICK -> Action.Mouse.LeftClick(Target((dynamicFields["target"] as TextField).text))
-            ActionType.MOUSE_RIGHT_CLICK -> Action.Mouse.RightClick(Target((dynamicFields["target"] as TextField).text))
-            ActionType.MOUSE_DOUBLE_CLICK -> Action.Mouse.DoubleClick(Target((dynamicFields["target"] as TextField).text))
-            ActionType.KEYBOARD_TYPE -> Action.Keyboard.Type((dynamicFields["text"] as TextField).text)
+            ActionType.MOUSE_MOVE -> Action.Mouse.MoveTo(parseElementIdentifier((dynamicFields["target"] as TextField).text))
+            ActionType.MOUSE_LEFT_CLICK -> Action.Mouse.LeftClick(parseElementIdentifier((dynamicFields["target"] as TextField).text))
+            ActionType.MOUSE_RIGHT_CLICK -> Action.Mouse.RightClick(parseElementIdentifier((dynamicFields["target"] as TextField).text))
+            ActionType.MOUSE_DOUBLE_CLICK -> Action.Mouse.DoubleClick(parseElementIdentifier((dynamicFields["target"] as TextField).text))
+            ActionType.KEYBOARD_TYPE -> Action.Keyboard.TypeText((dynamicFields["text"] as TextField).text)
             ActionType.KEYBOARD_PRESS_KEY -> Action.Keyboard.PressKey((dynamicFields["key"] as TextField).text)
             ActionType.WAIT -> Action.System.Wait((dynamicFields["duration"] as TextField).text.toLong())
-            ActionType.JUMP_TO_LABEL -> Action.Flow.JumpToLabel((dynamicFields["label"] as TextField).text)
+            ActionType.JUMP_TO_STEP -> Action.Flow.JumpTo(StepId((dynamicFields["stepId"] as TextField).text))
             else -> throw IllegalStateException("Unsupported action type")
         }
 
@@ -180,13 +179,37 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
             ActionType.WAIT -> {
                 addTextField("duration", "Duration (ms)")
             }
-            ActionType.JUMP_TO_LABEL -> {
-                addTextField("label", "Jump to Label")
+            ActionType.JUMP_TO_STEP -> {
+                addTextField("stepId", "Target Step ID")
             }
             else -> {
                 // No parameters
             }
         }
+    }
+
+    private fun getElementIdentifierString(identifier: ElementIdentifier): String {
+        return when (identifier) {
+            is ElementIdentifier.ByCoordinate -> "${identifier.coordinate.x},${identifier.coordinate.y}"
+            is ElementIdentifier.ByImage -> "[Image Pattern]" // Simplified representation for UI
+        }
+    }
+
+    private fun parseElementIdentifier(text: String): ElementIdentifier {
+        // Try to parse as coordinate (x,y)
+        if (text.contains(',')) {
+            val parts = text.split(',')
+            if (parts.size == 2) {
+                val x = parts[0].trim().toIntOrNull()
+                val y = parts[1].trim().toIntOrNull()
+                if (x != null && y != null) {
+                    return ElementIdentifier.ByCoordinate(Coordinate(x, y))
+                }
+            }
+        }
+        // For image patterns, use placeholder base64
+        // In real implementation, this should open file picker
+        return ElementIdentifier.ByImage(ImagePattern(base64Data = "", matchThreshold = 0.7))
     }
 
     private fun addTextField(id: String, prompt: String) {
@@ -203,7 +226,7 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
         KEYBOARD_TYPE,
         KEYBOARD_PRESS_KEY,
         WAIT,
-        JUMP_TO_LABEL;
+        JUMP_TO_STEP;
 
         companion object {
             fun fromAction(action: Action): ActionType {
@@ -212,10 +235,10 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
                     is Action.Mouse.LeftClick -> MOUSE_LEFT_CLICK
                     is Action.Mouse.RightClick -> MOUSE_RIGHT_CLICK
                     is Action.Mouse.DoubleClick -> MOUSE_DOUBLE_CLICK
-                    is Action.Keyboard.Type -> KEYBOARD_TYPE
+                    is Action.Keyboard.TypeText -> KEYBOARD_TYPE
                     is Action.Keyboard.PressKey -> KEYBOARD_PRESS_KEY
                     is Action.System.Wait -> WAIT
-                    is Action.Flow.JumpToLabel -> JUMP_TO_LABEL
+                    is Action.Flow.JumpTo -> JUMP_TO_STEP
                     else -> throw IllegalArgumentException("Unknown action type")
                 }
             }

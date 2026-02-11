@@ -4,12 +4,12 @@ import com.adaptibot.common.model.Action
 import com.adaptibot.common.model.ActionStep
 import com.adaptibot.core.domain.actions.ActionExecutor as ActionExecutorImpl
 import com.adaptibot.core.domain.actions.ElementFinder
-import com.adaptibot.ui.model.ExecutionLogger
 import org.slf4j.LoggerFactory
 
 internal class ActionExecutor(
     private val actionExecutorImpl: ActionExecutorImpl,
     private val elementFinder: ElementFinder,
+    private val eventPublisher: ExecutionEventPublisher
 ) {
     private val logger = LoggerFactory.getLogger(ActionExecutor::class.java)
 
@@ -37,16 +37,16 @@ internal class ActionExecutor(
             val duration = System.currentTimeMillis() - startTime
 
             if (success) {
-                ExecutionLogger.logStepSuccess(stepName, duration)
+                eventPublisher.logStepSuccess(stepName, duration)
             } else {
-                ExecutionLogger.logStepFailure(stepName, duration, "Action failed")
+                eventPublisher.logStepFailure(stepName, duration, "Action failed")
                 logger.error("Action execution failed: ${step.label ?: step.id.value}")
             }
 
             success
         } catch (e: Exception) {
             val duration = System.currentTimeMillis() - startTime
-            ExecutionLogger.logStepFailure(stepName, duration, e.message ?: "Exception")
+            eventPublisher.logStepFailure(stepName, duration, e.message ?: "Exception")
             logger.error("Exception executing action step: ${step.label ?: step.id.value}", e)
             false
         }

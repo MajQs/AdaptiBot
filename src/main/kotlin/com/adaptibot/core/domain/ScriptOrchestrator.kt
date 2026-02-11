@@ -7,7 +7,8 @@ import org.slf4j.LoggerFactory
 
 internal class ScriptOrchestrator(
     private val stepExecutionOrchestrator: StepExecutionOrchestrator,
-    private val executionController: ExecutionController
+    private val executionController: ExecutionController,
+    private val eventPublisher: ExecutionEventPublisher
 ) {
     private val logger = LoggerFactory.getLogger(ScriptOrchestrator::class.java)
 
@@ -18,7 +19,7 @@ internal class ScriptOrchestrator(
         }
 
         logger.info("Starting script execution: ${script.name}")
-        com.adaptibot.ui.model.ExecutionLogger.logExecutionStart(script.name)
+        eventPublisher.logExecutionStart(script.name)
 
         executionController.start(script)
 
@@ -29,7 +30,7 @@ internal class ScriptOrchestrator(
 
     fun stop() {
         logger.info("Stopping script execution")
-        com.adaptibot.ui.model.ExecutionLogger.logExecutionStop()
+        eventPublisher.logExecutionStop()
         executionController.stop()
         stepExecutionOrchestrator.stop()
     }

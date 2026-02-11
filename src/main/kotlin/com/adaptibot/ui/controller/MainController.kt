@@ -110,7 +110,7 @@ class MainController : Initializable {
                                         "add-action-type" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.KEYBOARD_TYPE) }
                                         "add-action-press-key" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.KEYBOARD_PRESS_KEY) }
                                         "add-action-wait" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.WAIT) }
-                                        "add-action-jump" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.JUMP_TO_LABEL) }
+                                        "add-action-jump" -> actionItem.setOnAction { handleAddActionToContainer(StepEditorDialog.ActionType.JUMP_TO_STEP) }
                                         "add-block-group" -> actionItem.setOnAction { handleAddBlockToContainer("group") }
                                         "add-block-conditional" -> actionItem.setOnAction { handleAddBlockToContainer("conditional") }
                                         "add-block-observer" -> actionItem.setOnAction { handleAddBlockToContainer("observer") }
