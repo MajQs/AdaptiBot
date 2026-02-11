@@ -2,15 +2,11 @@ package com.adaptibot.core.dto
 
 import com.adaptibot.common.model.Script
 import com.adaptibot.common.model.Step
+import com.adaptibot.core.domain.ExecutionState
 
-data class ExecutionContext(
+internal data class ExecutionContext(
     val script: Script,
     val state: ExecutionState = ExecutionState.IDLE,
     val activeStep: Step? = null
 )
 
-enum class ExecutionState {
-    IDLE,
-    RUNNING,
-    STOPPED
-}
