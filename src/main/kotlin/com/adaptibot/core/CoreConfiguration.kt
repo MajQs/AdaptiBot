@@ -22,7 +22,7 @@ object CoreConfiguration {
                         elementFinder = elementFinder,
                         eventPublisher = eventPublisher
                     ),
-                    blockExecutor = BlockExecutor(conditionEvaluator),
+                    blockStepResolver = BlockStepResolver(conditionEvaluator),
                     observerManager = ObserverManager(conditionEvaluator, 1000),
                     executionController = executionController
                 ),

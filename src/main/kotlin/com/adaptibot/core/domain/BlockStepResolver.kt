@@ -7,12 +7,12 @@ import com.adaptibot.common.model.Step
 import com.adaptibot.core.domain.actions.ConditionEvaluator
 import org.slf4j.LoggerFactory
 
-internal class BlockExecutor(
+internal class BlockStepResolver(
     private val conditionEvaluator: ConditionEvaluator,
 ) {
-    private val logger = LoggerFactory.getLogger(BlockExecutor::class.java)
+    private val logger = LoggerFactory.getLogger(BlockStepResolver::class.java)
 
-    fun execute(block: BlockStep): List<Step> {
+    fun resolve(block: BlockStep): List<Step> {
         return when (block) {
             is GroupBlock -> block.steps
             is ConditionalBlock -> {

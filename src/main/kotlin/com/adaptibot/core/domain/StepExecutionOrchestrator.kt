@@ -2,14 +2,13 @@ package com.adaptibot.core.domain
 
 import com.adaptibot.common.model.*
 import com.adaptibot.core.domain.observer.ObserverManager
-import com.adaptibot.core.dto.ExecutionState
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicReference
 
 internal class StepExecutionOrchestrator(
     private val actionExecutor: ActionExecutor,
-    private val blockExecutor: BlockExecutor,
+    private val blockStepResolver: BlockStepResolver,
     private val observerManager: ObserverManager,
     private val executionController: ExecutionController
 ) {
@@ -56,7 +55,7 @@ internal class StepExecutionOrchestrator(
     }
 
     private suspend fun handleBlockStep(step: BlockStep) {
-        val nestedSteps = blockExecutor.execute(step)
+        val nestedSteps = blockStepResolver.resolve(step)
         execute(nestedSteps)
     }
 
