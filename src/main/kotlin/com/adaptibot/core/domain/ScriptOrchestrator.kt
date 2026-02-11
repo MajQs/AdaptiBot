@@ -1,9 +1,8 @@
 package com.adaptibot.core.domain
 
 import com.adaptibot.common.model.Script
-import com.adaptibot.core.dto.ExecutionState
 import com.adaptibot.core.dto.ExecutionStateDto
-import kotlinx.coroutines.*
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 
 internal class ScriptOrchestrator(
