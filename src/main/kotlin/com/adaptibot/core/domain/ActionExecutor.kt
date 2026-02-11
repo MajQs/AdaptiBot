@@ -13,8 +13,7 @@ internal class ActionExecutor(
 ) {
     private val logger = LoggerFactory.getLogger(ActionExecutor::class.java)
 
-    fun execute(step: ActionStep, shouldStop: () -> Boolean): Boolean {
-        if (shouldStop()) return false
+    fun execute(step: ActionStep): Boolean {
 
         val stepName = step.label ?: step.action::class.simpleName ?: "Action"
         val startTime = System.currentTimeMillis()
