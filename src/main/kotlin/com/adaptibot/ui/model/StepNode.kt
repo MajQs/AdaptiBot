@@ -53,11 +53,14 @@ data class StepNode(
                     }
                     Pair(displayName, "📦")
                 }
+            }
+
+            val actualContainerType = if (containerType != ContainerType.NONE) {
                 containerType
             } else {
                 when (step) {
-                    is Step.GroupBlock -> ContainerType.GROUP_BLOCK
-                    is Step.ObserverBlock -> ContainerType.OBSERVER_BLOCK
+                    is GroupBlock -> ContainerType.GROUP_BLOCK
+                    is ObserverStep -> ContainerType.OBSERVER_BLOCK
                     else -> ContainerType.NONE
                 }
             }
