@@ -13,7 +13,7 @@ internal class ScriptOrchestrator(
     private val logger = LoggerFactory.getLogger(ScriptOrchestrator::class.java)
 
     fun start(script: Script) {
-        if (executionController.getContext().state != ExecutionState.IDLE) {
+        if ( !executionController.isIdle()) {
             logger.warn("Cannot start script - already running")
             return
         }
@@ -24,7 +24,7 @@ internal class ScriptOrchestrator(
         executionController.start(script)
 
         executionController.getScope()?.launch {
-            executeInfiniteLoop()
+            executeInfiniteLoop(script)
         }
     }
 
@@ -37,10 +37,9 @@ internal class ScriptOrchestrator(
 
     fun getExecutionState(): ExecutionStateDto = ExecutionStateDto.valueOf(executionController.getContext().state.name)
 
-    private suspend fun executeInfiniteLoop() {
-        val context = executionController.getContext()
-        while (context.state == ExecutionState.RUNNING) {
-            stepExecutionOrchestrator.execute(context.script.steps)
+    private suspend fun executeInfiniteLoop(script: Script) {
+        while (executionController.isRunning()) {
+            stepExecutionOrchestrator.execute(script.steps)
         }
         executionController.finish()
     }

@@ -40,9 +40,14 @@ internal class ExecutionController {
         }
     }
 
+    fun isRunning(): Boolean = currentContext.state == ExecutionState.RUNNING
+
     fun getScope(): CoroutineScope? = executionScope
 
     fun setActiveStep(step: com.adaptibot.common.model.Step) {
         currentContext = currentContext.copy(activeStep = step)
     }
+
+    fun isStopped() = currentContext.state == ExecutionState.STOPPED
+    fun isIdle() = currentContext.state == ExecutionState.IDLE
 }

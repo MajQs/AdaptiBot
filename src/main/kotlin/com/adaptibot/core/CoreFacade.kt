@@ -10,7 +10,6 @@ class CoreFacade internal constructor(
 
     fun startScript(script: Script) = scriptOrchestrator.start(script)
 
-
     fun stopScript() = scriptOrchestrator.stop()
 
     fun getExecutionState(): ExecutionStateDto = scriptOrchestrator.getExecutionState()

@@ -28,8 +28,7 @@ internal class StepExecutionOrchestrator(
         try {
             for (step in steps) {
                 handleTriggeredObserver()
-                val context = executionController.getContext()
-                if (context.state == ExecutionState.STOPPED) {
+                if (executionController.isStopped()) {
                     break
                 }
                 executeStep(step)

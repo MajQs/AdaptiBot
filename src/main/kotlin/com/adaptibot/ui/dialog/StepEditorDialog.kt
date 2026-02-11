@@ -112,28 +112,28 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
 
         when (action) {
             is Action.Mouse.MoveTo -> {
-                (dynamicFields["target"] as TextField).text = elementIdentifierToString(action.target)
+                (dynamicFields["target"] as TextField).text = action.target.value
             }
             is Action.Mouse.LeftClick -> {
-                (dynamicFields["target"] as TextField).text = elementIdentifierToString(action.target)
+                (dynamicFields["target"] as TextField).text = action.target.value
             }
             is Action.Mouse.RightClick -> {
-                (dynamicFields["target"] as TextField).text = elementIdentifierToString(action.target)
+                (dynamicFields["target"] as TextField).text = action.target.value
             }
             is Action.Mouse.DoubleClick -> {
-                (dynamicFields["target"] as TextField).text = elementIdentifierToString(action.target)
+                (dynamicFields["target"] as TextField).text = action.target.value
             }
-            is Action.Keyboard.TypeText -> {
+            is Action.Keyboard.Type -> {
                 (dynamicFields["text"] as TextField).text = action.text
             }
             is Action.Keyboard.PressKey -> {
                 (dynamicFields["key"] as TextField).text = action.key
             }
             is Action.System.Wait -> {
-                (dynamicFields["duration"] as TextField).text = action.milliseconds.toString()
+                (dynamicFields["duration"] as TextField).text = action.duration.toString()
             }
-            is Action.Flow.JumpTo -> {
-                (dynamicFields["label"] as TextField).text = action.targetStepId.value
+            is Action.Flow.JumpToLabel -> {
+                (dynamicFields["label"] as TextField).text = action.label
             }
             else -> {}
         }
@@ -145,14 +145,14 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
         val actionType = actionTypeComboBox.value
 
         val action = when (actionType) {
-            ActionType.MOUSE_MOVE -> Action.Mouse.MoveTo(stringToElementIdentifier((dynamicFields["target"] as TextField).text))
-            ActionType.MOUSE_LEFT_CLICK -> Action.Mouse.LeftClick(stringToElementIdentifier((dynamicFields["target"] as TextField).text))
-            ActionType.MOUSE_RIGHT_CLICK -> Action.Mouse.RightClick(stringToElementIdentifier((dynamicFields["target"] as TextField).text))
-            ActionType.MOUSE_DOUBLE_CLICK -> Action.Mouse.DoubleClick(stringToElementIdentifier((dynamicFields["target"] as TextField).text))
-            ActionType.KEYBOARD_TYPE -> Action.Keyboard.TypeText((dynamicFields["text"] as TextField).text)
+            ActionType.MOUSE_MOVE -> Action.Mouse.MoveTo(Target((dynamicFields["target"] as TextField).text))
+            ActionType.MOUSE_LEFT_CLICK -> Action.Mouse.LeftClick(Target((dynamicFields["target"] as TextField).text))
+            ActionType.MOUSE_RIGHT_CLICK -> Action.Mouse.RightClick(Target((dynamicFields["target"] as TextField).text))
+            ActionType.MOUSE_DOUBLE_CLICK -> Action.Mouse.DoubleClick(Target((dynamicFields["target"] as TextField).text))
+            ActionType.KEYBOARD_TYPE -> Action.Keyboard.Type((dynamicFields["text"] as TextField).text)
             ActionType.KEYBOARD_PRESS_KEY -> Action.Keyboard.PressKey((dynamicFields["key"] as TextField).text)
             ActionType.WAIT -> Action.System.Wait((dynamicFields["duration"] as TextField).text.toLong())
-            ActionType.JUMP_TO_LABEL -> Action.Flow.JumpTo(StepId((dynamicFields["label"] as TextField).text))
+            ActionType.JUMP_TO_LABEL -> Action.Flow.JumpToLabel((dynamicFields["label"] as TextField).text)
             else -> throw IllegalStateException("Unsupported action type")
         }
 
@@ -195,36 +195,6 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
         parametersPane.children.add(VBox(5.0, Label(prompt), textField))
     }
 
-    private fun elementIdentifierToString(identifier: ElementIdentifier): String {
-        return when (identifier) {
-            is ElementIdentifier.ByCoordinate -> "coord:${identifier.coordinate.x},${identifier.coordinate.y}"
-            is ElementIdentifier.ByImage -> "image:${identifier.pattern.base64Data.take(20)}..." // Show first 20 chars
-        }
-    }
-
-    private fun stringToElementIdentifier(text: String): ElementIdentifier {
-        return when {
-            text.startsWith("coord:") -> {
-                val coords = text.substringAfter("coord:").split(",")
-                ElementIdentifier.ByCoordinate(Coordinate(coords[0].toInt(), coords[1].toInt()))
-            }
-            text.startsWith("image:") -> {
-                val imageData = text.substringAfter("image:")
-                ElementIdentifier.ByImage(ImagePattern(imageData))
-            }
-            else -> {
-                // Default: treat as coordinate string "x,y" for backward compatibility
-                val coords = text.split(",")
-                if (coords.size == 2) {
-                    ElementIdentifier.ByCoordinate(Coordinate(coords[0].trim().toInt(), coords[1].trim().toInt()))
-                } else {
-                    // Fallback to image pattern
-                    ElementIdentifier.ByImage(ImagePattern(text))
-                }
-            }
-        }
-    }
-
     enum class ActionType {
         MOUSE_MOVE,
         MOUSE_LEFT_CLICK,
@@ -242,10 +212,10 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
                     is Action.Mouse.LeftClick -> MOUSE_LEFT_CLICK
                     is Action.Mouse.RightClick -> MOUSE_RIGHT_CLICK
                     is Action.Mouse.DoubleClick -> MOUSE_DOUBLE_CLICK
-                    is Action.Keyboard.TypeText -> KEYBOARD_TYPE
+                    is Action.Keyboard.Type -> KEYBOARD_TYPE
                     is Action.Keyboard.PressKey -> KEYBOARD_PRESS_KEY
                     is Action.System.Wait -> WAIT
-                    is Action.Flow.JumpTo -> JUMP_TO_LABEL
+                    is Action.Flow.JumpToLabel -> JUMP_TO_LABEL
                     else -> throw IllegalArgumentException("Unknown action type")
                 }
             }
