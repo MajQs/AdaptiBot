@@ -40,7 +40,6 @@ internal class StepExecutionOrchestrator(
     }
 
     private suspend fun executeStep(step: Step, context: ExecutionContext, shouldStop: () -> Boolean) {
-        if (shouldStop() || context.state == ExecutionState.PAUSED) return
 
         if (step.delayBefore > 0) delay(step.delayBefore)
 
