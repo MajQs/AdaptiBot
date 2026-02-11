@@ -2,6 +2,7 @@ package com.adaptibot.core.domain
 
 import com.adaptibot.common.model.Action
 import com.adaptibot.common.model.ActionStep
+import com.adaptibot.common.model.ElementIdentifier
 import com.adaptibot.core.domain.actions.ActionExecutor as ActionExecutorImpl
 import com.adaptibot.core.domain.actions.ElementFinder
 import org.slf4j.LoggerFactory
@@ -14,41 +15,57 @@ internal class ActionExecutor(
     private val logger = LoggerFactory.getLogger(ActionExecutor::class.java)
 
     fun execute(step: ActionStep): Boolean {
-
-        val stepName = step.label ?: step.action::class.simpleName ?: "Action"
+        val stepName = extractStepName(step)
         val startTime = System.currentTimeMillis()
 
         return try {
-            val coordinate = when (val action = step.action) {
-                is Action.Mouse -> {
-                    val target = when (action) {
-                        is Action.Mouse.LeftClick -> action.target
-                        is Action.Mouse.RightClick -> action.target
-                        is Action.Mouse.DoubleClick -> action.target
-                        is Action.Mouse.MoveTo -> action.target
-                        else -> null
-                    }
-                    target?.let { elementFinder.find(it) }
-                }
-                else -> null
-            }
-
+            val coordinate = extractTargetFromAction(step.action)?.let { elementFinder.find(it) }
             val success = actionExecutorImpl.execute(step.action, coordinate)
-            val duration = System.currentTimeMillis() - startTime
 
-            if (success) {
-                eventPublisher.logStepSuccess(stepName, duration)
-            } else {
-                eventPublisher.logStepFailure(stepName, duration, "Action failed")
-                logger.error("Action execution failed: ${step.label ?: step.id.value}")
-            }
+            val metrics = StepExecutionMetrics(
+                stepName = stepName,
+                startTime = startTime,
+                success = success
+            )
 
+            logExecutionResult(metrics, step)
             success
         } catch (e: Exception) {
-            val duration = System.currentTimeMillis() - startTime
-            eventPublisher.logStepFailure(stepName, duration, e.message ?: "Exception")
-            logger.error("Exception executing action step: ${step.label ?: step.id.value}", e)
+            val metrics = StepExecutionMetrics(
+                stepName = stepName,
+                startTime = startTime,
+                success = false,
+                error = e.message ?: "Exception"
+            )
+
+            logExecutionResult(metrics, step)
             false
+        }
+    }
+
+    private fun logExecutionResult(metrics: StepExecutionMetrics, step: ActionStep) {
+        val duration = metrics.duration()
+
+        if (metrics.success) {
+            eventPublisher.logStepSuccess(metrics.stepName, duration)
+        } else {
+            val errorMessage = metrics.error ?: "Action failed"
+            eventPublisher.logStepFailure(metrics.stepName, duration, errorMessage)
+            logger.error("Action execution failed: ${step.label ?: step.id.value}")
+        }
+    }
+
+    private fun extractStepName(step: ActionStep): String {
+        return step.label ?: step.action::class.simpleName ?: "Action"
+    }
+
+    private fun extractTargetFromAction(action: Action): ElementIdentifier? {
+        return when (action) {
+            is Action.Mouse.LeftClick -> action.target
+            is Action.Mouse.RightClick -> action.target
+            is Action.Mouse.DoubleClick -> action.target
+            is Action.Mouse.MoveTo -> action.target
+            else -> null
         }
     }
 }

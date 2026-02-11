@@ -39,7 +39,7 @@ internal class StepExecutionOrchestrator(
 
     private suspend fun executeStep(step: Step) {
         executionController.setActiveStep(step)
-        if (step.delayBefore > 0) delay(step.delayBefore)
+        waitForDelay(step.delayBefore)
 
         when (step) {
             is ActionStep -> handleActionStep(step)
@@ -47,7 +47,13 @@ internal class StepExecutionOrchestrator(
             is ObserverStep -> handleObserverStep(step)
         }
 
-        if (step.delayAfter > 0) delay(step.delayAfter)
+        waitForDelay(step.delayAfter)
+    }
+
+    private suspend fun waitForDelay(delayMs: Long) {
+        if (delayMs > 0) {
+            delay(delayMs)
+        }
     }
 
     private fun handleActionStep(step: ActionStep) {
