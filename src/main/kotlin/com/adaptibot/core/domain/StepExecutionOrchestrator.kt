@@ -24,13 +24,18 @@ internal class StepExecutionOrchestrator(
     }
 
     suspend fun execute(steps: List<Step>, context: ExecutionContext, shouldStop: () -> Boolean) {
-        for (step in steps) {
-            handleTriggeredObserver(context, shouldStop)
+        observerManager.enterScope()
+        try {
+            for (step in steps) {
+                handleTriggeredObserver(context, shouldStop)
 
-            if (shouldStop() || context.state == ExecutionState.PAUSED) {
-                break
+                if (shouldStop() || context.state == ExecutionState.PAUSED) {
+                    break
+                }
+                executeStep(step, context, shouldStop)
             }
-            executeStep(step, context, shouldStop)
+        } finally {
+            observerManager.exitScope()
         }
     }
 
@@ -53,14 +58,9 @@ internal class StepExecutionOrchestrator(
     }
 
     private suspend fun handleBlockStep(step: BlockStep, context: ExecutionContext, shouldStop: () -> Boolean) {
-        observerManager.enterScope()
-        try {
-            val nestedSteps = blockExecutor.execute(step)
-            val currentContext = context.copy(activeStep = step)
-            execute(nestedSteps, currentContext, shouldStop)
-        } finally {
-            observerManager.exitScope()
-        }
+        val nestedSteps = blockExecutor.execute(step)
+        val currentContext = context.copy(activeStep = step)
+        execute(nestedSteps, currentContext, shouldStop)
     }
 
     private fun handleObserverStep(step: ObserverStep) {
