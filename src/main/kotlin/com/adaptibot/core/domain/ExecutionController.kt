@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 
-class ExecutionController {
+internal class ExecutionController {
 
     @Volatile
     private var currentContext: ExecutionContext = ExecutionContext(
@@ -28,17 +28,6 @@ class ExecutionController {
         executionScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     }
 
-    fun pause() {
-        if (currentContext.state == ExecutionState.RUNNING) {
-            currentContext = currentContext.copy(state = ExecutionState.PAUSED)
-        }
-    }
-
-    fun resume() {
-        if (currentContext.state == ExecutionState.PAUSED) {
-            currentContext = currentContext.copy(state = ExecutionState.RUNNING)
-        }
-    }
 
     fun stop() {
         currentContext = currentContext.copy(state = ExecutionState.STOPPED)

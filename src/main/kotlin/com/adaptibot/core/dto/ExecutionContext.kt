@@ -12,6 +12,5 @@ data class ExecutionContext(
 enum class ExecutionState {
     IDLE,
     RUNNING,
-    PAUSED,
     STOPPED
 }

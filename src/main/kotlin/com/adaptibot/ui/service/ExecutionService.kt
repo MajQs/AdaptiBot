@@ -31,14 +31,6 @@ class ExecutionService {
         coreFacade.startScript(scriptToRun)
     }
     
-    fun pause() {
-        coreFacade.pauseScript()
-    }
-    
-    fun resume() {
-        coreFacade.resumeScript()
-    }
-    
     fun stop() {
         coreFacade.stopScript()
     }
@@ -49,10 +41,6 @@ class ExecutionService {
     
     fun isRunning(): Boolean {
         return coreFacade.getExecutionState() == ExecutionStateDto.RUNNING
-    }
-    
-    fun isPaused(): Boolean {
-        return coreFacade.getExecutionState() == ExecutionStateDto.PAUSED
     }
 }
 

@@ -64,8 +64,7 @@ class MainController : Initializable {
 
             // Run menu
             get(2).items[0].setOnAction { handleStart() }
-            get(2).items[1].setOnAction { handlePause() }
-            get(2).items[2].setOnAction { handleStop() }
+            get(2).items[1].setOnAction { handleStop() }
 
             // Help menu
             get(3).items[0].setOnAction { handleDocumentation() }
@@ -77,8 +76,7 @@ class MainController : Initializable {
     private fun setupControlHandlers() {
         with(mainView.controlToolBar.items) {
             (get(0) as Button).setOnAction { handleStart() }
-            (get(1) as Button).setOnAction { handlePause() }
-            (get(2) as Button).setOnAction { handleStop() }
+            (get(1) as Button).setOnAction { handleStop() }
         }
 
         mainView.logsPane.clearButton.setOnAction { handleClearLogs() }
@@ -359,11 +357,6 @@ class MainController : Initializable {
         }
     }
 
-    private fun handlePause() {
-        executionService.pause()
-        updateExecutionState()
-        updateControlsState()
-    }
 
     private fun handleStop() {
         executionService.stop()
@@ -403,15 +396,12 @@ class MainController : Initializable {
     private fun updateControlsState() {
         val hasSteps = scriptService.getCurrentScript().steps.isNotEmpty()
         val isRunning = executionService.isRunning()
-        val isPaused = executionService.isPaused()
 
         val startBtn = mainView.controlToolBar.items[0] as javafx.scene.control.Button
-        val pauseBtn = mainView.controlToolBar.items[1] as javafx.scene.control.Button
-        val stopBtn = mainView.controlToolBar.items[2] as javafx.scene.control.Button
+        val stopBtn = mainView.controlToolBar.items[1] as javafx.scene.control.Button
 
         startBtn.isDisable = !hasSteps || isRunning
-        pauseBtn.isDisable = !isRunning || isPaused
-        stopBtn.isDisable = !isRunning && !isPaused
+        stopBtn.isDisable = !isRunning
     }
 
     private fun showAlert(title: String, message: String) {

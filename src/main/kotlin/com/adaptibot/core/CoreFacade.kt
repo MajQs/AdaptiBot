@@ -10,9 +10,6 @@ class CoreFacade internal constructor(
 
     fun startScript(script: Script) = scriptOrchestrator.start(script)
 
-    fun pauseScript() = scriptOrchestrator.pause()
-
-    fun resumeScript() = scriptOrchestrator.resume()
 
     fun stopScript() = scriptOrchestrator.stop()
 

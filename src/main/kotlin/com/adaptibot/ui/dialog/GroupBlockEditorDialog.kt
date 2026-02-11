@@ -1,5 +1,6 @@
 package com.adaptibot.ui.dialog
 
+import com.adaptibot.common.model.GroupBlock
 import com.adaptibot.common.model.Step
 import com.adaptibot.common.model.StepId
 import javafx.geometry.Insets
@@ -9,7 +10,7 @@ import javafx.scene.layout.VBox
 import javafx.stage.Modality
 import java.util.*
 
-class GroupBlockEditorDialog(private val existingGroup: Step.GroupBlock? = null) : Dialog<Step.GroupBlock>() {
+class GroupBlockEditorDialog(private val existingGroup: GroupBlock? = null) : Dialog<GroupBlock>() {
 
     private val stepIdField = TextField()
     private val groupNameField = TextField()
@@ -86,7 +87,7 @@ class GroupBlockEditorDialog(private val existingGroup: Step.GroupBlock? = null)
         }
     }
 
-    private fun loadGroupData(group: Step.GroupBlock) {
+    private fun loadGroupData(group: GroupBlock) {
         stepIdField.text = group.id.value
         stepIdField.isDisable = true // Don't allow changing ID when editing
         groupNameField.text = group.name
@@ -95,14 +96,14 @@ class GroupBlockEditorDialog(private val existingGroup: Step.GroupBlock? = null)
         delayAfterField.text = group.delayAfter.toString()
     }
 
-    private fun buildGroupBlock(): Step.GroupBlock {
+    private fun buildGroupBlock(): GroupBlock {
         val stepId = StepId(stepIdField.text)
         val groupName = groupNameField.text
         val label = labelField.text.takeIf { it.isNotBlank() }
         val delayBefore = delayBeforeField.text.toLongOrNull() ?: 0L
         val delayAfter = delayAfterField.text.toLongOrNull() ?: 0L
 
-        return Step.GroupBlock(
+        return GroupBlock(
             id = stepId,
             label = label,
             delayBefore = delayBefore,

@@ -67,7 +67,6 @@ class MainView : BorderPane() {
         return Menu("Run").apply {
             items.addAll(
                 MenuItem("Start"),
-                MenuItem("Pause"),
                 MenuItem("Stop"),
                 SeparatorMenuItem(),
                 CheckMenuItem("Debug Mode")
@@ -90,7 +89,6 @@ class MainView : BorderPane() {
         return ToolBar().apply {
             items.addAll(
                 Button("Start"),
-                Button("Pause"),
                 Button("Stop"),
                 Separator(Orientation.VERTICAL),
                 Label("Status: Idle")

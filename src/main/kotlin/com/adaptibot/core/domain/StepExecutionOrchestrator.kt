@@ -2,8 +2,6 @@ package com.adaptibot.core.domain
 
 import com.adaptibot.common.model.*
 import com.adaptibot.core.domain.observer.ObserverManager
-import com.adaptibot.core.dto.ExecutionContext
-
 import com.adaptibot.core.dto.ExecutionState
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
@@ -31,7 +29,7 @@ internal class StepExecutionOrchestrator(
             for (step in steps) {
                 handleTriggeredObserver()
                 val context = executionController.getContext()
-                if (context.state == ExecutionState.STOPPED || context.state == ExecutionState.PAUSED) {
+                if (context.state == ExecutionState.STOPPED) {
                     break
                 }
                 executeStep(step)

@@ -2,6 +2,7 @@ package com.adaptibot.core
 
 import com.adaptibot.core.domain.ActionExecutor
 import com.adaptibot.core.domain.BlockExecutor
+import com.adaptibot.core.domain.ExecutionController
 import com.adaptibot.core.domain.ScriptOrchestrator
 import com.adaptibot.core.domain.StepExecutionOrchestrator
 import com.adaptibot.core.domain.actions.ActionExecutor as ActionExecutorImpl
@@ -17,13 +18,16 @@ object CoreModule {
         val actionExecutorImpl = ActionExecutorImpl()
         val actionExecutor = ActionExecutor(actionExecutorImpl, elementFinder)
         val blockExecutor = BlockExecutor(conditionEvaluator)
+        val executionController = ExecutionController()
         val stepExecutionOrchestrator = StepExecutionOrchestrator(
             actionExecutor = actionExecutor,
             blockExecutor = blockExecutor,
-            observerManager = observerManager
+            observerManager = observerManager,
+            executionController = executionController
         )
         val scriptOrchestrator = ScriptOrchestrator(
-            stepExecutionOrchestrator = stepExecutionOrchestrator
+            stepExecutionOrchestrator = stepExecutionOrchestrator,
+            executionController = executionController
         )
 
         return CoreFacade(

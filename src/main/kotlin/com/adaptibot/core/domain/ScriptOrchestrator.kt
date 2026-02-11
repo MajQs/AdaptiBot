@@ -28,22 +28,6 @@ internal class ScriptOrchestrator(
         }
     }
 
-    fun pause() {
-        if (executionController.getContext().state == ExecutionState.RUNNING) {
-            logger.info("Pausing script execution")
-            com.adaptibot.ui.model.ExecutionLogger.logExecutionPause()
-            executionController.pause()
-        }
-    }
-
-    fun resume() {
-        if (executionController.getContext().state == ExecutionState.PAUSED) {
-            logger.info("Resuming script execution")
-            com.adaptibot.ui.model.ExecutionLogger.logExecutionResume()
-            executionController.resume()
-        }
-    }
-
     fun stop() {
         logger.info("Stopping script execution")
         com.adaptibot.ui.model.ExecutionLogger.logExecutionStop()
@@ -55,12 +39,7 @@ internal class ScriptOrchestrator(
 
     private suspend fun executeInfiniteLoop() {
         val context = executionController.getContext()
-        while (context.state != ExecutionState.STOPPED && context.state != ExecutionState.IDLE) {
-            if (context.state == ExecutionState.PAUSED) {
-                delay(100)
-                continue
-            }
-
+        while (context.state == ExecutionState.RUNNING) {
             stepExecutionOrchestrator.execute(context.script.steps)
         }
         executionController.finish()

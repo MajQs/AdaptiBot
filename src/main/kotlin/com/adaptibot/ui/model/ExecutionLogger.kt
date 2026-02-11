@@ -64,26 +64,6 @@ object ExecutionLogger {
         ))
     }
     
-    fun logExecutionPause() {
-        addLog(LogEntry(
-            timestamp = formatTimestamp(),
-            stepName = "Script",
-            status = "⏸ Paused",
-            durationMs = 0,
-            message = "Execution paused"
-        ))
-    }
-    
-    fun logExecutionResume() {
-        addLog(LogEntry(
-            timestamp = formatTimestamp(),
-            stepName = "Script",
-            status = "▶ Resumed",
-            durationMs = 0,
-            message = "Execution resumed"
-        ))
-    }
-    
     fun clear() {
         runOnPlatform {
             logs.clear()
