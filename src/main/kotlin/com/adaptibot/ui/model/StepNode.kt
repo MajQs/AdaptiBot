@@ -1,5 +1,9 @@
 package com.adaptibot.ui.model
 
+import com.adaptibot.common.model.ActionStep
+import com.adaptibot.common.model.ConditionalBlock
+import com.adaptibot.common.model.GroupBlock
+import com.adaptibot.common.model.ObserverStep
 import com.adaptibot.common.model.Step
 import com.adaptibot.common.model.StepId
 
@@ -27,20 +31,20 @@ data class StepNode(
     companion object {
         fun from(step: Step, containerType: ContainerType = ContainerType.NONE, parentBlockId: StepId? = null): StepNode {
             val (displayText, icon) = when (step) {
-                is Step.ActionStep -> {
+                is ActionStep -> {
                     val actionType = step.action::class.simpleName ?: "Action"
                     val label = step.label ?: actionType
                     Pair(label, getActionIcon(step.action))
                 }
-                is Step.ConditionalBlock -> {
+                is ConditionalBlock -> {
                     val label = step.label ?: "IF Condition"
                     Pair(label, "🔀")
                 }
-                is Step.ObserverBlock -> {
+                is ObserverStep -> {
                     val label = step.label ?: "Observer"
                     Pair(label, "👁️")
                 }
-                is Step.GroupBlock -> {
+                is GroupBlock -> {
                     val stepCount = step.steps.size
                     val displayName = if (stepCount > 0) {
                         "${step.name} ($stepCount steps)"

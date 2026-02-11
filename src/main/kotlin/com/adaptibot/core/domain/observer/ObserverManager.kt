@@ -19,6 +19,7 @@ internal class ObserverManager(
     private val logger = LoggerFactory.getLogger(ObserverManager::class.java)
 
     private val observers = ConcurrentHashMap<ObserverStep, ObserverState>()
+    private val scopeStack = ArrayDeque<MutableSet<ObserverStep>>()
     private val isRunning = AtomicBoolean(false)
     private var observerScope: CoroutineScope? = null
 
@@ -27,6 +28,22 @@ internal class ObserverManager(
 
     init {
         startObserverThread()
+        scopeStack.add(mutableSetOf()) // Global scope
+    }
+
+    fun enterScope() {
+        scopeStack.addLast(mutableSetOf())
+        logger.trace("Entered new observer scope. Depth: ${scopeStack.size}")
+    }
+
+    fun exitScope() {
+        if (scopeStack.size <= 1) {
+            logger.warn("Attempted to exit global observer scope. Ignoring.")
+            return
+        }
+        val scopeObservers = scopeStack.removeLast()
+        scopeObservers.forEach { unregisterObserver(it) }
+        logger.trace("Exited observer scope. Unregistered ${scopeObservers.size} observers. Depth: ${scopeStack.size}")
     }
 
     //TODO not sure if priority is needed
@@ -36,7 +53,8 @@ internal class ObserverManager(
             isActive = true,
             priority = priority
         )
-        logger.debug("Registered observer: ${observer.id.value} with priority $priority")
+        scopeStack.lastOrNull()?.add(observer)
+        logger.debug("Registered observer: ${observer.id.value} with priority $priority in scope depth ${scopeStack.size}")
     }
 
     fun unregisterObserver(observer: ObserverStep) {

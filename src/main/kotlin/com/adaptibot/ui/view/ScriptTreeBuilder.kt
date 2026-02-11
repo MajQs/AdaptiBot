@@ -1,13 +1,18 @@
 package com.adaptibot.ui.view
 
+import com.adaptibot.common.model.ActionStep
+import com.adaptibot.common.model.ConditionalBlock
+import com.adaptibot.common.model.GroupBlock
+import com.adaptibot.common.model.ObserverStep
 import com.adaptibot.common.model.Step
+import com.adaptibot.common.model.StepId
 import com.adaptibot.ui.model.StepNode
 import javafx.scene.control.TreeItem
 
 object ScriptTreeBuilder {
 
     fun buildTree(steps: List<Step>): TreeItem<StepNode> {
-        val rootStep = Step.GroupBlock(
+        val rootStep = GroupBlock(
             id = com.adaptibot.common.model.StepId("root"),
             name = "Script Root",
             steps = steps
@@ -33,9 +38,9 @@ object ScriptTreeBuilder {
         treeItem.isExpanded = node.isExpanded
 
         when (step) {
-            is Step.ConditionalBlock -> {
-                val thenBranchStep = Step.GroupBlock(
-                    id = com.adaptibot.common.model.StepId("then_${step.id.value}"),
+            is ConditionalBlock -> {
+                val thenBranchStep = GroupBlock(
+                    id = StepId("then_${step.id.value}"),
                     name = "THEN",
                     steps = step.thenSteps
                 )
@@ -52,7 +57,7 @@ object ScriptTreeBuilder {
                 }
                 treeItem.children.add(thenBranch)
 
-                val elseBranchStep = Step.GroupBlock(
+                val elseBranchStep = GroupBlock(
                     id = com.adaptibot.common.model.StepId("else_${step.id.value}"),
                     name = "ELSE",
                     steps = step.elseSteps
@@ -70,17 +75,17 @@ object ScriptTreeBuilder {
                 }
                 treeItem.children.add(elseBranch)
             }
-            is Step.ObserverBlock -> {
+            is ObserverStep -> {
                 step.actionSteps.forEach { childStep ->
                     treeItem.children.add(buildTreeItem(childStep))
                 }
             }
-            is Step.GroupBlock -> {
+            is GroupBlock -> {
                 step.steps.forEach { childStep ->
                     treeItem.children.add(buildTreeItem(childStep))
                 }
             }
-            is Step.ActionStep -> {
+            is ActionStep -> {
                 // Leaf node - no children
             }
         }
