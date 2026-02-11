@@ -1,16 +1,16 @@
 package com.adaptibot.core
 
 import com.adaptibot.common.model.Script
-import com.adaptibot.core.domain.ScriptOrchestrator
+import com.adaptibot.core.domain.ScriptExecutionService
 import com.adaptibot.core.dto.ExecutionStateDto
 
 class CoreFacade internal constructor(
-    private val scriptOrchestrator: ScriptOrchestrator
+    private val scriptExecutionService: ScriptExecutionService
 ) {
 
-    fun startScript(script: Script) = scriptOrchestrator.start(script)
+    fun startScript(script: Script) = scriptExecutionService.start(script)
 
-    fun stopScript() = scriptOrchestrator.stop()
+    fun stopScript() = scriptExecutionService.stop()
 
-    fun getExecutionState(): ExecutionStateDto = scriptOrchestrator.getExecutionState()
+    fun getExecutionState(): ExecutionStateDto = scriptExecutionService.getExecutionState()
 }

@@ -7,6 +7,10 @@ import com.adaptibot.common.model.Step
 import com.adaptibot.core.domain.actions.ConditionEvaluator
 import org.slf4j.LoggerFactory
 
+/**
+ * Resolves block steps (GroupBlock, ConditionalBlock) into their constituent steps.
+ * Evaluates conditions and returns the appropriate step sequence for execution.
+ */
 internal class BlockStepResolver(
     private val conditionEvaluator: ConditionEvaluator,
 ) {

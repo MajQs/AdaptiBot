@@ -3,16 +3,19 @@ package com.adaptibot.core.domain
 import com.adaptibot.common.model.Action
 import com.adaptibot.common.model.ActionStep
 import com.adaptibot.common.model.ElementIdentifier
-import com.adaptibot.core.domain.actions.ActionExecutor as ActionExecutorImpl
 import com.adaptibot.core.domain.actions.ElementFinder
 import org.slf4j.LoggerFactory
 
-internal class ActionExecutor(
-    private val actionExecutorImpl: ActionExecutorImpl,
+/**
+ * Handles execution of ActionStep instances.
+ * Coordinates between action execution, element finding, and event publishing.
+ */
+internal class ActionStepHandler(
+    private val actionExecutor: com.adaptibot.core.domain.actions.ActionExecutor,
     private val elementFinder: ElementFinder,
     private val eventPublisher: ExecutionEventPublisher
 ) {
-    private val logger = LoggerFactory.getLogger(ActionExecutor::class.java)
+    private val logger = LoggerFactory.getLogger(ActionStepHandler::class.java)
 
     fun execute(step: ActionStep): Boolean {
         val stepName = extractStepName(step)
@@ -20,7 +23,7 @@ internal class ActionExecutor(
 
         return try {
             val coordinate = extractTargetFromAction(step.action)?.let { elementFinder.find(it) }
-            val success = actionExecutorImpl.execute(step.action, coordinate)
+            val success = actionExecutor.execute(step.action, coordinate)
 
             val metrics = StepExecutionMetrics(
                 stepName = stepName,
@@ -69,3 +72,4 @@ internal class ActionExecutor(
         }
     }
 }
+

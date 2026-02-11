@@ -3,7 +3,8 @@ package com.adaptibot.core
 import com.adaptibot.core.domain.*
 import com.adaptibot.core.domain.actions.ConditionEvaluator
 import com.adaptibot.core.domain.actions.ElementFinder
-import com.adaptibot.core.domain.observer.ObserverManager
+import com.adaptibot.core.domain.observer.ObserverInterruptCoordinator
+import com.adaptibot.core.domain.observer.ObserverRegistry
 import com.adaptibot.core.domain.actions.ActionExecutor as ActionExecutorImpl
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
 
@@ -11,22 +12,23 @@ object CoreConfiguration {
     fun getFacade(): CoreFacade {
         val elementFinder = ElementFinder()
         val conditionEvaluator = ConditionEvaluator(elementFinder)
-        val executionController = ExecutionController()
+        val executionSession = ExecutionSession()
         val eventPublisher = UiExecutionEventPublisher()
 
         return CoreFacade(
-            scriptOrchestrator = ScriptOrchestrator(
-                stepExecutionOrchestrator = StepExecutionOrchestrator(
-                    actionExecutor = ActionExecutor(
-                        actionExecutorImpl = ActionExecutorImpl(),
+            scriptExecutionService = ScriptExecutionService(
+                stepSequenceExecutor = StepSequenceExecutor(
+                    actionStepHandler = ActionStepHandler(
+                        actionExecutor = ActionExecutorImpl(),
                         elementFinder = elementFinder,
                         eventPublisher = eventPublisher
                     ),
                     blockStepResolver = BlockStepResolver(conditionEvaluator),
-                    observerManager = ObserverManager(conditionEvaluator, 1000),
-                    executionController = executionController
+                    observerRegistry = ObserverRegistry(conditionEvaluator, 1000),
+                    executionSession = executionSession,
+                    observerInterruptCoordinator = ObserverInterruptCoordinator()
                 ),
-                executionController = executionController,
+                executionSession = executionSession,
                 eventPublisher = eventPublisher
             )
 

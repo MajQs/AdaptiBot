@@ -8,15 +8,15 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * INTERNAL - Manages observer lifecycle and priority-based execution.
- * Runs in separate thread to check conditions asynchronously without blocking main script execution.
+ * Registry for managing observer lifecycle and execution.
+ * Maintains observer state and coordinates condition checking.
  */
-internal class ObserverManager(
+internal class ObserverRegistry(
     private val conditionEvaluator: ConditionEvaluator,
     private val checkDelayMs: Long = 1000
 ) {
 
-    private val logger = LoggerFactory.getLogger(ObserverManager::class.java)
+    private val logger = LoggerFactory.getLogger(ObserverRegistry::class.java)
 
     private val observers = ConcurrentHashMap<ObserverStep, ObserverState>()
     private val scopeStack = ArrayDeque<MutableSet<ObserverStep>>()
@@ -46,15 +46,14 @@ internal class ObserverManager(
         logger.trace("Exited observer scope. Unregistered ${scopeObservers.size} observers. Depth: ${scopeStack.size}")
     }
 
-    //TODO not sure if priority is needed
-    fun registerObserver(observer: ObserverStep, priority: Int = 100) {
+    fun registerObserver(observer: ObserverStep) {
         observers[observer] = ObserverState(
             observer = observer,
             isActive = true,
-            priority = priority
+            priority = 100  // Default priority, can be made configurable later
         )
         scopeStack.lastOrNull()?.add(observer)
-        logger.debug("Registered observer: ${observer.id.value} with priority $priority in scope depth ${scopeStack.size}")
+        logger.debug("Registered observer: ${observer.id.value} in scope depth ${scopeStack.size}")
     }
 
     fun unregisterObserver(observer: ObserverStep) {
@@ -115,3 +114,4 @@ internal class ObserverManager(
         }
     }
 }
+
