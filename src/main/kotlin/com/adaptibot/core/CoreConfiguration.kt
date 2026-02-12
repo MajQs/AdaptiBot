@@ -20,7 +20,7 @@ object CoreConfiguration {
             scriptExecutionService = ScriptExecutionService(
                 executionSession = executionSession,
                 observerRegistry = observerRegistry,
-                stepSequenceExecutor = StepSequenceExecutor(
+                stepSequenceExecutor = StepsExecutor(
                     actionStepHandler = ActionStepHandler(
                         actionExecutor = ActionExecutorImpl(),
                         elementFinder = elementFinder,

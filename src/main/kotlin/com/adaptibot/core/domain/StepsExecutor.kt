@@ -7,7 +7,7 @@ import com.adaptibot.common.model.Step
 import com.adaptibot.core.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.core.domain.observer.ObserverRegistry
 
-internal class StepSequenceExecutor(
+internal class StepsExecutor(
     private val actionStepHandler: ActionStepHandler,
     private val blockStepResolver: BlockStepResolver,
     private val observerRegistry: ObserverRegistry,
@@ -16,7 +16,7 @@ internal class StepSequenceExecutor(
 ) {
     init {
         observerInterruptCoordinator.setExecuteSequenceCallback { steps ->
-            executeSequence(steps)
+            execute(steps)
         }
 
         observerRegistry.setOnObserverTriggered { observer ->
@@ -24,7 +24,7 @@ internal class StepSequenceExecutor(
         }
     }
 
-    fun executeSequence(steps: List<Step>) {
+    fun execute(steps: List<Step>) {
         observerRegistry.enterScope()
         try {
             for (step in steps) {
@@ -45,7 +45,7 @@ internal class StepSequenceExecutor(
 
         when (step) {
             is ActionStep -> actionStepHandler.execute(step)
-            is BlockStep -> executeSequence(blockStepResolver.resolveNestedSteps(step))
+            is BlockStep -> execute(blockStepResolver.resolveNestedSteps(step))
             is ObserverStep -> observerRegistry.registerObserver(step)
         }
 

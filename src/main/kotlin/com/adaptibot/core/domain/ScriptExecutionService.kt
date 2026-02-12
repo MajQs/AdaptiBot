@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 internal class ScriptExecutionService(
     private val executionSession: ExecutionSession,
     private val observerRegistry: ObserverRegistry,
-    private val stepSequenceExecutor: StepSequenceExecutor,
+    private val stepSequenceExecutor: StepsExecutor,
 ) {
     private val logger = LoggerFactory.getLogger(ScriptExecutionService::class.java)
 
@@ -41,7 +41,7 @@ internal class ScriptExecutionService(
     private fun executeScriptLoop(script: Script) {
         try {
             while (executionSession.isRunning() && !Thread.currentThread().isInterrupted) {
-                stepSequenceExecutor.executeSequence(script.steps)
+                stepSequenceExecutor.execute(script.steps)
             }
         } catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
