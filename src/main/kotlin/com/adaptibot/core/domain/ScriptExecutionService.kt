@@ -2,6 +2,10 @@ package com.adaptibot.core.domain
 
 import com.adaptibot.common.model.Script
 import com.adaptibot.core.dto.ExecutionStateDto
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 
 internal class ScriptExecutionService(
@@ -10,6 +14,12 @@ internal class ScriptExecutionService(
     private val eventPublisher: ExecutionEventPublisher
 ) {
     private val logger = LoggerFactory.getLogger(ScriptExecutionService::class.java)
+
+    private var executionScope: CoroutineScope? = null
+
+    init {
+        executionScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    }
 
     fun start(script: Script) {
         if (!executionSession.isIdle()) {
@@ -21,9 +31,9 @@ internal class ScriptExecutionService(
         eventPublisher.logExecutionStart(script.name)
 
         executionSession.start(script)
-        executionSession.launchInScope {
-            executeScriptLoop(script)
-        }
+
+        executionScope?.launch(block = { executeScriptLoop(script) })
+
     }
 
     fun stop() {

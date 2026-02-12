@@ -4,11 +4,6 @@ import com.adaptibot.common.model.Script
 import com.adaptibot.common.model.Step
 import com.adaptibot.core.dto.ExecutionContext
 import com.adaptibot.core.dto.ExecutionState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 
 internal class ExecutionSession {
 
@@ -18,7 +13,6 @@ internal class ExecutionSession {
         state = ExecutionState.IDLE
     )
 
-    private var executionScope: CoroutineScope? = null
 
     fun getContext(): ExecutionContext = currentContext
 
@@ -27,12 +21,10 @@ internal class ExecutionSession {
             script = script,
             state = ExecutionState.RUNNING
         )
-        executionScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     }
 
     fun stop() {
         currentContext = currentContext.copy(state = ExecutionState.STOPPED)
-        executionScope?.cancel()
     }
 
     fun completeExecution() {
@@ -51,8 +43,5 @@ internal class ExecutionSession {
         currentContext = currentContext.copy(activeStep = step)
     }
 
-    internal fun launchInScope(block: suspend CoroutineScope.() -> Unit) {
-        executionScope?.launch(block = block)
-    }
 }
 

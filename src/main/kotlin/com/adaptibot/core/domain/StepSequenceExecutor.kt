@@ -3,7 +3,11 @@ package com.adaptibot.core.domain
 import com.adaptibot.common.model.*
 import com.adaptibot.core.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.core.domain.observer.ObserverRegistry
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 internal class StepSequenceExecutor(
     private val actionStepHandler: ActionStepHandler,
@@ -12,7 +16,6 @@ internal class StepSequenceExecutor(
     private val executionSession: ExecutionSession,
     private val observerInterruptCoordinator: ObserverInterruptCoordinator
 ) {
-
     init {
         observerInterruptCoordinator.setExecuteSequenceCallback { steps ->
             executeSequence(steps)
