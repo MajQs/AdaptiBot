@@ -68,7 +68,7 @@ internal class ObserverRegistry(
     fun clearAll() {
         logger.debug("Clearing all observers")
         observers.clear()
-        stopObserverThread()
+        //stopObserverThread()
     }
 
     private fun checkObservers() {

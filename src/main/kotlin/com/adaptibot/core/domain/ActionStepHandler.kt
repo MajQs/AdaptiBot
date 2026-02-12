@@ -4,12 +4,9 @@ import com.adaptibot.common.model.Action
 import com.adaptibot.common.model.ActionStep
 import com.adaptibot.common.model.ElementIdentifier
 import com.adaptibot.core.domain.actions.ElementFinder
+import com.adaptibot.core.dto.StepExecutionMetrics
 import org.slf4j.LoggerFactory
 
-/**
- * Handles execution of ActionStep instances.
- * Coordinates between action execution, element finding, and event publishing.
- */
 internal class ActionStepHandler(
     private val actionExecutor: com.adaptibot.core.domain.actions.ActionExecutor,
     private val elementFinder: ElementFinder,

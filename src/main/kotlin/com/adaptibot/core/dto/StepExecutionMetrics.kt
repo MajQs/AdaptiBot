@@ -1,4 +1,4 @@
-package com.adaptibot.core.domain
+package com.adaptibot.core.dto
 
 internal data class StepExecutionMetrics(
     val stepName: String,
@@ -8,4 +8,3 @@ internal data class StepExecutionMetrics(
 ) {
     fun duration(): Long = System.currentTimeMillis() - startTime
 }
-
