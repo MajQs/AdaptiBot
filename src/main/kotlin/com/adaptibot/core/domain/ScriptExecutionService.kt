@@ -7,9 +7,9 @@ import com.adaptibot.core.dto.ExecutionStateDto
 import org.slf4j.LoggerFactory
 
 internal class ScriptExecutionService(
-    private val stepSequenceExecutor: StepSequenceExecutor,
-    private val observerRegistry: ObserverRegistry,
     private val executionSession: ExecutionSession,
+    private val observerRegistry: ObserverRegistry,
+    private val stepSequenceExecutor: StepSequenceExecutor,
 ) {
     private val logger = LoggerFactory.getLogger(ScriptExecutionService::class.java)
 

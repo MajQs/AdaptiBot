@@ -12,12 +12,14 @@ object CoreConfiguration {
     fun getFacade(): CoreFacade {
         val elementFinder = ElementFinder()
         val conditionEvaluator = ConditionEvaluator(elementFinder)
-        val executionSession = ExecutionSession()
         val eventPublisher = UiExecutionEventPublisher()
+        val executionSession = ExecutionSession(eventPublisher)
         val observerRegistry = ObserverRegistry(conditionEvaluator, 1000)
 
         return CoreFacade(
             scriptExecutionService = ScriptExecutionService(
+                executionSession = executionSession,
+                observerRegistry = observerRegistry,
                 stepSequenceExecutor = StepSequenceExecutor(
                     actionStepHandler = ActionStepHandler(
                         actionExecutor = ActionExecutorImpl(),
@@ -29,11 +31,7 @@ object CoreConfiguration {
                     executionSession = executionSession,
                     observerInterruptCoordinator = ObserverInterruptCoordinator()
                 ),
-                observerRegistry = observerRegistry,
-                executionSession = executionSession,
-                eventPublisher = eventPublisher
             )
-
         )
     }
 }

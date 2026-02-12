@@ -30,11 +30,11 @@ internal class ExecutionSession(
         currentContext = currentContext.copy(state = ExecutionState.STOPPED)
     }
 
-    fun getState(): ExecutionState = currentContext.state
-
     fun completeExecution() {
-            currentContext = ExecutionContext.default()
+        currentContext = ExecutionContext.default()
     }
+
+    fun getState(): ExecutionState = currentContext.state
 
     fun isRunning(): Boolean = currentContext.state == ExecutionState.RUNNING
 
@@ -44,6 +44,6 @@ internal class ExecutionSession(
         currentContext = currentContext.copy(activeStep = step)
     }
 
-    private class SessionRunningException: RuntimeException("Session is already running")
+    private class SessionRunningException : RuntimeException("Session is already running")
 }
 
