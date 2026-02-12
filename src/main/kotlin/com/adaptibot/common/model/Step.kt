@@ -2,10 +2,6 @@ package com.adaptibot.common.model
 
 import kotlinx.serialization.Serializable
 
-/**
- * Represents a single step in a script execution flow.
- * Uses Composite Pattern for unlimited nesting of blocks.
- */
 @Serializable
 sealed class Step {
     abstract val id: StepId
