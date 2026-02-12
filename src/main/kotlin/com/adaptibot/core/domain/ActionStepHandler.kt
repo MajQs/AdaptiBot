@@ -28,7 +28,7 @@ internal class ActionStepHandler(
                 success = success
             )
 
-            logExecutionResult(metrics, step)
+            logExecutionResult(metrics)
             success
         } catch (e: Exception) {
             val metrics = StepExecutionMetrics(
@@ -38,12 +38,12 @@ internal class ActionStepHandler(
                 error = e.message ?: "Exception"
             )
 
-            logExecutionResult(metrics, step)
+            logExecutionResult(metrics)
             false
         }
     }
 
-    private fun logExecutionResult(metrics: StepExecutionMetrics, step: ActionStep) {
+    private fun logExecutionResult(metrics: StepExecutionMetrics) {
         val duration = metrics.duration()
 
         if (metrics.success) {
@@ -51,7 +51,7 @@ internal class ActionStepHandler(
         } else {
             val errorMessage = metrics.error ?: "Action failed"
             eventPublisher.logStepFailure(metrics.stepName, duration, errorMessage)
-            logger.error("Action execution failed: ${step.label ?: step.id.value}")
+            logger.error("Action execution failed: " + metrics.stepName)
         }
     }
 

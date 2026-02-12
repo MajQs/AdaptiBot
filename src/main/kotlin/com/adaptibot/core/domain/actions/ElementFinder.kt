@@ -7,9 +7,6 @@ import com.adaptibot.vision.capture.ScreenCapture
 import com.adaptibot.vision.match.ImageMatcher
 import org.slf4j.LoggerFactory
 
-/**
- * INTERNAL - Finds UI elements on screen.
- */
 internal class ElementFinder {
 
     private val logger = LoggerFactory.getLogger(ElementFinder::class.java)

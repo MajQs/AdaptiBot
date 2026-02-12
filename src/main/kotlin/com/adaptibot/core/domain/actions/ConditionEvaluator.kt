@@ -3,9 +3,6 @@ package com.adaptibot.core.domain.actions
 import com.adaptibot.common.model.Condition
 import org.slf4j.LoggerFactory
 
-/**
- * INTERNAL - Evaluates conditions for conditional blocks.
- */
 internal class ConditionEvaluator(
     private val elementFinder: ElementFinder
 ) {

@@ -17,8 +17,7 @@ internal class BlockStepResolver(
             is GroupBlock -> block.steps
             is ConditionalBlock -> {
                 try {
-                    val conditionMet = conditionEvaluator.evaluate(block.condition)
-                    if (conditionMet) {
+                    if (conditionEvaluator.evaluate(block.condition)) {
                         block.thenSteps
                     } else {
                         block.elseSteps

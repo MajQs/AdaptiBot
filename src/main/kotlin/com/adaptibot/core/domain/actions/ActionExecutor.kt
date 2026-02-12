@@ -4,9 +4,6 @@ import com.adaptibot.common.model.Action
 import com.adaptibot.common.model.Coordinate
 import org.slf4j.LoggerFactory
 
-/**
- * INTERNAL - Executes actions by dispatching to appropriate controllers.
- */
 internal class ActionExecutor {
 
     private val logger = LoggerFactory.getLogger(ActionExecutor::class.java)
