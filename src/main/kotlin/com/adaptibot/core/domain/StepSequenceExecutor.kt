@@ -1,13 +1,11 @@
 package com.adaptibot.core.domain
 
-import com.adaptibot.common.model.*
+import com.adaptibot.common.model.ActionStep
+import com.adaptibot.common.model.BlockStep
+import com.adaptibot.common.model.ObserverStep
+import com.adaptibot.common.model.Step
 import com.adaptibot.core.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.core.domain.observer.ObserverRegistry
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 internal class StepSequenceExecutor(
     private val actionStepHandler: ActionStepHandler,
@@ -26,12 +24,12 @@ internal class StepSequenceExecutor(
         }
     }
 
-    suspend fun executeSequence(steps: List<Step>) {
+    fun executeSequence(steps: List<Step>) {
         observerRegistry.enterScope()
         try {
             for (step in steps) {
                 observerInterruptCoordinator.processObserverInterrupt()
-                if (executionSession.isStopped()) {
+                if (executionSession.isStopped() || Thread.currentThread().isInterrupted) {
                     break
                 }
                 executeStep(step)
@@ -41,7 +39,7 @@ internal class StepSequenceExecutor(
         }
     }
 
-    private suspend fun executeStep(step: Step) {
+    private fun executeStep(step: Step) {
         executionSession.recordActiveStep(step)
         waitForDelay(step.delayBefore)
 
@@ -54,9 +52,14 @@ internal class StepSequenceExecutor(
         waitForDelay(step.delayAfter)
     }
 
-    private suspend fun waitForDelay(delayMs: Long) {
+    private fun waitForDelay(delayMs: Long) {
         if (delayMs > 0) {
-            delay(delayMs)
+            try {
+                Thread.sleep(delayMs)
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+                // Gracefully handle interruption - execution will stop at next check
+            }
         }
     }
 

@@ -2,7 +2,6 @@ package com.adaptibot.core.domain.observer
 
 import com.adaptibot.common.model.ObserverStep
 import com.adaptibot.core.domain.actions.ConditionEvaluator
-import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -10,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Registry for managing observer lifecycle and execution.
  * Maintains observer state and coordinates condition checking.
+ * Observer thread uses lazy initialization - starts only when first observer is registered.
  */
 internal class ObserverRegistry(
     private val conditionEvaluator: ConditionEvaluator,
@@ -21,13 +21,14 @@ internal class ObserverRegistry(
     private val observers = ConcurrentHashMap<ObserverStep, ObserverState>()
     private val scopeStack = ArrayDeque<MutableSet<ObserverStep>>()
     private val isRunning = AtomicBoolean(false)
-    private var observerScope: CoroutineScope? = null
+
+    @Volatile
+    private var observerThread: Thread? = null
 
     @Volatile
     private var onObserverTriggered: ((ObserverStep) -> Unit)? = null
 
     init {
-        startObserverThread()
         scopeStack.add(mutableSetOf()) // Global scope
     }
 
@@ -54,11 +55,20 @@ internal class ObserverRegistry(
         )
         scopeStack.lastOrNull()?.add(observer)
         logger.debug("Registered observer: ${observer.id.value} in scope depth ${scopeStack.size}")
+
+        // Lazy start: ensure observer thread is running
+        ensureObserverThreadRunning()
     }
 
     fun unregisterObserver(observer: ObserverStep) {
         observers.remove(observer)
         logger.debug("Unregistered observer: ${observer.id.value}")
+
+        // Auto-stop thread when no observers remain
+        if (observers.isEmpty()) {
+            logger.debug("No more observers, stopping thread")
+            stopObserverThread()
+        }
     }
 
     fun setOnObserverTriggered(callback: (ObserverStep) -> Unit) {
@@ -68,7 +78,7 @@ internal class ObserverRegistry(
     fun clearAll() {
         logger.debug("Clearing all observers")
         observers.clear()
-        //stopObserverThread()
+        stopObserverThread()
     }
 
     private fun checkObservers() {
@@ -89,27 +99,50 @@ internal class ObserverRegistry(
         }
     }
 
-    private fun startObserverThread() {
+    private fun ensureObserverThreadRunning() {
         if (isRunning.compareAndSet(false, true)) {
-            observerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-            observerScope?.launch {
-                while (isRunning.get()) {
-                    try {
-                        checkObservers()
-                    } catch (e: Exception) {
-                        logger.error("Observer check failed", e)
-                    }
-                    delay(checkDelayMs)
+            observerThread = Thread.ofVirtual()
+                .name("observer-registry")
+                .start {
+                    runObserverLoop()
                 }
-            }
-            logger.debug("Observer thread started")
+            logger.debug("Observer thread started (lazy initialization)")
         }
+    }
+
+    private fun runObserverLoop() {
+        while (isRunning.get() && !Thread.currentThread().isInterrupted) {
+            try {
+                // Early exit if no observers
+                if (observers.isEmpty()) {
+                    Thread.sleep(checkDelayMs)
+                    continue
+                }
+
+                checkObservers()
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+                logger.debug("Observer thread interrupted")
+                break
+            } catch (e: Exception) {
+                logger.error("Observer check failed", e)
+            }
+
+            try {
+                Thread.sleep(checkDelayMs)
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+                logger.debug("Observer sleep interrupted")
+                break
+            }
+        }
+        logger.debug("Observer thread stopped")
     }
 
     private fun stopObserverThread() {
         if (isRunning.compareAndSet(true, false)) {
-            observerScope?.cancel()
-            observerScope = null
+            observerThread?.interrupt()
+            observerThread = null
             logger.debug("Observer thread stopped")
         }
     }

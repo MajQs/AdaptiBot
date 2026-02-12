@@ -172,29 +172,33 @@ Example: Observer at depth 3, position 2 → Priority = 2998
 ```
 1. User clicks "Start"
 2. ExecutionService.start(script)
-3. ScriptExecutor launches coroutine
-4. Infinite loop begins:
+3. ScriptExecutionService creates virtual thread "script-execution"
+4. Infinite loop begins (in virtual thread):
    a. For each step in script.steps:
       - executeStep(step)
-      - Handle delays (before/after)
-      - Check if paused/stopped
-   b. Increment iteration counter
-   c. Repeat from step a
-5. User clicks "Stop" → executor cancels coroutine
+      - Handle delays (before/after) using Thread.sleep()
+      - Check if stopped or interrupted
+   b. Repeat from step a
+5. User clicks "Stop" → executor interrupts virtual thread
+6. Virtual thread performs graceful shutdown and exits
 ```
 
 ### Observer Execution
 
 ```
-1. ObserverManager runs in separate coroutine
-2. Every 1s (configurable), checks all active observers:
+1. First observer is registered
+2. ObserverRegistry lazy-starts virtual thread "observer-registry"
+3. Every 1s (configurable), checks all active observers:
+   - Early exit if observers.isEmpty()
    - Sort by priority (highest first)
    - Evaluate condition
-   - If true: trigger observer actions
-3. When observer triggers:
-   a. Main executor pauses (safe synchronization point)
-   b. Observer actions execute
-   c. Main executor resumes (unless observer jumped)
+   - If true: queue observer for execution
+4. When observer triggers:
+   a. Script executor is interrupted at next step boundary
+   b. Observer actions execute synchronously
+   c. Script executor resumes from interrupted step
+5. When last observer is unregistered:
+   - Observer thread automatically stops (auto-cleanup)
 ```
 
 ### Conditional Execution
@@ -211,24 +215,36 @@ ConditionalBlock execution:
 
 ## Thread Model
 
+> **Note:** As of version 0.1.0-SNAPSHOT, the project has been migrated from Kotlin Coroutines to Java Virtual Threads.  
+> See [VIRTUAL_THREADS_MIGRATION.md](./VIRTUAL_THREADS_MIGRATION.md) for details.
+
 ### Main Thread (JavaFX Application Thread)
 - UI rendering and event handling
 - User interactions (menu clicks, button presses)
 
-### Executor Thread (Coroutine - Dispatchers.Default)
-- Script execution loop
+### Script Execution Thread (Java Virtual Thread)
+- Dedicated virtual thread for script execution loop
 - Step-by-step action processing
 - Coordinated pauses when observer triggers
+- **Lifecycle:** Created on script start, destroyed on stop
+- **Name:** `script-execution`
 
-### Observer Thread (Coroutine - Dispatchers.Default)
-- Independent from main executor
-- Periodic condition checking
-- Signals main executor when condition met
+### Observer Thread (Java Virtual Thread - Lazy Initialization)
+- Independent from script execution thread
+- Periodic condition checking (every 1 second)
+- Signals script executor when observer condition is met
+- **Lifecycle:** 
+  - Created lazily when first observer is registered
+  - Automatically stopped when last observer is unregistered
+- **Name:** `observer-registry`
+- **Optimization:** Early exit when no observers are active
 
 ### Thread Synchronization
-- Atomic state changes (ExecutionState)
-- Coroutine cancellation for clean shutdown
+- Atomic state changes (ExecutionState with @Volatile)
+- Thread interruption for graceful shutdown
 - ConcurrentHashMap for observer registry
+- AtomicBoolean for thread lifecycle management
+- Proper InterruptedException handling (restore interrupted status)
 
 ## Testing Strategy
 
