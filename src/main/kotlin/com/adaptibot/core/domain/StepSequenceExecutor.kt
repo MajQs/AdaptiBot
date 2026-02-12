@@ -62,9 +62,5 @@ internal class StepSequenceExecutor(
             }
         }
     }
-
-    fun stop() {
-        observerRegistry.clearAll()
-    }
 }
 

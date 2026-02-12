@@ -1,11 +1,13 @@
 package com.adaptibot.core.domain
 
 import com.adaptibot.common.model.Script
+import com.adaptibot.core.domain.observer.ObserverRegistry
 import com.adaptibot.core.dto.ExecutionStateDto
 import org.slf4j.LoggerFactory
 
 internal class ScriptExecutionService(
     private val stepSequenceExecutor: StepSequenceExecutor,
+    private val observerRegistry: ObserverRegistry,
     private val executionSession: ExecutionSession,
     private val eventPublisher: ExecutionEventPublisher
 ) {
@@ -35,10 +37,14 @@ internal class ScriptExecutionService(
     fun stop() {
         logger.info("Stopping script execution")
         eventPublisher.logExecutionStop()
+
+        // Stop all components at the same abstraction level
         executionSession.stop()
         executionThread?.interrupt()
         executionThread = null
-        stepSequenceExecutor.stop()
+
+        // Stop observer thread - ScriptExecutionService orchestrates lifecycle of BOTH threads
+        observerRegistry.clearAll()
     }
 
     fun getExecutionState(): ExecutionStateDto = ExecutionStateDto.valueOf(executionSession.getContext().state.name)

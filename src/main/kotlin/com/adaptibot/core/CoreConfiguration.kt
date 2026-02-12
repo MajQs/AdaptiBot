@@ -14,6 +14,7 @@ object CoreConfiguration {
         val conditionEvaluator = ConditionEvaluator(elementFinder)
         val executionSession = ExecutionSession()
         val eventPublisher = UiExecutionEventPublisher()
+        val observerRegistry = ObserverRegistry(conditionEvaluator, 1000)
 
         return CoreFacade(
             scriptExecutionService = ScriptExecutionService(
@@ -24,10 +25,11 @@ object CoreConfiguration {
                         eventPublisher = eventPublisher
                     ),
                     blockStepResolver = BlockStepResolver(conditionEvaluator),
-                    observerRegistry = ObserverRegistry(conditionEvaluator, 1000),
+                    observerRegistry = observerRegistry,
                     executionSession = executionSession,
                     observerInterruptCoordinator = ObserverInterruptCoordinator()
                 ),
+                observerRegistry = observerRegistry,
                 executionSession = executionSession,
                 eventPublisher = eventPublisher
             )
