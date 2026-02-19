@@ -1,4 +1,4 @@
-package com.adaptibot.core.dto
+package com.adaptibot.engine.dto
 
 data class ExecutionContextDto(
     val scriptName: String,

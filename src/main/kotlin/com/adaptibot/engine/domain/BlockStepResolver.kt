@@ -1,10 +1,10 @@
-package com.adaptibot.core.domain
+package com.adaptibot.engine.domain
 
 import com.adaptibot.common.model.BlockStep
 import com.adaptibot.common.model.ConditionalBlock
 import com.adaptibot.common.model.GroupBlock
 import com.adaptibot.common.model.Step
-import com.adaptibot.core.domain.actions.ConditionEvaluator
+import com.adaptibot.engine.domain.actions.ConditionEvaluator
 import org.slf4j.LoggerFactory
 
 internal class BlockStepResolver(

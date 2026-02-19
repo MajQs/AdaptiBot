@@ -1,19 +1,19 @@
-package com.adaptibot.core.domain
+package com.adaptibot.engine.domain
 
 import com.adaptibot.common.model.Script
 import com.adaptibot.common.model.Step
-import com.adaptibot.core.dto.ExecutionContext
-import com.adaptibot.core.dto.ExecutionState
+import com.adaptibot.engine.dto.ExecutionContext
+import com.adaptibot.engine.dto.ExecutionState
 import org.slf4j.LoggerFactory
 
-internal class ExecutionSession(
+internal class ScriptExecutionState(
     private val eventPublisher: ExecutionEventPublisher
 ) {
 
     @Volatile
     private var currentContext: ExecutionContext = ExecutionContext.default()
 
-    private val logger = LoggerFactory.getLogger(ExecutionSession::class.java)
+    private val logger = LoggerFactory.getLogger(ScriptExecutionState::class.java)
 
     fun create(script: Script): ExecutionContext {
         if (currentContext.state == ExecutionState.IDLE) {

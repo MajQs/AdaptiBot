@@ -1,14 +1,14 @@
-package com.adaptibot.core.domain
+package com.adaptibot.engine.domain
 
 import com.adaptibot.common.model.Action
 import com.adaptibot.common.model.ActionStep
 import com.adaptibot.common.model.ElementIdentifier
-import com.adaptibot.core.domain.actions.ElementFinder
-import com.adaptibot.core.dto.StepExecutionMetrics
+import com.adaptibot.engine.domain.actions.ElementFinder
+import com.adaptibot.engine.dto.StepExecutionMetrics
 import org.slf4j.LoggerFactory
 
 internal class ActionStepHandler(
-    private val actionExecutor: com.adaptibot.core.domain.actions.ActionExecutor,
+    private val actionExecutor: com.adaptibot.engine.domain.actions.ActionExecutor,
     private val elementFinder: ElementFinder,
     private val eventPublisher: ExecutionEventPublisher
 ) {

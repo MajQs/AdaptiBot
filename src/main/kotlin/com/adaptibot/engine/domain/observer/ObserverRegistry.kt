@@ -1,7 +1,7 @@
-package com.adaptibot.core.domain.observer
+package com.adaptibot.engine.domain.observer
 
 import com.adaptibot.common.model.ObserverStep
-import com.adaptibot.core.domain.actions.ConditionEvaluator
+import com.adaptibot.engine.domain.actions.ConditionEvaluator
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean

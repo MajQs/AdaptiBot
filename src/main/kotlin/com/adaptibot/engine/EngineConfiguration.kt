@@ -1,26 +1,25 @@
-package com.adaptibot.core
+package com.adaptibot.engine
 
-import com.adaptibot.core.domain.*
-import com.adaptibot.core.domain.actions.ConditionEvaluator
-import com.adaptibot.core.domain.actions.ElementFinder
-import com.adaptibot.core.domain.observer.ObserverInterruptCoordinator
-import com.adaptibot.core.domain.observer.ObserverRegistry
-import com.adaptibot.core.domain.actions.ActionExecutor as ActionExecutorImpl
+import com.adaptibot.engine.domain.*
+import com.adaptibot.engine.domain.actions.ConditionEvaluator
+import com.adaptibot.engine.domain.actions.ElementFinder
+import com.adaptibot.engine.domain.observer.ObserverInterruptCoordinator
+import com.adaptibot.engine.domain.observer.ObserverRegistry
+import com.adaptibot.engine.domain.actions.ActionExecutor as ActionExecutorImpl
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
 
-object CoreConfiguration {
-    fun getFacade(): CoreFacade {
+object EngineConfiguration {
+    fun getFacade(): EngineFacade {
         val elementFinder = ElementFinder()
         val conditionEvaluator = ConditionEvaluator(elementFinder)
         val eventPublisher = UiExecutionEventPublisher()
-        val executionSession = ExecutionSession(eventPublisher)
+        val scriptExecutionState = ScriptExecutionState(eventPublisher)
         val observerRegistry = ObserverRegistry(conditionEvaluator, 1000)
 
-        return CoreFacade(
-            scriptExecutionService = ScriptExecutionService(
-                executionSession = executionSession,
-                observerRegistry = observerRegistry,
-                stepSequenceExecutor = StepsExecutor(
+        return EngineFacade(
+            scriptRunner = ScriptRunner(
+                scriptExecutionState = scriptExecutionState,
+                scriptInterpreter = ScriptInterpreter(
                     actionStepHandler = ActionStepHandler(
                         actionExecutor = ActionExecutorImpl(),
                         elementFinder = elementFinder,
@@ -28,7 +27,7 @@ object CoreConfiguration {
                     ),
                     blockStepResolver = BlockStepResolver(conditionEvaluator),
                     observerRegistry = observerRegistry,
-                    executionSession = executionSession,
+                    scriptExecutionState = scriptExecutionState,
                     observerInterruptCoordinator = ObserverInterruptCoordinator()
                 ),
             )

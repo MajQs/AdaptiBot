@@ -1,4 +1,4 @@
-package com.adaptibot.core.domain.actions
+package com.adaptibot.engine.domain.actions
 
 import com.adaptibot.common.model.Condition
 import org.slf4j.LoggerFactory

@@ -1,4 +1,4 @@
-package com.adaptibot.core.domain.observer
+package com.adaptibot.engine.domain.observer
 
 import com.adaptibot.common.model.ObserverStep
 

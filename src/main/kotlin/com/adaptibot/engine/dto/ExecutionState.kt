@@ -1,4 +1,4 @@
-package com.adaptibot.core.dto
+package com.adaptibot.engine.dto
 
 internal enum class ExecutionState {
     IDLE,
