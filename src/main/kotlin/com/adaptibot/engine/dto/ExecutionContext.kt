@@ -15,3 +15,8 @@ internal data class ExecutionContext(
     }
 }
 
+internal enum class ExecutionState {
+    IDLE,
+    RUNNING,
+    STOPPED
+}
