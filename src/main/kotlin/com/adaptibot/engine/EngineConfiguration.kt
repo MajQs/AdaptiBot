@@ -6,7 +6,6 @@ import com.adaptibot.engine.domain.actions.ConditionEvaluator
 import com.adaptibot.engine.domain.actions.ElementFinder
 import com.adaptibot.engine.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.engine.domain.observer.ObserverRegistry
-import com.adaptibot.action.domain.ActionExecutor as ActionExecutorImpl
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
 
 object EngineConfiguration {

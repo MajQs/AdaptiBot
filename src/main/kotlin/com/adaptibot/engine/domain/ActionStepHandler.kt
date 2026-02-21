@@ -1,7 +1,6 @@
 package com.adaptibot.engine.domain
 
 import com.adaptibot.action.ActionFacade
-import com.adaptibot.action.domain.ActionExecutor
 import com.adaptibot.common.model.Action
 import com.adaptibot.common.model.ActionStep
 import com.adaptibot.common.model.ElementIdentifier

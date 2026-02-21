@@ -1,13 +1,13 @@
 package com.adaptibot.action
 
-import com.adaptibot.action.domain.ActionExecutor
+import com.adaptibot.action.domain.ActionHandler
 import com.adaptibot.common.model.Action
 
 class ActionFacade internal constructor(
-    private val actionExecutor: ActionExecutor
+    private val actionHandlerPerType: Map<Class<out Action>, ActionHandler<in Action>>,
 ) {
 
     fun execute(action: Action) {
-        actionExecutor.execute(action)
+        actionHandlerPerType[action::class.java]?.handle(action)
     }
 }

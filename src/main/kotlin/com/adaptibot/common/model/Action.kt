@@ -7,6 +7,10 @@ sealed class Action {
     
     @Serializable
     sealed class Mouse : Action() {
+
+        @Serializable
+        data class MoveAndClick(val target: ElementIdentifier, val mouseButton: MouseButton) : Mouse()
+
         @Serializable
         data class LeftClick(val target: ElementIdentifier) : Mouse()
         
@@ -61,6 +65,10 @@ sealed class Action {
         @Serializable
         object Continue : Flow()
     }
+
+    companion object {
+        val Click: Any
+    }
 }
 
 @Serializable
@@ -68,3 +76,7 @@ enum class ScrollDirection {
     UP, DOWN, LEFT, RIGHT
 }
 
+@Serializable
+enum class MouseButton {
+    LEFT, RIGHT, MIDDLE
+}
