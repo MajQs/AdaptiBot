@@ -5,11 +5,6 @@ import com.adaptibot.engine.domain.actions.ConditionEvaluator
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * Registry for managing observer lifecycle and execution.
- * Maintains observer state and coordinates condition checking.
- * Observer thread uses lazy initialization - starts only when first observer is registered.
- */
 internal class ObserverRegistry(
     private val conditionEvaluator: ConditionEvaluator,
     private val checkDelayMs: Long = 1000

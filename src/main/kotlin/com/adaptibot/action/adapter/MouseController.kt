@@ -23,20 +23,6 @@ object MouseController {
         return moveTo(coordinate.x, coordinate.y)
     }
 
-    fun getCurrentPosition(): Coordinate? {
-        return try {
-            val point = User32.POINT()
-            if (user32.GetCursorPos(point)) {
-                Coordinate(point.x, point.y)
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            logger.error("Failed to get cursor position", e)
-            null
-        }
-    }
-
     fun leftClick(): Boolean {
         return try {
             user32.mouse_event(User32.Companion.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
