@@ -1,5 +1,7 @@
 package com.adaptibot.engine.domain
 
+import com.adaptibot.action.ActionFacade
+import com.adaptibot.action.domain.ActionExecutor
 import com.adaptibot.common.model.Action
 import com.adaptibot.common.model.ActionStep
 import com.adaptibot.common.model.ElementIdentifier
@@ -8,8 +10,7 @@ import com.adaptibot.engine.dto.StepExecutionMetrics
 import org.slf4j.LoggerFactory
 
 internal class ActionStepHandler(
-    private val actionExecutor: com.adaptibot.engine.domain.actions.ActionExecutor,
-    private val elementFinder: ElementFinder,
+    private val actionFacade: ActionFacade,
     private val eventPublisher: ExecutionEventPublisher
 ) {
     private val logger = LoggerFactory.getLogger(ActionStepHandler::class.java)
@@ -19,8 +20,8 @@ internal class ActionStepHandler(
         val startTime = System.currentTimeMillis()
 
         return try {
-            val coordinate = extractTargetFromAction(step.action)?.let { elementFinder.find(it) }
-            val success = actionExecutor.execute(step.action, coordinate)
+            actionFacade.execute(step.action)
+            val success = true
 
             val metrics = StepExecutionMetrics(
                 stepName = stepName,
@@ -59,14 +60,5 @@ internal class ActionStepHandler(
         return step.label ?: step.action::class.simpleName ?: "Action"
     }
 
-    private fun extractTargetFromAction(action: Action): ElementIdentifier? {
-        return when (action) {
-            is Action.Mouse.LeftClick -> action.target
-            is Action.Mouse.RightClick -> action.target
-            is Action.Mouse.DoubleClick -> action.target
-            is Action.Mouse.MoveTo -> action.target
-            else -> null
-        }
-    }
 }
 

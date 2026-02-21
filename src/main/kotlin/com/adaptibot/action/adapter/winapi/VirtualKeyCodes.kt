@@ -1,4 +1,4 @@
-package com.adaptibot.automation.winapi
+package com.adaptibot.action.adapter.winapi
 
 object VirtualKeyCodes {
     // Letter keys

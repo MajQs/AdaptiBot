@@ -1,11 +1,12 @@
 package com.adaptibot.engine
 
+import com.adaptibot.action.ActionConfiguration
 import com.adaptibot.engine.domain.*
 import com.adaptibot.engine.domain.actions.ConditionEvaluator
 import com.adaptibot.engine.domain.actions.ElementFinder
 import com.adaptibot.engine.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.engine.domain.observer.ObserverRegistry
-import com.adaptibot.engine.domain.actions.ActionExecutor as ActionExecutorImpl
+import com.adaptibot.action.domain.ActionExecutor as ActionExecutorImpl
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
 
 object EngineConfiguration {
@@ -21,8 +22,7 @@ object EngineConfiguration {
                 scriptExecutionState = scriptExecutionState,
                 scriptInterpreter = ScriptInterpreter(
                     actionStepHandler = ActionStepHandler(
-                        actionExecutor = ActionExecutorImpl(),
-                        elementFinder = elementFinder,
+                        actionFacade = ActionConfiguration.getActionFacade(),
                         eventPublisher = eventPublisher
                     ),
                     blockStepResolver = BlockStepResolver(conditionEvaluator),
