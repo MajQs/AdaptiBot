@@ -1,33 +1,36 @@
 package com.adaptibot.common.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class Action {
-    
+
     @Serializable
     sealed class Mouse : Action() {
 
         @Serializable
-        data class MoveAndClick(val target: ElementIdentifier, val mouseButton: MouseButton) : Mouse()
+        data class Click(
+            val target: ElementIdentifier? = null,
+            val button: MouseButton = MouseButton.LEFT,
+            @SerialName("clickType") val type: ClickType = ClickType.SINGLE,
+            val holdDuration: Long = 0L
+        ) : Mouse()
 
         @Serializable
-        data class LeftClick(val target: ElementIdentifier) : Mouse()
-        
-        @Serializable
-        data class RightClick(val target: ElementIdentifier) : Mouse()
-        
-        @Serializable
-        data class DoubleClick(val target: ElementIdentifier) : Mouse()
-        
+        data class Drag(
+            val from: ElementIdentifier? = null,
+            val to: ElementIdentifier
+        ) : Mouse()
+
         @Serializable
         data class MoveTo(val target: ElementIdentifier) : Mouse()
-        
+
         @Serializable
-        data class Drag(val from: ElementIdentifier, val to: ElementIdentifier) : Mouse()
-        
-        @Serializable
-        data class Scroll(val amount: Int, val direction: ScrollDirection) : Mouse()
+        data class Scroll(
+            val direction: ScrollDirection,
+            val amount: Int,
+        ) : Mouse()
     }
     
     @Serializable
@@ -66,9 +69,6 @@ sealed class Action {
         object Continue : Flow()
     }
 
-    companion object {
-        val Click: Any
-    }
 }
 
 @Serializable
@@ -80,3 +80,9 @@ enum class ScrollDirection {
 enum class MouseButton {
     LEFT, RIGHT, MIDDLE
 }
+
+@Serializable
+enum class ClickType {
+    SINGLE, DOUBLE, TRIPLE
+}
+

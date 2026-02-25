@@ -113,14 +113,10 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
             is Action.Mouse.MoveTo -> {
                 (dynamicFields["target"] as TextField).text = getElementIdentifierString(action.target)
             }
-            is Action.Mouse.LeftClick -> {
-                (dynamicFields["target"] as TextField).text = getElementIdentifierString(action.target)
-            }
-            is Action.Mouse.RightClick -> {
-                (dynamicFields["target"] as TextField).text = getElementIdentifierString(action.target)
-            }
-            is Action.Mouse.DoubleClick -> {
-                (dynamicFields["target"] as TextField).text = getElementIdentifierString(action.target)
+            is Action.Mouse.Click -> {
+                action.target?.let {
+                    (dynamicFields["target"] as TextField).text = getElementIdentifierString(it)
+                }
             }
             is Action.Keyboard.TypeText -> {
                 (dynamicFields["text"] as TextField).text = action.text
@@ -145,9 +141,18 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
 
         val action = when (actionType) {
             ActionType.MOUSE_MOVE -> Action.Mouse.MoveTo(parseElementIdentifier((dynamicFields["target"] as TextField).text))
-            ActionType.MOUSE_LEFT_CLICK -> Action.Mouse.LeftClick(parseElementIdentifier((dynamicFields["target"] as TextField).text))
-            ActionType.MOUSE_RIGHT_CLICK -> Action.Mouse.RightClick(parseElementIdentifier((dynamicFields["target"] as TextField).text))
-            ActionType.MOUSE_DOUBLE_CLICK -> Action.Mouse.DoubleClick(parseElementIdentifier((dynamicFields["target"] as TextField).text))
+            ActionType.MOUSE_LEFT_CLICK -> Action.Mouse.Click(
+                target = parseElementIdentifier((dynamicFields["target"] as TextField).text),
+                button = MouseButton.LEFT
+            )
+            ActionType.MOUSE_RIGHT_CLICK -> Action.Mouse.Click(
+                target = parseElementIdentifier((dynamicFields["target"] as TextField).text),
+                button = MouseButton.RIGHT
+            )
+            ActionType.MOUSE_DOUBLE_CLICK -> Action.Mouse.Click(
+                target = parseElementIdentifier((dynamicFields["target"] as TextField).text),
+                type = ClickType.DOUBLE
+            )
             ActionType.KEYBOARD_TYPE -> Action.Keyboard.TypeText((dynamicFields["text"] as TextField).text)
             ActionType.KEYBOARD_PRESS_KEY -> Action.Keyboard.PressKey((dynamicFields["key"] as TextField).text)
             ActionType.WAIT -> Action.System.Wait((dynamicFields["duration"] as TextField).text.toLong())
@@ -232,9 +237,11 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
             fun fromAction(action: Action): ActionType {
                 return when (action) {
                     is Action.Mouse.MoveTo -> MOUSE_MOVE
-                    is Action.Mouse.LeftClick -> MOUSE_LEFT_CLICK
-                    is Action.Mouse.RightClick -> MOUSE_RIGHT_CLICK
-                    is Action.Mouse.DoubleClick -> MOUSE_DOUBLE_CLICK
+                    is Action.Mouse.Click -> when {
+                        action.type == ClickType.DOUBLE -> MOUSE_DOUBLE_CLICK
+                        action.button == MouseButton.RIGHT -> MOUSE_RIGHT_CLICK
+                        else -> MOUSE_LEFT_CLICK
+                    }
                     is Action.Keyboard.TypeText -> KEYBOARD_TYPE
                     is Action.Keyboard.PressKey -> KEYBOARD_PRESS_KEY
                     is Action.System.Wait -> WAIT

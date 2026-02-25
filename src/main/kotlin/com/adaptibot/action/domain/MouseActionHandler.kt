@@ -1,76 +1,48 @@
 package com.adaptibot.action.domain
 
 import com.adaptibot.action.adapter.MouseController
-import com.adaptibot.common.model.Action
 import com.adaptibot.common.model.Action.Mouse
-import com.adaptibot.common.model.ElementIdentifier
 import com.adaptibot.engine.domain.actions.ElementFinder
+import org.slf4j.LoggerFactory
 
 internal class MouseActionHandler(
     private val elementFinder: ElementFinder,
-) : ActionHandler<Mouse>{
+) : ActionHandler<Mouse> {
+
+    private val logger = LoggerFactory.getLogger(MouseActionHandler::class.java)
 
     override fun handle(action: Mouse) {
-        val coordinate = extractTargetFromAction(action)?.let { elementFinder.find(it) }
-
         when (action) {
-            is Mouse.MoveAndClick -> {
-                coordinate?.let { MouseController.moveTo(it) }
-                MouseController.leftClick()
-            }
-
-            is Mouse.LeftClick -> {
-                MouseController.leftClick()
-            }
-
-            is Mouse.RightClick -> {
-                MouseController.rightClick()
-            }
-
-            is Mouse.DoubleClick -> {
-                MouseController.doubleClick()
-            }
-
-            is Mouse.MoveTo -> {
-                coordinate?.let { MouseController.moveTo(it) } ?: false
+            is Mouse.Click -> {
+                action.target
+                    ?.let { elementFinder.find(it) }
+                    ?.let { MouseController.moveTo(it) }
+                MouseController.click(action.button, action.type, action.holdDuration)
             }
 
             is Mouse.Drag -> {
-                // Resolve both coordinates
-                val fromCoord = when (action.from) {
-                    is ElementIdentifier.ByCoordinate ->
-                        (action.from as ElementIdentifier.ByCoordinate).coordinate
-
-                    else -> null
+                val toCoordinate = elementFinder.find(action.to)
+                if (toCoordinate == null) {
+                    logger.error("Could not resolve 'to' target for Drag action: ${action.to}")
+                    return
                 }
-                val toCoord = when (action.to) {
-                    is ElementIdentifier.ByCoordinate ->
-                        (action.to as ElementIdentifier.ByCoordinate).coordinate
+                val fromCoordinate =  action.from
+                    ?.let { elementFinder.find(it) }
 
-                    else -> null
-                }
-
-                if (fromCoord != null && toCoord != null) {
-                    MouseController.dragTo(fromCoord, toCoord)
-                } else {
-                    false
-                }
+                MouseController.drag(fromCoordinate, toCoordinate)
             }
 
-            is Mouse.Scroll -> {
-                MouseController.scroll(action.amount, action.direction)
+            is Mouse.MoveTo -> {
+                val coordinate = elementFinder.find(action.target)
+                if (coordinate == null) {
+                    logger.error("Could not resolve target for MoveTo action: ${action.target}")
+                    return
+                }
+                MouseController.moveTo(coordinate)
             }
+
+            is Mouse.Scroll -> MouseController.scroll(action.amount, action.direction)
         }
     }
-
-    private fun extractTargetFromAction(action: Action): ElementIdentifier? {
-        return when (action) {
-            is Mouse.LeftClick -> action.target
-            is Mouse.RightClick -> action.target
-            is Mouse.DoubleClick -> action.target
-            is Mouse.MoveTo -> action.target
-            else -> null
-        }
-    }
-
 }
+

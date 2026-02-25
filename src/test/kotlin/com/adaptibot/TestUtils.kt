@@ -32,7 +32,7 @@ object TestUtils {
             ActionStep(
                 id = StepId("step_2"),
                 label = "Click",
-                action = Action.Mouse.LeftClick(
+                action = Action.Mouse.Click(
                     target = ElementIdentifier.ByCoordinate(
                         coordinate = Coordinate(100, 200)
                     )
@@ -67,7 +67,7 @@ object TestUtils {
                     thenSteps = listOf(
                         ActionStep(
                             id = StepId("step_then"),
-                            action = Action.Mouse.LeftClick(
+                            action = Action.Mouse.Click(
                                 target = ElementIdentifier.ByCoordinate(
                                     coordinate = Coordinate(50, 50)
                                 )
@@ -97,7 +97,7 @@ object TestUtils {
                     steps = listOf(
                         ActionStep(
                             id = StepId("login_1"),
-                            action = Action.Mouse.LeftClick(
+                            action = Action.Mouse.Click(
                                 target = ElementIdentifier.ByCoordinate(
                                     coordinate = Coordinate(300, 400)
                                 )
