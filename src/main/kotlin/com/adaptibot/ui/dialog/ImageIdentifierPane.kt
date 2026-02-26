@@ -1,8 +1,8 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.common.model.Coordinate
-import com.adaptibot.common.model.ElementIdentifier
-import com.adaptibot.common.model.ImagePattern
+import com.adaptibot.model.Coordinate
+import com.adaptibot.model.ElementIdentifier
+import com.adaptibot.model.ImagePattern
 import javafx.geometry.Insets
 import javafx.scene.control.*
 import javafx.scene.layout.GridPane

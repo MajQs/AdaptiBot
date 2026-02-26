@@ -2,7 +2,7 @@ package com.adaptibot.action.domain
 
 import com.adaptibot.action.ActionExecutionException
 import com.adaptibot.action.adapter.MouseController
-import com.adaptibot.common.model.Action.Mouse
+import com.adaptibot.model.Action.Mouse
 import com.adaptibot.vision.ElementLocator
 import com.adaptibot.vision.ElementLookupResult
 

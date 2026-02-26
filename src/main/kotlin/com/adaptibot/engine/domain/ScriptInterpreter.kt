@@ -1,8 +1,12 @@
 package com.adaptibot.engine.domain
 
-import com.adaptibot.common.model.*
 import com.adaptibot.engine.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.engine.domain.observer.ObserverRegistry
+import com.adaptibot.model.ActionStep
+import com.adaptibot.model.BlockStep
+import com.adaptibot.model.ObserverStep
+import com.adaptibot.model.Script
+import com.adaptibot.model.Step
 
 internal class ScriptInterpreter(
     private val actionStepHandler: ActionStepHandler,

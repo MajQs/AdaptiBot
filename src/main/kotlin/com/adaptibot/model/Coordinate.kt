@@ -1,4 +1,4 @@
-package com.adaptibot.common.model
+package com.adaptibot.model
 
 import kotlinx.serialization.Serializable
 

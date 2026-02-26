@@ -1,4 +1,4 @@
-package com.adaptibot.common.model
+package com.adaptibot.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -13,7 +13,7 @@ sealed class Action {
         data class Click(
             val target: ElementIdentifier? = null,
             val button: MouseButton = MouseButton.LEFT,
-            @SerialName("clickType") val type: ClickType = ClickType.SINGLE,
+            @SerialName("clickType") val type: MouseClickType = MouseClickType.SINGLE,
             val holdDuration: Long = 0L
         ) : Mouse()
 
@@ -28,7 +28,7 @@ sealed class Action {
 
         @Serializable
         data class Scroll(
-            val direction: ScrollDirection,
+            val direction: MouseScrollDirection,
             val amount: Int,
         ) : Mouse()
     }
@@ -39,7 +39,7 @@ sealed class Action {
         data class TypeText(val text: String) : Keyboard()
 
         @Serializable
-        data class PressKeys(val keys: List<Key>) : Keyboard()
+        data class PressKeys(val keys: List<KeyboardKey>) : Keyboard()
     }
     
     @Serializable
@@ -55,18 +55,4 @@ sealed class Action {
     }
 }
 
-@Serializable
-enum class ScrollDirection {
-    UP, DOWN, LEFT, RIGHT
-}
-
-@Serializable
-enum class MouseButton {
-    LEFT, RIGHT, MIDDLE
-}
-
-@Serializable
-enum class ClickType {
-    SINGLE, DOUBLE, TRIPLE
-}
 

@@ -1,6 +1,6 @@
 package com.adaptibot.engine.domain.observer
 
-import com.adaptibot.common.model.ObserverStep
+import com.adaptibot.model.ObserverStep
 import com.adaptibot.vision.ConditionEvaluator
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean

@@ -1,6 +1,6 @@
 package com.adaptibot.vision
 
-import com.adaptibot.common.model.Coordinate
+import com.adaptibot.model.Coordinate
 
 sealed class ElementLookupResult {
 

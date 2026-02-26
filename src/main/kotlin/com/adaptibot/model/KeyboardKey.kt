@@ -1,9 +1,9 @@
-package com.adaptibot.common.model
+package com.adaptibot.model
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class Key {
+enum class KeyboardKey {
     // Letters
     A, B, C, D, E, F, G, H, I, J, K, L, M,
     N, O, P, Q, R, S, T, U, V, W, X, Y, Z,

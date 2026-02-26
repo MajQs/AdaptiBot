@@ -1,7 +1,7 @@
 package com.adaptibot.action
 
 import com.adaptibot.action.domain.ActionHandler
-import com.adaptibot.common.model.Action
+import com.adaptibot.model.Action
 
 class ActionFacade internal constructor(
     private val actionHandlerPerType: Map<Class<out Action>, ActionHandler<in Action>>,

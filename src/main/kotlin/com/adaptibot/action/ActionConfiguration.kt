@@ -4,7 +4,7 @@ import com.adaptibot.action.domain.ActionHandler
 import com.adaptibot.action.domain.KeyboardActionHandler
 import com.adaptibot.action.domain.MouseActionHandler
 import com.adaptibot.action.domain.SystemActionHandler
-import com.adaptibot.common.model.Action
+import com.adaptibot.model.Action
 import com.adaptibot.vision.VisionConfiguration
 
 object ActionConfiguration {

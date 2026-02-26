@@ -1,4 +1,4 @@
-package com.adaptibot.common.model
+package com.adaptibot.model
 
 import kotlinx.serialization.Serializable
 
@@ -10,4 +10,3 @@ sealed class ElementIdentifier {
     @Serializable
     data class ByImage(val pattern: ImagePattern) : ElementIdentifier()
 }
-

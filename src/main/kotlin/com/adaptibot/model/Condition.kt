@@ -1,4 +1,4 @@
-package com.adaptibot.common.model
+package com.adaptibot.model
 
 import kotlinx.serialization.Serializable
 
@@ -6,10 +6,7 @@ import kotlinx.serialization.Serializable
 sealed class Condition {
     @Serializable
     data class ElementExists(val identifier: ElementIdentifier) : Condition()
-    
-    @Serializable
-    data class ElementNotExists(val identifier: ElementIdentifier) : Condition()
-    
+
     @Serializable
     data class And(val conditions: List<Condition>) : Condition()
     

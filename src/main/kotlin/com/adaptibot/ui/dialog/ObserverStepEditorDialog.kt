@@ -1,8 +1,7 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.common.model.Condition
-import com.adaptibot.common.model.ObserverStep
-import com.adaptibot.common.model.StepId
+import com.adaptibot.model.ObserverStep
+import com.adaptibot.model.StepId
 import com.adaptibot.ui.view.ConditionBuilderPane
 import javafx.geometry.Insets
 import javafx.scene.control.*

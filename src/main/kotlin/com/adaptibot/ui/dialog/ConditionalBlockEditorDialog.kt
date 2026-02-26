@@ -1,7 +1,7 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.common.model.ConditionalBlock
-import com.adaptibot.common.model.StepId
+import com.adaptibot.model.ConditionalBlock
+import com.adaptibot.model.StepId
 import com.adaptibot.ui.view.ConditionBuilderPane
 import javafx.geometry.Insets
 import javafx.scene.control.*

@@ -1,6 +1,6 @@
 package com.adaptibot.vision
 
-import com.adaptibot.common.model.ElementIdentifier
+import com.adaptibot.model.ElementIdentifier
 import com.adaptibot.serialization.image.ImageEncoder
 import com.adaptibot.vision.capture.ScreenCapture
 import com.adaptibot.vision.match.ImageMatcher

@@ -1,6 +1,17 @@
 package com.adaptibot
 
-import com.adaptibot.common.model.*
+import com.adaptibot.model.Action
+import com.adaptibot.model.ActionStep
+import com.adaptibot.model.Condition
+import com.adaptibot.model.ConditionalBlock
+import com.adaptibot.model.Coordinate
+import com.adaptibot.model.ElementIdentifier
+import com.adaptibot.model.GroupBlock
+import com.adaptibot.model.KeyboardKey
+import com.adaptibot.model.Script
+import com.adaptibot.model.ScriptSettings
+import com.adaptibot.model.Step
+import com.adaptibot.model.StepId
 
 object TestUtils {
 
@@ -109,7 +120,7 @@ object TestUtils {
                         ),
                         ActionStep(
                             id = StepId("login_3"),
-                            action = Action.Keyboard.PressKeys(listOf(Key.ENTER))
+                            action = Action.Keyboard.PressKeys(listOf(KeyboardKey.ENTER))
                         ),
                         ActionStep(
                             id = StepId("login_4"),

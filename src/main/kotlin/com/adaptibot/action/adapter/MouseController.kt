@@ -1,10 +1,10 @@
 package com.adaptibot.action.adapter
 
 import com.adaptibot.action.adapter.winapi.User32
-import com.adaptibot.common.model.ClickType
-import com.adaptibot.common.model.Coordinate
-import com.adaptibot.common.model.MouseButton
-import com.adaptibot.common.model.ScrollDirection
+import com.adaptibot.model.MouseClickType
+import com.adaptibot.model.Coordinate
+import com.adaptibot.model.MouseButton
+import com.adaptibot.model.MouseScrollDirection
 import org.slf4j.LoggerFactory
 
 internal object MouseController {
@@ -24,17 +24,17 @@ internal object MouseController {
 
     fun click(
         button: MouseButton = MouseButton.LEFT,
-        type: ClickType = ClickType.SINGLE,
+        type: MouseClickType = MouseClickType.SINGLE,
         holdDuration: Long = 0L
     ) = when (type) {
-        ClickType.SINGLE -> performSingleClick(button, holdDuration)
-        ClickType.DOUBLE -> {
+        MouseClickType.SINGLE -> performSingleClick(button, holdDuration)
+        MouseClickType.DOUBLE -> {
             performSingleClick(button, holdDuration)
             Thread.sleep(100)
             performSingleClick(button, holdDuration)
         }
 
-        ClickType.TRIPLE -> {
+        MouseClickType.TRIPLE -> {
             performSingleClick(button, holdDuration)
             Thread.sleep(100)
             performSingleClick(button, holdDuration)
@@ -65,11 +65,11 @@ internal object MouseController {
         user32.mouse_event(User32.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
     }
 
-    fun scroll(amount: Int, direction: ScrollDirection) {
+    fun scroll(amount: Int, direction: MouseScrollDirection) {
         val wheelDelta = when (direction) {
-            ScrollDirection.UP -> User32.Companion.WHEEL_DELTA * amount
-            ScrollDirection.DOWN -> -User32.Companion.WHEEL_DELTA * amount
-            ScrollDirection.LEFT, ScrollDirection.RIGHT -> {
+            MouseScrollDirection.UP -> User32.Companion.WHEEL_DELTA * amount
+            MouseScrollDirection.DOWN -> -User32.Companion.WHEEL_DELTA * amount
+            MouseScrollDirection.LEFT, MouseScrollDirection.RIGHT -> {
                 logger.warn("Horizontal scrolling not yet implemented")
 
             }

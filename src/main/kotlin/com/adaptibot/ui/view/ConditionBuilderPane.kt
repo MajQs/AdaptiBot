@@ -1,15 +1,14 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.common.model.Condition
-import com.adaptibot.common.model.Coordinate
-import com.adaptibot.common.model.ElementIdentifier
-import com.adaptibot.common.model.ImagePattern
+import com.adaptibot.model.Condition
+import com.adaptibot.model.Coordinate
+import com.adaptibot.model.ElementIdentifier
+import com.adaptibot.model.ImagePattern
 import com.adaptibot.ui.dialog.ScreenCaptureDialog
 import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.Insets
 import javafx.scene.control.*
 import javafx.scene.layout.*
-import javafx.scene.paint.Color
 import org.slf4j.LoggerFactory
 
 class ConditionBuilderPane : VBox(10.0) {
@@ -262,13 +261,6 @@ class ConditionBuilderPane : VBox(10.0) {
                 (userData?.get("simpleTypeCombo") as? ComboBox<SimpleConditionType>)?.value = SimpleConditionType.ELEMENT_EXISTS
                 setIdentifier(condition.identifier)
             }
-            is Condition.ElementNotExists -> {
-                conditionTypeCombo.value = ConditionType.SIMPLE
-                val userData = simpleConditionPane.userData as? Map<*, *>
-                @Suppress("UNCHECKED_CAST")
-                (userData?.get("simpleTypeCombo") as? ComboBox<SimpleConditionType>)?.value = SimpleConditionType.ELEMENT_NOT_EXISTS
-                setIdentifier(condition.identifier)
-            }
             is Condition.And -> {
                 conditionTypeCombo.value = ConditionType.AND
                 subConditions.clear()
@@ -337,7 +329,6 @@ class ConditionBuilderPane : VBox(10.0) {
                 
                 when (currentSimpleConditionType) {
                     SimpleConditionType.ELEMENT_EXISTS -> Condition.ElementExists(identifier)
-                    SimpleConditionType.ELEMENT_NOT_EXISTS -> Condition.ElementNotExists(identifier)
                 }
             }
             ConditionType.AND -> {
@@ -367,7 +358,6 @@ class ConditionBuilderPane : VBox(10.0) {
     
     enum class SimpleConditionType {
         ELEMENT_EXISTS,
-        ELEMENT_NOT_EXISTS
     }
     
     enum class IdentifierType {

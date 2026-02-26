@@ -1,14 +1,12 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.common.model.GroupBlock
-import com.adaptibot.common.model.Step
-import com.adaptibot.common.model.StepId
+import com.adaptibot.model.GroupBlock
+import com.adaptibot.model.StepId
 import javafx.geometry.Insets
 import javafx.scene.control.*
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
 import javafx.stage.Modality
-import java.util.*
 
 class GroupBlockEditorDialog(private val existingGroup: GroupBlock? = null) : Dialog<GroupBlock>() {
 

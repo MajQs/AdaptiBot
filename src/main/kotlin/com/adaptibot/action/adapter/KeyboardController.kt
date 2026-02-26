@@ -2,7 +2,7 @@ package com.adaptibot.action.adapter
 
 import com.adaptibot.action.adapter.winapi.User32
 import com.adaptibot.action.adapter.winapi.VirtualKeyCodes
-import com.adaptibot.common.model.Key
+import com.adaptibot.model.KeyboardKey
 import org.slf4j.LoggerFactory
 
 internal object KeyboardController {
@@ -27,7 +27,7 @@ internal object KeyboardController {
         user32.keybd_event(0.toByte(), vkCode, (KEYEVENTF_UNICODE or KEYEVENTF_KEYUP), 0)
     }
 
-    fun pressKeys(keys: List<Key>) {
+    fun pressKeys(keys: List<KeyboardKey>) {
         val vkCodes = keys.map { VirtualKeyCodes.getKeyCode(it) }
 
         vkCodes.forEach { vkCode ->

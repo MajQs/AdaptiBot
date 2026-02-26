@@ -1,6 +1,11 @@
 package com.adaptibot.ui.controller
 
-import com.adaptibot.common.model.*
+import com.adaptibot.model.ActionStep
+import com.adaptibot.model.BlockStep
+import com.adaptibot.model.ConditionalBlock
+import com.adaptibot.model.GroupBlock
+import com.adaptibot.model.ObserverStep
+import com.adaptibot.model.Step
 import com.adaptibot.ui.dialog.ConditionalBlockEditorDialog
 import com.adaptibot.ui.dialog.GroupBlockEditorDialog
 import com.adaptibot.ui.dialog.ObserverStepEditorDialog

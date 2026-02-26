@@ -1,6 +1,6 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.common.model.StepId
+import com.adaptibot.model.StepId
 import com.adaptibot.ui.model.ContainerType
 import com.adaptibot.ui.model.StepNode
 import javafx.scene.control.*

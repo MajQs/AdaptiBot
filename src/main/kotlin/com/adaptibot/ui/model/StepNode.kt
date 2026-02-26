@@ -1,11 +1,12 @@
 package com.adaptibot.ui.model
 
-import com.adaptibot.common.model.ActionStep
-import com.adaptibot.common.model.ConditionalBlock
-import com.adaptibot.common.model.GroupBlock
-import com.adaptibot.common.model.ObserverStep
-import com.adaptibot.common.model.Step
-import com.adaptibot.common.model.StepId
+import com.adaptibot.model.Action
+import com.adaptibot.model.ActionStep
+import com.adaptibot.model.ConditionalBlock
+import com.adaptibot.model.GroupBlock
+import com.adaptibot.model.ObserverStep
+import com.adaptibot.model.Step
+import com.adaptibot.model.StepId
 
 enum class ContainerType {
     ROOT,
@@ -68,11 +69,11 @@ data class StepNode(
             return StepNode(step, displayText, icon, true, actualContainerType, parentBlockId)
         }
 
-        private fun getActionIcon(action: com.adaptibot.common.model.Action): String {
+        private fun getActionIcon(action: Action): String {
             return when (action) {
-                is com.adaptibot.common.model.Action.Mouse -> "🖱️"
-                is com.adaptibot.common.model.Action.Keyboard -> "⌨️"
-                is com.adaptibot.common.model.Action.System -> "⚙️"
+                is Action.Mouse -> "🖱️"
+                is Action.Keyboard -> "⌨️"
+                is Action.System -> "⚙️"
             }
         }
     }

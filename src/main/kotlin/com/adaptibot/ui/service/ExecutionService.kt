@@ -1,6 +1,6 @@
 package com.adaptibot.ui.service
 
-import com.adaptibot.common.model.Script
+import com.adaptibot.model.Script
 import com.adaptibot.engine.EngineConfiguration
 import com.adaptibot.engine.EngineFacade
 import com.adaptibot.engine.dto.ExecutionStateDto

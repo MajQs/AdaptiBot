@@ -1,6 +1,6 @@
 package com.adaptibot.serialization.json
 
-import com.adaptibot.common.model.Script
+import com.adaptibot.model.Script
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory

@@ -1,6 +1,13 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.common.model.*
+import com.adaptibot.model.Action
+import com.adaptibot.model.ActionStep
+import com.adaptibot.model.MouseClickType
+import com.adaptibot.model.Coordinate
+import com.adaptibot.model.ElementIdentifier
+import com.adaptibot.model.ImagePattern
+import com.adaptibot.model.MouseButton
+import com.adaptibot.model.StepId
 import javafx.geometry.Insets
 import javafx.scene.control.*
 import javafx.scene.layout.GridPane
@@ -143,7 +150,7 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
             )
             ActionType.MOUSE_DOUBLE_CLICK -> Action.Mouse.Click(
                 target = parseElementIdentifier((dynamicFields["target"] as TextField).text),
-                type = ClickType.DOUBLE
+                type = MouseClickType.DOUBLE
             )
             ActionType.KEYBOARD_TYPE -> Action.Keyboard.TypeText((dynamicFields["text"] as TextField).text)
             ActionType.WAIT -> Action.System.Wait((dynamicFields["duration"] as TextField).text.toLong())
@@ -220,7 +227,7 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
                 return when (action) {
                     is Action.Mouse.MoveTo -> MOUSE_MOVE
                     is Action.Mouse.Click -> when {
-                        action.type == ClickType.DOUBLE -> MOUSE_DOUBLE_CLICK
+                        action.type == MouseClickType.DOUBLE -> MOUSE_DOUBLE_CLICK
                         action.button == MouseButton.RIGHT -> MOUSE_RIGHT_CLICK
                         else -> MOUSE_LEFT_CLICK
                     }

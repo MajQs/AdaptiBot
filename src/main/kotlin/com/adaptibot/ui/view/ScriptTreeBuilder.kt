@@ -1,11 +1,11 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.common.model.ActionStep
-import com.adaptibot.common.model.ConditionalBlock
-import com.adaptibot.common.model.GroupBlock
-import com.adaptibot.common.model.ObserverStep
-import com.adaptibot.common.model.Step
-import com.adaptibot.common.model.StepId
+import com.adaptibot.model.ActionStep
+import com.adaptibot.model.ConditionalBlock
+import com.adaptibot.model.GroupBlock
+import com.adaptibot.model.ObserverStep
+import com.adaptibot.model.Step
+import com.adaptibot.model.StepId
 import com.adaptibot.ui.model.StepNode
 import javafx.scene.control.TreeItem
 
@@ -13,7 +13,7 @@ object ScriptTreeBuilder {
 
     fun buildTree(steps: List<Step>): TreeItem<StepNode> {
         val rootStep = GroupBlock(
-            id = com.adaptibot.common.model.StepId("root"),
+            id = StepId("root"),
             name = "Script Root",
             steps = steps
         )
@@ -58,7 +58,7 @@ object ScriptTreeBuilder {
                 treeItem.children.add(thenBranch)
 
                 val elseBranchStep = GroupBlock(
-                    id = com.adaptibot.common.model.StepId("else_${step.id.value}"),
+                    id = StepId("else_${step.id.value}"),
                     name = "ELSE",
                     steps = step.elseSteps
                 )
@@ -93,7 +93,7 @@ object ScriptTreeBuilder {
         return treeItem
     }
 
-    fun findTreeItem(root: TreeItem<StepNode>, stepId: com.adaptibot.common.model.StepId): TreeItem<StepNode>? {
+    fun findTreeItem(root: TreeItem<StepNode>, stepId: StepId): TreeItem<StepNode>? {
         if (root.value.step.id == stepId) {
             return root
         }

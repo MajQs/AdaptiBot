@@ -1,14 +1,11 @@
 package com.adaptibot.vision.match
 
-import com.adaptibot.common.model.Coordinate
+import com.adaptibot.model.Coordinate
 import org.opencv.core.*
-import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
-import java.io.ByteArrayInputStream
-import javax.imageio.ImageIO
 
 class ImageMatcher {
     
