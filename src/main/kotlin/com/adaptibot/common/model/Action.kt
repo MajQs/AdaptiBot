@@ -53,19 +53,6 @@ sealed class Action {
         @Serializable
         data class CloseApplication(val processName: String) : System()
     }
-    
-    @Serializable
-    sealed class Flow : Action() {
-        @Serializable
-        object Stop : Flow()
-        
-        @Serializable
-        data class JumpTo(val targetStepId: StepId) : Flow()
-        
-        @Serializable
-        object Continue : Flow()
-    }
-
 }
 
 @Serializable

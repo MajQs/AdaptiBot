@@ -55,9 +55,7 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
             ActionType.MOUSE_RIGHT_CLICK,
             ActionType.MOUSE_DOUBLE_CLICK,
             ActionType.KEYBOARD_TYPE,
-            ActionType.KEYBOARD_PRESS_KEY,
-            ActionType.WAIT,
-            ActionType.JUMP_TO_STEP
+            ActionType.WAIT
         )
 
         actionTypeComboBox.selectionModel.selectedItemProperty().addListener { _, _, newValue ->
@@ -121,14 +119,8 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
             is Action.Keyboard.TypeText -> {
                 (dynamicFields["text"] as TextField).text = action.text
             }
-            is Action.Keyboard.PressKey -> {
-                (dynamicFields["key"] as TextField).text = action.key
-            }
             is Action.System.Wait -> {
                 (dynamicFields["duration"] as TextField).text = action.milliseconds.toString()
-            }
-            is Action.Flow.JumpTo -> {
-                (dynamicFields["stepId"] as TextField).text = action.targetStepId.value
             }
             else -> {}
         }
@@ -154,9 +146,7 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
                 type = ClickType.DOUBLE
             )
             ActionType.KEYBOARD_TYPE -> Action.Keyboard.TypeText((dynamicFields["text"] as TextField).text)
-            ActionType.KEYBOARD_PRESS_KEY -> Action.Keyboard.PressKey((dynamicFields["key"] as TextField).text)
             ActionType.WAIT -> Action.System.Wait((dynamicFields["duration"] as TextField).text.toLong())
-            ActionType.JUMP_TO_STEP -> Action.Flow.JumpTo(StepId((dynamicFields["stepId"] as TextField).text))
             else -> throw IllegalStateException("Unsupported action type")
         }
 
@@ -178,14 +168,8 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
             ActionType.KEYBOARD_TYPE -> {
                 addTextField("text", "Text to type")
             }
-            ActionType.KEYBOARD_PRESS_KEY -> {
-                addTextField("key", "Key to press (e.g., ENTER)")
-            }
             ActionType.WAIT -> {
                 addTextField("duration", "Duration (ms)")
-            }
-            ActionType.JUMP_TO_STEP -> {
-                addTextField("stepId", "Target Step ID")
             }
             else -> {
                 // No parameters
@@ -229,9 +213,7 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
         MOUSE_RIGHT_CLICK,
         MOUSE_DOUBLE_CLICK,
         KEYBOARD_TYPE,
-        KEYBOARD_PRESS_KEY,
-        WAIT,
-        JUMP_TO_STEP;
+        WAIT;
 
         companion object {
             fun fromAction(action: Action): ActionType {
@@ -243,9 +225,7 @@ class StepEditorDialog(private val existingStep: ActionStep? = null) : Dialog<Ac
                         else -> MOUSE_LEFT_CLICK
                     }
                     is Action.Keyboard.TypeText -> KEYBOARD_TYPE
-                    is Action.Keyboard.PressKey -> KEYBOARD_PRESS_KEY
                     is Action.System.Wait -> WAIT
-                    is Action.Flow.JumpTo -> JUMP_TO_STEP
                     else -> throw IllegalArgumentException("Unknown action type")
                 }
             }

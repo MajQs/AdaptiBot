@@ -1,7 +1,6 @@
 package com.adaptibot.action
 
 import com.adaptibot.action.domain.ActionHandler
-import com.adaptibot.action.domain.FlowActionHandler
 import com.adaptibot.action.domain.KeyboardActionHandler
 import com.adaptibot.action.domain.MouseActionHandler
 import com.adaptibot.action.domain.SystemActionHandler
@@ -16,8 +15,7 @@ object ActionConfiguration {
             actionHandlerPerType = mapOf(
                 Action.Mouse to MouseActionHandler(ElementFinder()),
                 Action.Keyboard to KeyboardActionHandler(),
-                Action.System to SystemActionHandler(),
-                Action.Flow to FlowActionHandler()
+                Action.System to SystemActionHandler()
             ) as Map<Class<out Action>, ActionHandler<in Action>>
         )
 }

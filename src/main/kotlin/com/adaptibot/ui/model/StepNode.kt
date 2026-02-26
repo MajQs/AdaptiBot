@@ -73,7 +73,6 @@ data class StepNode(
                 is com.adaptibot.common.model.Action.Mouse -> "🖱️"
                 is com.adaptibot.common.model.Action.Keyboard -> "⌨️"
                 is com.adaptibot.common.model.Action.System -> "⚙️"
-                is com.adaptibot.common.model.Action.Flow -> "➡️"
             }
         }
     }
