@@ -37,12 +37,9 @@ sealed class Action {
     sealed class Keyboard : Action() {
         @Serializable
         data class TypeText(val text: String) : Keyboard()
-        
+
         @Serializable
-        data class PressKey(val key: String) : Keyboard()
-        
-        @Serializable
-        data class PressKeyCombination(val keys: List<String>) : Keyboard()
+        data class PressKeys(val keys: List<Key>) : Keyboard()
     }
     
     @Serializable

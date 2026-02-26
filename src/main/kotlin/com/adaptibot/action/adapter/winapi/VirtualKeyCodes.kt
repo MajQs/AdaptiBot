@@ -1,106 +1,51 @@
 package com.adaptibot.action.adapter.winapi
 
+import com.adaptibot.common.model.Key
+
 object VirtualKeyCodes {
-    // Letter keys
-    const val VK_A = 0x41
-    const val VK_Z = 0x5A
-    
-    // Number keys
-    const val VK_0 = 0x30
-    const val VK_9 = 0x39
-    
-    // Function keys
-    const val VK_F1 = 0x70
-    const val VK_F12 = 0x7B
-    
-    // Control keys
-    const val VK_BACK = 0x08
-    const val VK_TAB = 0x09
-    const val VK_RETURN = 0x0D
-    const val VK_SHIFT = 0x10
-    const val VK_CONTROL = 0x11
-    const val VK_MENU = 0x12  // ALT key
-    const val VK_PAUSE = 0x13
-    const val VK_CAPITAL = 0x14  // CAPS LOCK
-    const val VK_ESCAPE = 0x1B
-    const val VK_SPACE = 0x20
-    
-    // Navigation keys
-    const val VK_PRIOR = 0x21  // PAGE UP
-    const val VK_NEXT = 0x22   // PAGE DOWN
-    const val VK_END = 0x23
-    const val VK_HOME = 0x24
-    const val VK_LEFT = 0x25
-    const val VK_UP = 0x26
-    const val VK_RIGHT = 0x27
-    const val VK_DOWN = 0x28
-    
-    // Edit keys
-    const val VK_INSERT = 0x2D
-    const val VK_DELETE = 0x2E
-    
-    // Windows keys
-    const val VK_LWIN = 0x5B
-    const val VK_RWIN = 0x5C
-    
-    // Numpad keys
-    const val VK_NUMPAD0 = 0x60
-    const val VK_NUMPAD9 = 0x69
-    
-    // Key mapping
-    val keyMap = mapOf(
-        "backspace" to VK_BACK,
-        "tab" to VK_TAB,
-        "enter" to VK_RETURN,
-        "shift" to VK_SHIFT,
-        "ctrl" to VK_CONTROL,
-        "control" to VK_CONTROL,
-        "alt" to VK_MENU,
-        "pause" to VK_PAUSE,
-        "capslock" to VK_CAPITAL,
-        "escape" to VK_ESCAPE,
-        "esc" to VK_ESCAPE,
-        "space" to VK_SPACE,
-        "pageup" to VK_PRIOR,
-        "pagedown" to VK_NEXT,
-        "end" to VK_END,
-        "home" to VK_HOME,
-        "left" to VK_LEFT,
-        "up" to VK_UP,
-        "right" to VK_RIGHT,
-        "down" to VK_DOWN,
-        "insert" to VK_INSERT,
-        "delete" to VK_DELETE,
-        "win" to VK_LWIN,
-        "windows" to VK_LWIN
-    )
-    
-    fun getKeyCode(keyName: String): Int? {
-        val normalized = keyName.lowercase().trim()
-        
-        // Check special keys first
-        keyMap[normalized]?.let { return it }
-        
-        // Function keys (F1-F12)
-        if (normalized.startsWith("f") && normalized.length >= 2) {
-            val num = normalized.substring(1).toIntOrNull()
-            if (num != null && num in 1..12) {
-                return VK_F1 + (num - 1)
-            }
-        }
-        
-        // Single letter (A-Z)
-        if (normalized.length == 1) {
-            val char = normalized[0]
-            if (char in 'a'..'z') {
-                return VK_A + (char - 'a')
-            }
-            if (char in '0'..'9') {
-                return VK_0 + (char - '0')
-            }
-        }
-        
-        return null
+
+    fun getKeyCode(key: Key): Int = when (key) {
+        Key.A -> 0x41;  Key.B -> 0x42;  Key.C -> 0x43;  Key.D -> 0x44
+        Key.E -> 0x45;  Key.F -> 0x46;  Key.G -> 0x47;  Key.H -> 0x48
+        Key.I -> 0x49;  Key.J -> 0x4A;  Key.K -> 0x4B;  Key.L -> 0x4C
+        Key.M -> 0x4D;  Key.N -> 0x4E;  Key.O -> 0x4F;  Key.P -> 0x50
+        Key.Q -> 0x51;  Key.R -> 0x52;  Key.S -> 0x53;  Key.T -> 0x54
+        Key.U -> 0x55;  Key.V -> 0x56;  Key.W -> 0x57;  Key.X -> 0x58
+        Key.Y -> 0x59;  Key.Z -> 0x5A
+
+        Key.DIGIT_0 -> 0x30;  Key.DIGIT_1 -> 0x31;  Key.DIGIT_2 -> 0x32
+        Key.DIGIT_3 -> 0x33;  Key.DIGIT_4 -> 0x34;  Key.DIGIT_5 -> 0x35
+        Key.DIGIT_6 -> 0x36;  Key.DIGIT_7 -> 0x37;  Key.DIGIT_8 -> 0x38
+        Key.DIGIT_9 -> 0x39
+
+        Key.F1  -> 0x70;  Key.F2  -> 0x71;  Key.F3  -> 0x72;  Key.F4  -> 0x73
+        Key.F5  -> 0x74;  Key.F6  -> 0x75;  Key.F7  -> 0x76;  Key.F8  -> 0x77
+        Key.F9  -> 0x78;  Key.F10 -> 0x79;  Key.F11 -> 0x7A;  Key.F12 -> 0x7B
+
+        Key.CTRL      -> 0x11
+        Key.SHIFT     -> 0x10
+        Key.ALT       -> 0x12
+        Key.WIN       -> 0x5B
+
+        Key.ENTER     -> 0x0D
+        Key.ESCAPE    -> 0x1B
+        Key.TAB       -> 0x09
+        Key.SPACE     -> 0x20
+        Key.BACKSPACE -> 0x08
+        Key.CAPS_LOCK -> 0x14
+        Key.PAUSE     -> 0x13
+
+        Key.HOME        -> 0x24
+        Key.END         -> 0x23
+        Key.PAGE_UP     -> 0x21
+        Key.PAGE_DOWN   -> 0x22
+
+        Key.ARROW_LEFT  -> 0x25
+        Key.ARROW_UP    -> 0x26
+        Key.ARROW_RIGHT -> 0x27
+        Key.ARROW_DOWN  -> 0x28
+
+        Key.INSERT -> 0x2D
+        Key.DELETE -> 0x2E
     }
 }
-

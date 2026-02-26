@@ -18,6 +18,10 @@ sealed class ActionExecutionException(message: String) : Exception(message) {
     ) : ActionExecutionException(
         "Coordinate ($x, $y) is outside screen bounds (${screenWidth}x${screenHeight})"
     )
+
+    class EmptyKeyList : ActionExecutionException(
+        "Key list must not be empty. Provide at least one key to press."
+    )
 }
 
 private fun formatPercent(value: Double) = "%.1f%%".format(value * 100)
