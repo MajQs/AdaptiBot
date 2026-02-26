@@ -28,57 +28,64 @@ class ImageMatcher {
         screenshot: BufferedImage,
         template: BufferedImage,
         threshold: Double = 0.7
-    ): MatchResult? {
+    ): MatchAttemptResult {
         try {
             val screenshotMat = bufferedImageToMat(screenshot)
             val templateMat = bufferedImageToMat(template)
-            
-            val resultCols = screenshotMat.cols() - templateMat.cols() + 1
-            val resultRows = screenshotMat.rows() - templateMat.rows() + 1
-            
+
+            val templateCols = templateMat.cols()
+            val templateRows = templateMat.rows()
+
+            val resultCols = screenshotMat.cols() - templateCols + 1
+            val resultRows = screenshotMat.rows() - templateRows + 1
+
             if (resultCols <= 0 || resultRows <= 0) {
                 logger.warn("Template is larger than screenshot")
-                return null
+                screenshotMat.release()
+                templateMat.release()
+                return MatchAttemptResult.NotFound(bestConfidence = 0.0)
             }
-            
+
             val result = Mat(resultRows, resultCols, CvType.CV_32FC1)
-            
             Imgproc.matchTemplate(screenshotMat, templateMat, result, Imgproc.TM_CCOEFF_NORMED)
-            
+
             val mmr = Core.minMaxLoc(result)
             val matchValue = mmr.maxVal
-            
+
             screenshotMat.release()
             templateMat.release()
             result.release()
-            
-            if (matchValue >= threshold) {
+
+            return if (matchValue >= threshold) {
                 val topLeft = mmr.maxLoc
-                val centerX = (topLeft.x + templateMat.cols() / 2).toInt()
-                val centerY = (topLeft.y + templateMat.rows() / 2).toInt()
-                
-                logger.debug("Image match found: confidence=${matchValue}, position=($centerX, $centerY)")
-                
-                return MatchResult(
-                    coordinate = Coordinate(centerX, centerY),
-                    confidence = matchValue,
-                    topLeft = Coordinate(topLeft.x.toInt(), topLeft.y.toInt()),
-                    bottomRight = Coordinate(
-                        (topLeft.x + templateMat.cols()).toInt(),
-                        (topLeft.y + templateMat.rows()).toInt()
+                val centerX = (topLeft.x + templateCols / 2).toInt()
+                val centerY = (topLeft.y + templateRows / 2).toInt()
+
+                logger.debug("Image match found: confidence=$matchValue, position=($centerX, $centerY)")
+
+                MatchAttemptResult.Found(
+                    matchResult = MatchResult(
+                        coordinate = Coordinate(centerX, centerY),
+                        confidence = matchValue,
+                        topLeft = Coordinate(topLeft.x.toInt(), topLeft.y.toInt()),
+                        bottomRight = Coordinate(
+                            (topLeft.x + templateCols).toInt(),
+                            (topLeft.y + templateRows).toInt()
+                        )
                     )
                 )
             } else {
                 logger.debug("No match found above threshold. Best match: $matchValue (threshold: $threshold)")
-                return null
+                MatchAttemptResult.NotFound(bestConfidence = matchValue)
             }
-            
+
         } catch (e: Exception) {
             logger.error("Error during image matching", e)
             throw ImageMatcherException("Image matching failed: ${e.message}", e)
         }
     }
-    
+
+
     private fun bufferedImageToMat(image: BufferedImage): Mat {
         val convertedImage = if (image.type != BufferedImage.TYPE_3BYTE_BGR) {
             val converted = BufferedImage(image.width, image.height, BufferedImage.TYPE_3BYTE_BGR)
@@ -106,5 +113,10 @@ data class MatchResult(
 )
 
 class ImageMatcherException(message: String, cause: Throwable? = null) : Exception(message, cause)
+
+sealed class MatchAttemptResult {
+    data class Found(val matchResult: MatchResult) : MatchAttemptResult()
+    data class NotFound(val bestConfidence: Double) : MatchAttemptResult()
+}
 
 

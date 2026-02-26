@@ -3,10 +3,10 @@ package com.adaptibot.engine
 import com.adaptibot.action.ActionConfiguration
 import com.adaptibot.engine.domain.*
 import com.adaptibot.engine.domain.actions.ConditionEvaluator
-import com.adaptibot.engine.domain.actions.ElementFinder
 import com.adaptibot.engine.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.engine.domain.observer.ObserverRegistry
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
+import com.adaptibot.vision.ElementFinder
 
 object EngineConfiguration {
     fun getFacade(): EngineFacade {

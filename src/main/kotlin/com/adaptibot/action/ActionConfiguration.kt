@@ -6,7 +6,7 @@ import com.adaptibot.action.domain.KeyboardActionHandler
 import com.adaptibot.action.domain.MouseActionHandler
 import com.adaptibot.action.domain.SystemActionHandler
 import com.adaptibot.common.model.Action
-import com.adaptibot.engine.domain.actions.ElementFinder
+import com.adaptibot.vision.ElementFinder
 
 object ActionConfiguration {
 
