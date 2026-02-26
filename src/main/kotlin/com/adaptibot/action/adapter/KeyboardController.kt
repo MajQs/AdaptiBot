@@ -5,7 +5,7 @@ import com.adaptibot.action.adapter.winapi.VirtualKeyCodes
 import com.adaptibot.common.model.Key
 import org.slf4j.LoggerFactory
 
-object KeyboardController {
+internal object KeyboardController {
 
     private val logger = LoggerFactory.getLogger(KeyboardController::class.java)
     private val user32 = User32.Companion.INSTANCE

@@ -6,7 +6,7 @@ import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinUser
 import com.sun.jna.win32.StdCallLibrary
 
-interface User32 : StdCallLibrary {
+internal interface User32 : StdCallLibrary {
     
     fun SetCursorPos(x: Int, y: Int): Boolean
     

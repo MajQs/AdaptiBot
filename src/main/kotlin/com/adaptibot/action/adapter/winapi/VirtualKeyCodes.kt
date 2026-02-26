@@ -2,7 +2,7 @@ package com.adaptibot.action.adapter.winapi
 
 import com.adaptibot.common.model.Key
 
-object VirtualKeyCodes {
+internal object VirtualKeyCodes {
 
     fun getKeyCode(key: Key): Int = when (key) {
         Key.A -> 0x41;  Key.B -> 0x42;  Key.C -> 0x43;  Key.D -> 0x44

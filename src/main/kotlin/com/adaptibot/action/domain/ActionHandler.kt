@@ -1,5 +1,5 @@
 package com.adaptibot.action.domain
 
-interface ActionHandler<Action> {
+internal interface ActionHandler<Action> {
     fun handle(action: Action)
 }
