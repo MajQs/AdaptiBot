@@ -109,7 +109,7 @@ object TestUtils {
                         ),
                         ActionStep(
                             id = StepId("login_3"),
-                            action = Action.Keyboard.PressKey("Tab")
+                            action = Action.Keyboard.PressKeys(listOf(Key.ENTER))
                         ),
                         ActionStep(
                             id = StepId("login_4"),
