@@ -1,8 +1,8 @@
-package com.adaptibot.engine.domain
+package com.adaptibot.execution.domain
 
 import com.adaptibot.model.Script
-import com.adaptibot.engine.dto.ExecutionContext
-import com.adaptibot.engine.dto.ExecutionState
+import com.adaptibot.execution.dto.ExecutionContext
+import com.adaptibot.execution.dto.ExecutionState
 
 internal class ScriptRunner(
     private val scriptExecutionState: ScriptExecutionState,

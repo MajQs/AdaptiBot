@@ -1,7 +1,7 @@
-package com.adaptibot.engine.domain
+package com.adaptibot.execution.domain
 
-import com.adaptibot.engine.domain.observer.ObserverInterruptCoordinator
-import com.adaptibot.engine.domain.observer.ObserverRegistry
+import com.adaptibot.execution.domain.observer.ObserverInterruptCoordinator
+import com.adaptibot.execution.domain.observer.ObserverRegistry
 import com.adaptibot.model.ActionStep
 import com.adaptibot.model.BlockStep
 import com.adaptibot.model.ObserverStep

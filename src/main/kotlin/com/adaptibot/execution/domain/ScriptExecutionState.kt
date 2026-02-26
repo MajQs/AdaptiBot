@@ -1,9 +1,9 @@
-package com.adaptibot.engine.domain
+package com.adaptibot.execution.domain
 
 import com.adaptibot.model.Script
 import com.adaptibot.model.Step
-import com.adaptibot.engine.dto.ExecutionContext
-import com.adaptibot.engine.dto.ExecutionState
+import com.adaptibot.execution.dto.ExecutionContext
+import com.adaptibot.execution.dto.ExecutionState
 import org.slf4j.LoggerFactory
 
 internal class ScriptExecutionState(

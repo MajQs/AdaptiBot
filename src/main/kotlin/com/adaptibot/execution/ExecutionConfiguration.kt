@@ -1,19 +1,19 @@
-package com.adaptibot.engine
+package com.adaptibot.execution
 
 import com.adaptibot.action.ActionConfiguration
-import com.adaptibot.engine.domain.*
-import com.adaptibot.engine.domain.observer.ObserverInterruptCoordinator
-import com.adaptibot.engine.domain.observer.ObserverRegistry
+import com.adaptibot.execution.domain.*
+import com.adaptibot.execution.domain.observer.ObserverInterruptCoordinator
+import com.adaptibot.execution.domain.observer.ObserverRegistry
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
 import com.adaptibot.vision.VisionConfiguration
 
-object EngineConfiguration {
-    fun getFacade(): EngineFacade {
+object ExecutionConfiguration {
+    fun getFacade(): ExecutionFacade {
         val conditionEvaluator = VisionConfiguration.getConditionEvaluator()
         val eventPublisher = UiExecutionEventPublisher()
         val scriptExecutionState = ScriptExecutionState(eventPublisher)
 
-        return EngineFacade(
+        return ExecutionFacade(
             scriptRunner = ScriptRunner(
                 scriptExecutionState = scriptExecutionState,
                 scriptInterpreter = ScriptInterpreter(

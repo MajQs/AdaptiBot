@@ -1,4 +1,4 @@
-package com.adaptibot.engine.dto
+package com.adaptibot.execution.dto
 
 import com.adaptibot.model.Script
 import com.adaptibot.model.Step

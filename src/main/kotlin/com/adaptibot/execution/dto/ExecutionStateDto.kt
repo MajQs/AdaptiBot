@@ -1,4 +1,4 @@
-package com.adaptibot.engine.dto
+package com.adaptibot.execution.dto
 
 enum class ExecutionStateDto {
     IDLE,

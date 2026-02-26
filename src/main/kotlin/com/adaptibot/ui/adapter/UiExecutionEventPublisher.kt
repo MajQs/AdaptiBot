@@ -1,6 +1,6 @@
 package com.adaptibot.ui.adapter
 
-import com.adaptibot.engine.domain.ExecutionEventPublisher
+import com.adaptibot.execution.domain.ExecutionEventPublisher
 import com.adaptibot.ui.model.ExecutionLogger
 
 /**

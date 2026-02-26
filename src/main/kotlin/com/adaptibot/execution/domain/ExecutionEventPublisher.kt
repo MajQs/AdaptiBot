@@ -1,4 +1,4 @@
-package com.adaptibot.engine.domain
+package com.adaptibot.execution.domain
 
 interface ExecutionEventPublisher {
 

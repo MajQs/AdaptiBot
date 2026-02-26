@@ -1,16 +1,16 @@
 package com.adaptibot.ui.service
 
 import com.adaptibot.model.Script
-import com.adaptibot.engine.EngineConfiguration
-import com.adaptibot.engine.EngineFacade
-import com.adaptibot.engine.dto.ExecutionStateDto
+import com.adaptibot.execution.ExecutionConfiguration
+import com.adaptibot.execution.ExecutionFacade
+import com.adaptibot.execution.dto.ExecutionStateDto
 import org.slf4j.LoggerFactory
 
 class ExecutionService {
     
     private val logger = LoggerFactory.getLogger(ExecutionService::class.java)
     
-    private val engineFacade: EngineFacade = EngineConfiguration.getFacade()
+    private val executionFacade: ExecutionFacade = ExecutionConfiguration.getFacade()
 
     private var currentScript: Script? = null
     
@@ -28,19 +28,19 @@ class ExecutionService {
         }
         
         currentScript = scriptToRun
-        engineFacade.startScript(scriptToRun)
+        executionFacade.startScript(scriptToRun)
     }
     
     fun stop() {
-        engineFacade.stopScript()
+        executionFacade.stopScript()
     }
     
     fun getState(): ExecutionStateDto {
-        return engineFacade.getExecutionState()
+        return executionFacade.getExecutionState()
     }
     
     fun isRunning(): Boolean {
-        return engineFacade.getExecutionState() == ExecutionStateDto.RUNNING
+        return executionFacade.getExecutionState() == ExecutionStateDto.RUNNING
     }
 }
 

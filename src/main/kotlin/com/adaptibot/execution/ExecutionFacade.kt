@@ -1,10 +1,10 @@
-package com.adaptibot.engine
+package com.adaptibot.execution
 
 import com.adaptibot.model.Script
-import com.adaptibot.engine.domain.ScriptRunner
-import com.adaptibot.engine.dto.ExecutionStateDto
+import com.adaptibot.execution.domain.ScriptRunner
+import com.adaptibot.execution.dto.ExecutionStateDto
 
-class EngineFacade internal constructor(
+class ExecutionFacade internal constructor(
     private val scriptRunner: ScriptRunner
 ) {
 
