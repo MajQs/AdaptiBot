@@ -2,19 +2,16 @@ package com.adaptibot.engine
 
 import com.adaptibot.action.ActionConfiguration
 import com.adaptibot.engine.domain.*
-import com.adaptibot.engine.domain.actions.ConditionEvaluator
 import com.adaptibot.engine.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.engine.domain.observer.ObserverRegistry
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
-import com.adaptibot.vision.ElementFinder
+import com.adaptibot.vision.VisionConfiguration
 
 object EngineConfiguration {
     fun getFacade(): EngineFacade {
-        val elementFinder = ElementFinder()
-        val conditionEvaluator = ConditionEvaluator(elementFinder)
+        val conditionEvaluator = VisionConfiguration.getConditionEvaluator()
         val eventPublisher = UiExecutionEventPublisher()
         val scriptExecutionState = ScriptExecutionState(eventPublisher)
-        val observerRegistry = ObserverRegistry(conditionEvaluator, 1000)
 
         return EngineFacade(
             scriptRunner = ScriptRunner(
@@ -25,7 +22,7 @@ object EngineConfiguration {
                         eventPublisher = eventPublisher
                     ),
                     blockStepResolver = BlockStepResolver(conditionEvaluator),
-                    observerRegistry = observerRegistry,
+                    observerRegistry = ObserverRegistry(conditionEvaluator, 1000),
                     scriptExecutionState = scriptExecutionState,
                     observerInterruptCoordinator = ObserverInterruptCoordinator()
                 ),

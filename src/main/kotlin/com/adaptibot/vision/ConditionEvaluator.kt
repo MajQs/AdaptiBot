@@ -1,15 +1,10 @@
-package com.adaptibot.engine.domain.actions
+package com.adaptibot.vision
 
 import com.adaptibot.common.model.Condition
-import com.adaptibot.vision.ElementFinder
-import com.adaptibot.vision.ElementLookupResult
-import org.slf4j.LoggerFactory
 
-internal class ConditionEvaluator(
-    private val elementFinder: ElementFinder
+class ConditionEvaluator(
+    private val elementFinder: ElementLocator
 ) {
-
-    private val logger = LoggerFactory.getLogger(ConditionEvaluator::class.java)
 
     fun evaluate(condition: Condition): Boolean {
         return when (condition) {

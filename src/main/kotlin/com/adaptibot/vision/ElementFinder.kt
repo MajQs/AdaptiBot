@@ -8,12 +8,12 @@ import com.adaptibot.vision.match.MatchAttemptResult
 import org.slf4j.LoggerFactory
 import java.awt.Toolkit
 
-class ElementFinder {
+internal class ElementFinder : ElementLocator {
 
     private val logger = LoggerFactory.getLogger(ElementFinder::class.java)
     private val imageMatcher = ImageMatcher()
 
-    fun find(identifier: ElementIdentifier): ElementLookupResult {
+    override fun find(identifier: ElementIdentifier): ElementLookupResult {
         return when (identifier) {
             is ElementIdentifier.ByCoordinate -> findByCoordinate(identifier)
             is ElementIdentifier.ByImage -> findByImage(identifier)

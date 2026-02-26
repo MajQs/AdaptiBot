@@ -5,7 +5,7 @@ import com.adaptibot.action.domain.KeyboardActionHandler
 import com.adaptibot.action.domain.MouseActionHandler
 import com.adaptibot.action.domain.SystemActionHandler
 import com.adaptibot.common.model.Action
-import com.adaptibot.vision.ElementFinder
+import com.adaptibot.vision.VisionConfiguration
 
 object ActionConfiguration {
 
@@ -13,7 +13,7 @@ object ActionConfiguration {
     fun getActionFacade(): ActionFacade =
         ActionFacade(
             actionHandlerPerType = mapOf(
-                Action.Mouse to MouseActionHandler(ElementFinder()),
+                Action.Mouse to MouseActionHandler(VisionConfiguration.getElementLocator()),
                 Action.Keyboard to KeyboardActionHandler(),
                 Action.System to SystemActionHandler()
             ) as Map<Class<out Action>, ActionHandler<in Action>>
