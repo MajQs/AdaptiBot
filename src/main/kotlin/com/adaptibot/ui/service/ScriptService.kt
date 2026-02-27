@@ -8,7 +8,7 @@ import com.adaptibot.model.Script
 import com.adaptibot.model.ScriptSettings
 import com.adaptibot.model.Step
 import com.adaptibot.model.StepId
-import com.adaptibot.serialization.json.ScriptSerializer
+import com.adaptibot.serialization.ScriptSerializer
 import com.adaptibot.ui.model.ContainerType
 import javafx.stage.FileChooser
 import javafx.stage.Stage

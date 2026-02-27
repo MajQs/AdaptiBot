@@ -13,7 +13,7 @@ object ActionConfiguration {
     fun getActionFacade(): ActionFacade =
         ActionFacade(
             actionHandlerPerType = mapOf(
-                Action.Mouse to MouseActionHandler(VisionConfiguration.getElementLocator()),
+                Action.Mouse to MouseActionHandler(VisionConfiguration.getVisionFacade()),
                 Action.Keyboard to KeyboardActionHandler(),
                 Action.System to SystemActionHandler()
             ) as Map<Class<out Action>, ActionHandler<in Action>>

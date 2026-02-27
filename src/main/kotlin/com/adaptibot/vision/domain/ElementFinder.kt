@@ -1,19 +1,20 @@
-package com.adaptibot.vision
+package com.adaptibot.vision.domain
 
 import com.adaptibot.model.ElementIdentifier
-import com.adaptibot.serialization.image.ImageEncoder
-import com.adaptibot.vision.capture.ScreenCapture
-import com.adaptibot.vision.match.ImageMatcher
-import com.adaptibot.vision.match.MatchAttemptResult
+import com.adaptibot.serialization.ImageEncoder
+import com.adaptibot.vision.adapter.ScreenCapture
+import com.adaptibot.vision.dto.ElementLookupResult
 import org.slf4j.LoggerFactory
 import java.awt.Toolkit
 
-internal class ElementFinder : ElementLocator {
+internal class ElementFinder(
+    private val screenCapture: ScreenCapture,
+    private val imageMatcher: ImageMatcher,
+) {
 
     private val logger = LoggerFactory.getLogger(ElementFinder::class.java)
-    private val imageMatcher = ImageMatcher()
 
-    override fun find(identifier: ElementIdentifier): ElementLookupResult {
+    fun find(identifier: ElementIdentifier): ElementLookupResult {
         return when (identifier) {
             is ElementIdentifier.ByCoordinate -> findByCoordinate(identifier)
             is ElementIdentifier.ByImage -> findByImage(identifier)
@@ -44,7 +45,7 @@ internal class ElementFinder : ElementLocator {
 
     private fun findByImage(identifier: ElementIdentifier.ByImage): ElementLookupResult {
         return try {
-            val screenshot = ScreenCapture.captureFullScreen()
+            val screenshot = screenCapture.captureFullScreen()
             val template = ImageEncoder.decodeFromBase64(identifier.pattern.base64Data)
             val threshold = identifier.pattern.matchThreshold
 
@@ -57,6 +58,7 @@ internal class ElementFinder : ElementLocator {
                     )
                     ElementLookupResult.Found(coordinate = match.coordinate, confidence = match.confidence)
                 }
+
                 is MatchAttemptResult.NotFound -> {
                     logger.debug(
                         "Element not found. Best confidence: ${attempt.bestConfidence}, threshold: $threshold"
@@ -73,4 +75,3 @@ internal class ElementFinder : ElementLocator {
         }
     }
 }
-

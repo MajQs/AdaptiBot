@@ -1,4 +1,4 @@
-package com.adaptibot.serialization.image
+package com.adaptibot.serialization
 
 import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage

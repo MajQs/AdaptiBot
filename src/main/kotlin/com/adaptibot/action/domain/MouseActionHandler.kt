@@ -3,31 +3,31 @@ package com.adaptibot.action.domain
 import com.adaptibot.action.ActionExecutionException
 import com.adaptibot.action.adapter.MouseController
 import com.adaptibot.model.Action.Mouse
-import com.adaptibot.vision.ElementLocator
-import com.adaptibot.vision.ElementLookupResult
+import com.adaptibot.vision.VisionFacade
+import com.adaptibot.vision.dto.ElementLookupResult
 
 internal class MouseActionHandler(
-    private val elementLocator: ElementLocator,
+    private val visionFacade: VisionFacade,
 ) : ActionHandler<Mouse> {
 
     override fun handle(action: Mouse) {
         when (action) {
             is Mouse.Click -> {
                 action.target
-                    ?.let { elementLocator.find(it).toCoordinateOrThrow() }
+                    ?.let { visionFacade.findElement(it).toCoordinateOrThrow() }
                     ?.let { MouseController.moveTo(it) }
                 MouseController.click(action.button, action.type, action.holdDuration)
             }
 
             is Mouse.Drag -> {
-                val toCoordinate = elementLocator.find(action.to).toCoordinateOrThrow()
+                val toCoordinate = visionFacade.findElement(action.to).toCoordinateOrThrow()
                 val fromCoordinate = action.from
-                    ?.let { elementLocator.find(it).toCoordinateOrThrow() }
+                    ?.let { visionFacade.findElement(it).toCoordinateOrThrow() }
                 MouseController.drag(fromCoordinate, toCoordinate)
             }
 
             is Mouse.MoveTo -> {
-                val coordinate = elementLocator.find(action.target).toCoordinateOrThrow()
+                val coordinate = visionFacade.findElement(action.target).toCoordinateOrThrow()
                 MouseController.moveTo(coordinate)
             }
 

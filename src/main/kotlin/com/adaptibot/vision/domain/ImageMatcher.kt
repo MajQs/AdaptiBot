@@ -1,19 +1,20 @@
-package com.adaptibot.vision.match
+package com.adaptibot.vision.domain
 
 import com.adaptibot.model.Coordinate
+import nu.pattern.OpenCV
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 
-class ImageMatcher {
+internal class ImageMatcher {
     
     private val logger = LoggerFactory.getLogger(ImageMatcher::class.java)
     
     init {
         try {
-            nu.pattern.OpenCV.loadLocally()
+            OpenCV.loadLocally()
             logger.info("OpenCV loaded successfully")
         } catch (e: Exception) {
             logger.error("Failed to load OpenCV", e)

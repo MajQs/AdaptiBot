@@ -4,7 +4,6 @@ import com.adaptibot.model.BlockStep
 import com.adaptibot.model.ConditionalBlock
 import com.adaptibot.model.GroupBlock
 import com.adaptibot.model.Step
-import com.adaptibot.vision.ConditionEvaluator
 import org.slf4j.LoggerFactory
 
 internal class BlockStepResolver(

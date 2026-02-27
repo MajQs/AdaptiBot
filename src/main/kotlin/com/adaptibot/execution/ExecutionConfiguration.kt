@@ -9,7 +9,7 @@ import com.adaptibot.vision.VisionConfiguration
 
 object ExecutionConfiguration {
     fun getFacade(): ExecutionFacade {
-        val conditionEvaluator = VisionConfiguration.getConditionEvaluator()
+        val conditionEvaluator = ConditionEvaluator(VisionConfiguration.getVisionFacade())
         val eventPublisher = UiExecutionEventPublisher()
         val scriptExecutionState = ScriptExecutionState(eventPublisher)
 

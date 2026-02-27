@@ -1,4 +1,4 @@
-package com.adaptibot.vision
+package com.adaptibot.vision.dto
 
 import com.adaptibot.model.Coordinate
 
@@ -20,4 +20,3 @@ sealed class ElementLookupResult {
         val screenHeight: Int
     ) : ElementLookupResult()
 }
-
