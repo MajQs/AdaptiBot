@@ -1,11 +1,10 @@
-package com.adaptibot.vision.adapter
+package com.adaptibot.infrastructure
 
 import java.awt.Rectangle
 import java.awt.Robot
 import java.awt.Toolkit
 import java.awt.image.BufferedImage
 
-//TODO decide if it should be in vision module
 object ScreenCapture {
 
     private val robot = Robot()

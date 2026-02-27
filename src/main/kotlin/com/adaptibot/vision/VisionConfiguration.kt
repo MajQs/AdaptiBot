@@ -1,6 +1,6 @@
 package com.adaptibot.vision
 
-import com.adaptibot.vision.adapter.ScreenCapture
+import com.adaptibot.infrastructure.ScreenCapture
 import com.adaptibot.vision.domain.ElementFinder
 import com.adaptibot.vision.domain.ImageMatcher
 

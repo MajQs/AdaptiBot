@@ -2,7 +2,7 @@ package com.adaptibot.vision.domain
 
 import com.adaptibot.model.ElementIdentifier
 import com.adaptibot.serialization.ImageEncoder
-import com.adaptibot.vision.adapter.ScreenCapture
+import com.adaptibot.infrastructure.ScreenCapture
 import com.adaptibot.vision.dto.ElementLookupResult
 import org.slf4j.LoggerFactory
 import java.awt.Toolkit

@@ -1,7 +1,7 @@
 package com.adaptibot.ui.dialog
 
 import com.adaptibot.serialization.ImageEncoder
-import com.adaptibot.vision.adapter.ScreenCapture
+import com.adaptibot.infrastructure.ScreenCapture
 import javafx.application.Platform
 import javafx.embed.swing.SwingFXUtils
 import javafx.geometry.Insets
