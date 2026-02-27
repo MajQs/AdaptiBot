@@ -16,7 +16,7 @@ internal class ScriptExecutionState(
     private val logger = LoggerFactory.getLogger(ScriptExecutionState::class.java)
 
     fun create(script: Script): ExecutionContext {
-        if (currentContext.state == ExecutionState.IDLE) {
+        if (currentContext.state != ExecutionState.IDLE) {
             logger.warn("Cannot start script - already running")
             throw SessionRunningException()
         }
