@@ -16,13 +16,13 @@ class AdaptiBotApp : Application() {
         try {
             val loader = FXMLLoader(javaClass.getResource("/fxml/main.fxml"))
             val root = loader.load<Any>()
-            val scene = Scene(root as javafx.scene.Parent, 1200.0, 800.0)
-            
+            val scene = Scene(root as javafx.scene.Parent, 900.0, 650.0)
+
             primaryStage.apply {
-                title = "AdaptiBot - MVP v0.1.0"
+                title = "AdaptiBot"
                 this.scene = scene
-                minWidth = 800.0
-                minHeight = 600.0
+                minWidth = 700.0
+                minHeight = 500.0
                 show()
             }
             

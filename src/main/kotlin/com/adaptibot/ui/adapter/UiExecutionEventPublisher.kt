@@ -1,28 +1,24 @@
 package com.adaptibot.ui.adapter
 
 import com.adaptibot.execution.domain.ExecutionEventPublisher
-import com.adaptibot.ui.model.ExecutionLogger
+import com.adaptibot.ui.viewmodel.ScriptViewModel
 
 /**
- * Adapter that bridges the domain layer ExecutionEventPublisher interface
- * to the UI layer ExecutionLogger implementation.
+ * Bridge between backend execution engine and the UI ViewModel.
+ * Constructed before ViewModel exists; [attachViewModel] must be called once ViewModel is ready.
  */
-class UiExecutionEventPublisher : ExecutionEventPublisher {
+class UiExecutionEventPublisher(@Volatile private var viewModel: ScriptViewModel?) : ExecutionEventPublisher {
 
-    override fun logExecutionStart(scriptName: String) {
-        ExecutionLogger.logExecutionStart(scriptName)
-    }
+    fun attachViewModel(vm: ScriptViewModel) { viewModel = vm }
 
-    override fun logExecutionStop() {
-        ExecutionLogger.logExecutionStop()
-    }
+    override fun logExecutionStart(scriptName: String) = viewModel?.onExecutionStart(scriptName) ?: Unit
 
-    override fun logStepSuccess(stepName: String, durationMs: Long) {
-        ExecutionLogger.logStepSuccess(stepName, durationMs)
-    }
+    override fun logExecutionStop() = viewModel?.onExecutionStop() ?: Unit
 
-    override fun logStepFailure(stepName: String, durationMs: Long, error: String) {
-        ExecutionLogger.logStepFailure(stepName, durationMs, error)
-    }
+    override fun logStepSuccess(stepName: String, durationMs: Long) =
+        viewModel?.onStepExecuted(stepName, durationMs) ?: Unit
+
+    override fun logStepFailure(stepName: String, durationMs: Long, error: String) =
+        viewModel?.onStepFailed(stepName, durationMs, error) ?: Unit
 }
 

@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory
 internal object MouseController {
 
     private val logger = LoggerFactory.getLogger(MouseController::class.java)
-    private val user32 = User32.Companion.INSTANCE
+    private val user32 = User32.INSTANCE
+
 
     private fun moveTo(x: Int, y: Int) {
         try {
@@ -33,7 +34,6 @@ internal object MouseController {
             Thread.sleep(100)
             performSingleClick(button, holdDuration)
         }
-
         MouseClickType.TRIPLE -> {
             performSingleClick(button, holdDuration)
             Thread.sleep(100)
@@ -45,8 +45,8 @@ internal object MouseController {
 
     private fun performSingleClick(button: MouseButton, holdDuration: Long) {
         val (downFlag, upFlag) = when (button) {
-            MouseButton.LEFT -> Pair(User32.MOUSEEVENTF_LEFTDOWN, User32.MOUSEEVENTF_LEFTUP)
-            MouseButton.RIGHT -> Pair(User32.MOUSEEVENTF_RIGHTDOWN, User32.MOUSEEVENTF_RIGHTUP)
+            MouseButton.LEFT   -> Pair(User32.MOUSEEVENTF_LEFTDOWN,   User32.MOUSEEVENTF_LEFTUP)
+            MouseButton.RIGHT  -> Pair(User32.MOUSEEVENTF_RIGHTDOWN,  User32.MOUSEEVENTF_RIGHTUP)
             MouseButton.MIDDLE -> Pair(User32.MOUSEEVENTF_MIDDLEDOWN, User32.MOUSEEVENTF_MIDDLEUP)
         }
         user32.mouse_event(downFlag, 0, 0, 0, 0)
@@ -71,11 +71,7 @@ internal object MouseController {
             MouseScrollDirection.DOWN -> -User32.Companion.WHEEL_DELTA * amount
             MouseScrollDirection.LEFT, MouseScrollDirection.RIGHT -> {
                 logger.warn("Horizontal scrolling not yet implemented")
-
             }
         }
-        user32.mouse_event(User32.Companion.MOUSEEVENTF_WHEEL, 0, 0, wheelDelta as Int, 0)
     }
 }
-
-

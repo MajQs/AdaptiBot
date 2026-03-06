@@ -55,8 +55,6 @@ internal class ScriptInterpreter(
                 is BlockStep -> executeSteps(blockStepResolver.resolveNestedSteps(step))
                 is ObserverStep -> observerRegistry.registerObserver(step)
             }
-
-            waitForDelay(step.delayAfter)
         }
     }
 

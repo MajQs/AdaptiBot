@@ -4,13 +4,11 @@ import com.adaptibot.action.ActionConfiguration
 import com.adaptibot.execution.domain.*
 import com.adaptibot.execution.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.execution.domain.observer.ObserverRegistry
-import com.adaptibot.ui.adapter.UiExecutionEventPublisher
 import com.adaptibot.vision.VisionConfiguration
 
 object ExecutionConfiguration {
-    fun getFacade(): ExecutionFacade {
+    fun getFacade(eventPublisher: ExecutionEventPublisher): ExecutionFacade {
         val conditionEvaluator = ConditionEvaluator(VisionConfiguration.getVisionFacade())
-        val eventPublisher = UiExecutionEventPublisher()
         val scriptExecutionState = ScriptExecutionState(eventPublisher)
 
         return ExecutionFacade(

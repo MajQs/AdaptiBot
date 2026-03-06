@@ -17,7 +17,7 @@ internal class BlockStepResolver(
             is ConditionalBlock -> {
                 try {
                     if (conditionEvaluator.evaluate(block.condition)) {
-                        block.thenSteps
+                        block.steps
                     } else {
                         block.elseSteps
                     }

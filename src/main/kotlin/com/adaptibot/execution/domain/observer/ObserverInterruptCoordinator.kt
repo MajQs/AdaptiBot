@@ -24,7 +24,7 @@ internal class ObserverInterruptCoordinator {
         triggeredObserver.getAndSet(null)?.let { observer ->
             logger.info("Executing triggered observer: ${observer.id.value}")
             try {
-                executeSequence?.invoke(observer.actionSteps)
+                executeSequence?.invoke(observer.steps)
             } finally {
                 logger.info("Observer execution completed, resuming from interrupted step")
             }

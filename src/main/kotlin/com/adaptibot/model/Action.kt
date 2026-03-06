@@ -13,7 +13,7 @@ sealed class Action {
         data class Click(
             val target: ElementIdentifier? = null,
             val button: MouseButton = MouseButton.LEFT,
-            @SerialName("clickType") val type: MouseClickType = MouseClickType.SINGLE,
+            val type: MouseClickType = MouseClickType.SINGLE,
             val holdDuration: Long = 0L
         ) : Mouse()
 

@@ -8,6 +8,8 @@ class ActionFacade internal constructor(
 ) {
 
     fun execute(action: Action) {
-        actionHandlerPerType[action::class.java]?.handle(action)
+        actionHandlerPerType.entries
+            .firstOrNull { (key, _) -> key.isInstance(action) }
+            ?.value?.handle(action)
     }
 }

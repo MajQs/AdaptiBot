@@ -13,9 +13,9 @@ object ActionConfiguration {
     fun getActionFacade(): ActionFacade =
         ActionFacade(
             actionHandlerPerType = mapOf(
-                Action.Mouse to MouseActionHandler(VisionConfiguration.getVisionFacade()),
-                Action.Keyboard to KeyboardActionHandler(),
-                Action.System to SystemActionHandler()
+                Action.Mouse::class.java to MouseActionHandler(VisionConfiguration.getVisionFacade()),
+                Action.Keyboard::class.java to KeyboardActionHandler(),
+                Action.System::class.java to SystemActionHandler()
             ) as Map<Class<out Action>, ActionHandler<in Action>>
         )
 }

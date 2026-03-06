@@ -75,7 +75,7 @@ object TestUtils {
                             coordinate = Coordinate(50, 50)
                         )
                     ),
-                    thenSteps = listOf(
+                    steps = listOf(
                         ActionStep(
                             id = StepId("step_then"),
                             action = Action.Mouse.Click(
@@ -104,7 +104,7 @@ object TestUtils {
                 GroupBlock(
                     id = StepId("group_1"),
                     label = "Login Group",
-                    name = "Login Procedure",
+
                     steps = listOf(
                         ActionStep(
                             id = StepId("login_1"),

@@ -7,18 +7,18 @@ import com.sun.jna.platform.win32.WinUser
 import com.sun.jna.win32.StdCallLibrary
 
 internal interface User32 : StdCallLibrary {
-    
+
     fun SetCursorPos(x: Int, y: Int): Boolean
-    
+
     fun GetCursorPos(lpPoint: POINT): Boolean
-    
+
     fun mouse_event(dwFlags: Int, dx: Int, dy: Int, dwData: Int, dwExtraInfo: Int)
-    
+
     fun keybd_event(bVk: Byte, bScan: Short, dwFlags: Int, dwExtraInfo: Int)
-    
+
     companion object {
         val INSTANCE: User32 = Native.load("user32", User32::class.java)
-        
+
         // Mouse event flags
         const val MOUSEEVENTF_MOVE = 0x0001
         const val MOUSEEVENTF_LEFTDOWN = 0x0002
@@ -29,15 +29,16 @@ internal interface User32 : StdCallLibrary {
         const val MOUSEEVENTF_MIDDLEUP = 0x0040
         const val MOUSEEVENTF_WHEEL = 0x0800
         const val MOUSEEVENTF_ABSOLUTE = 0x8000
-        
+
         // Wheel delta
         const val WHEEL_DELTA = 120
     }
-    
+
     @Structure.FieldOrder("x", "y")
     class POINT : Structure() {
         @JvmField var x: Int = 0
         @JvmField var y: Int = 0
     }
 }
+
 
