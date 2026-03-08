@@ -1,7 +1,6 @@
 package com.adaptibot.ui.util
 
 import javafx.application.Platform
-import javafx.geometry.Rectangle2D
 import javafx.scene.Cursor
 import javafx.scene.Scene
 import javafx.scene.input.KeyCode
@@ -49,17 +48,24 @@ object CoordinatePicker {
         val scene = Scene(overlay, screen.width, screen.height, Color.color(0.0, 0.0, 0.0, 0.3))
         stage.scene = scene
 
+        val scaleX = Screen.getPrimary().outputScaleX
+        val scaleY = Screen.getPrimary().outputScaleY
+
         scene.setOnMouseMoved { e ->
+            val physicalX = (e.screenX * scaleX).toInt()
+            val physicalY = (e.screenY * scaleY).toInt()
             crosshair.x = e.sceneX - 8
             crosshair.y = e.sceneY + 8
-            coordsText.text = "x=${e.screenX.toInt()}  y=${e.screenY.toInt()}"
+            coordsText.text = "x=$physicalX  y=$physicalY"
             coordsText.x = e.sceneX + 16
             coordsText.y = e.sceneY - 6
         }
 
         scene.setOnMouseClicked { e ->
+            val physicalX = (e.screenX * scaleX).toInt()
+            val physicalY = (e.screenY * scaleY).toInt()
             stage.hide()
-            Platform.runLater { onPicked(e.screenX.toInt(), e.screenY.toInt()) }
+            Platform.runLater { onPicked(physicalX, physicalY) }
         }
 
         scene.setOnKeyPressed { e ->

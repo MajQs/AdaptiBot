@@ -33,11 +33,14 @@ internal class ElementFinder(
                 "Coordinate (${coordinate.x}, ${coordinate.y}) is out of screen bounds " +
                         "(${screenSize.width}x${screenSize.height})"
             )
-            ElementLookupResult.CoordinateOutOfBounds(
-                given = coordinate,
-                screenWidth = screenSize.width,
-                screenHeight = screenSize.height
-            )
+            //TODO wonder if raw coordinates should be chacked here. Probably ElementFinder should operate only on ImagePattern
+//            ElementLookupResult.CoordinateOutOfBounds(
+//                given = coordinate,
+//                screenWidth = screenSize.width,
+//                screenHeight = screenSize.height
+//            )
+            ElementLookupResult.Found(coordinate = coordinate, confidence = 1.0)
+
         } else {
             ElementLookupResult.Found(coordinate = coordinate, confidence = 1.0)
         }
