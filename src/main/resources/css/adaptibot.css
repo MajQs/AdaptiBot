@@ -503,28 +503,37 @@
     -fx-background-radius: 6;
 }
 
-/* ── Inline [+] add button (shown on step row hover) ─────────────────────── */
+/* ── Hover insert strip ──────────────────────────────────────────────────── */
 
-.inline-add-btn {
-    -fx-background-color: transparent;
-    -fx-text-fill: #585b70;
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-padding: 0 4 0 4;
+.insert-strip {
     -fx-cursor: hand;
-    -fx-background-radius: 4;
-    -fx-min-width: 22;
-    -fx-min-height: 22;
+    -fx-padding: 2 10 2 10;
+    -fx-background-color: transparent;
 }
 
-.inline-add-btn:hover {
-    -fx-background-color: #313244;
+.insert-strip-line {
+    -fx-background-color: #45475a;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-min-height: 1;
+}
+
+.insert-strip-plus {
+    -fx-text-fill: #585b70;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 6 0 6;
+}
+
+/* brighten strip on hover */
+.insert-strip-hovered .insert-strip-line {
+    -fx-background-color: #89b4fa;
+}
+
+.insert-strip-hovered .insert-strip-plus {
     -fx-text-fill: #89b4fa;
 }
 
-.inline-add-btn:pressed {
-    -fx-background-color: #45475a;
-}
 
 /* ── Step type picker popup ──────────────────────────────────────────────── */
 

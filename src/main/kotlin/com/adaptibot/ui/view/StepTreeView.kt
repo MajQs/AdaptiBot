@@ -111,10 +111,16 @@ private class StepTreeCell(
             val activeId = viewModel.activeStepIdProperty.get()
             val isActive = activeId != null && step.id == activeId
 
-            graphic = StepCellGraphic.build(step, isActive) { anchorX, anchorY ->
-                // inline [+] button → "add after" picker
-                picker.show(scene.window, anchorX, anchorY)
-            }
+            graphic = StepCellGraphic.build(
+                step        = step,
+                isActive    = isActive,
+                onAddAfter  = { anchorX, anchorY ->
+                    picker.show(scene.window, anchorX, anchorY)
+                },
+                onAddInside = { anchorX, anchorY ->
+                    pickerInside.show(scene.window, anchorX, anchorY)
+                }
+            )
             text = null
             contextMenu = buildContextMenu(step)
         }

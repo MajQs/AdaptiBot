@@ -1,21 +1,46 @@
 package com.adaptibot.ui.view
 
 import com.adaptibot.model.*
+import javafx.animation.KeyFrame
+import javafx.animation.KeyValue
+import javafx.animation.PauseTransition
+import javafx.animation.Timeline
 import javafx.geometry.Pos
-import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
+import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
+import javafx.util.Duration
 
 object StepCellGraphic {
 
+    private const val STRIP_HEIGHT = 18.0
+    private const val ANIM_MS      = 150.0
+
     /**
-     * @param onAddAfter called when the inline [+] button is clicked;
-     *                   receives the screen X/Y of the button for popup anchoring.
+     * Builds the full cell graphic as a [VBox]:
+     *  - the step content row
+     *  - optional "＋ inside" strip (blocks only, slides in on hover)
+     *  - "＋ after"  strip          (all steps,  slides in on hover)
+     *
+     * Strips start collapsed (prefHeight = 0, isManaged = false) so they
+     * take no space when hidden.  On hover they slide open smoothly.
+     *
+     * @param onAddAfter   called when the "after" insert strip is pressed
+     * @param onAddInside  called when the "inside" insert strip is pressed (blocks only)
      */
-    fun build(step: Step, isActive: Boolean, onAddAfter: ((anchorX: Double, anchorY: Double) -> Unit)? = null): HBox {
+    fun build(
+        step: Step,
+        isActive: Boolean,
+        onAddAfter:  ((anchorX: Double, anchorY: Double) -> Unit)? = null,
+        onAddInside: ((anchorX: Double, anchorY: Double) -> Unit)? = null
+    ): VBox {
+
+        val isBlock = step is GroupBlock || step is ConditionalBlock || step is ObserverStep
+
+        // ── content row ───────────────────────────────────────────────────
         val badge = badge(step)
         val labelText = Label(step.label ?: defaultLabel(step)).apply {
             styleClass.add("step-label-text")
@@ -26,36 +51,125 @@ object StepCellGraphic {
         val textBox = VBox(2.0, labelText, detail).apply {
             alignment = Pos.CENTER_LEFT
         }
-
         val dragHandle = Label("⠿").apply {
             styleClass.addAll("step-detail-text")
             style = "-fx-padding: 0 6 0 0; -fx-cursor: open-hand;"
         }
-
         val spacer = Region().apply { HBox.setHgrow(this, Priority.ALWAYS) }
 
-        val addBtn = Button("＋").apply {
-            styleClass.add("inline-add-btn")
-            isVisible  = false   // shown only on row hover
-            isFocusTraversable = false
-            setOnAction { e ->
-                val bounds = localToScreen(boundsInLocal)
-                onAddAfter?.invoke(bounds.minX, bounds.maxY + 4)
-                e.consume()
-            }
-        }
-
-        val box = HBox(4.0, dragHandle, badge, textBox, spacer, addBtn).apply {
+        val contentRow = HBox(4.0, dragHandle, badge, textBox, spacer).apply {
             alignment = Pos.CENTER_LEFT
             styleClass.add("step-cell-box")
             if (isActive) styleClass.add("step-cell-active")
-
-            // show/hide the [+] button on hover
-            setOnMouseEntered { addBtn.isVisible = true }
-            setOnMouseExited  { addBtn.isVisible = false }
         }
-        return box
+
+        // ── insert strips ─────────────────────────────────────────────────
+        // Order: contentRow → insideStrip → afterStrip
+        val insideStrip = if (isBlock) buildInsertStrip(label = "inside") else null
+        val afterStrip  = buildInsertStrip(label = if (isBlock) "after" else null)
+
+        // wire press callbacks (setOnMousePressed avoids the need for a prior
+        // selection click that setOnMouseClicked would require)
+        afterStrip.setOnMousePressed { e ->
+            val bounds = afterStrip.localToScreen(afterStrip.boundsInLocal)
+            if (bounds != null) onAddAfter?.invoke(bounds.minX, bounds.minY + bounds.height / 2)
+            e.consume()
+        }
+        insideStrip?.setOnMousePressed { e ->
+            val bounds = insideStrip.localToScreen(insideStrip.boundsInLocal)
+            if (bounds != null) onAddInside?.invoke(bounds.minX, bounds.minY + bounds.height / 2)
+            e.consume()
+        }
+
+        // initially collapsed and removed from layout
+        listOfNotNull(insideStrip, afterStrip).forEach { strip ->
+            strip.prefHeight = 0.0
+            strip.opacity    = 0.0
+            strip.isManaged  = false
+            strip.isVisible  = false
+        }
+
+        // ── assemble ──────────────────────────────────────────────────────
+        val wrapper = VBox(0.0).apply {
+            children.addAll(buildList {
+                add(contentRow)
+                if (insideStrip != null) add(insideStrip)
+                add(afterStrip)
+            })
+            // Short delay so quick mouse pass-overs don't trigger the animation
+            val showDelay = PauseTransition(Duration.millis(350.0)).apply {
+                setOnFinished { showStrips(insideStrip, afterStrip) }
+            }
+            setOnMouseEntered { showDelay.playFromStart() }
+            setOnMouseExited  {
+                showDelay.stop()
+                hideStrips(insideStrip, afterStrip)
+            }
+        }
+
+        return wrapper
     }
+
+    // ── insert strip builder ──────────────────────────────────────────────
+
+    private fun buildInsertStrip(label: String?): StackPane {
+        val makeLine = {
+            Region().apply {
+                styleClass.add("insert-strip-line")
+                maxWidth = Double.MAX_VALUE
+                HBox.setHgrow(this, Priority.ALWAYS)
+            }
+        }
+        val plusLabel = Label(if (label != null) "＋  $label" else "＋").apply {
+            styleClass.add("insert-strip-plus")
+        }
+        val inner = HBox(6.0).apply {
+            alignment = Pos.CENTER
+            children.addAll(makeLine(), plusLabel, makeLine())
+        }
+        return StackPane(inner).apply {
+            styleClass.add("insert-strip")
+            // prefHeight starts at 0; animated to STRIP_HEIGHT on show
+            minHeight = 0.0
+            maxHeight = STRIP_HEIGHT
+            setOnMouseEntered { styleClass.add("insert-strip-hovered") }
+            setOnMouseExited  { styleClass.remove("insert-strip-hovered") }
+        }
+    }
+
+    // ── slide-in / slide-out helpers ──────────────────────────────────────
+
+    private fun showStrips(vararg strips: StackPane?) {
+        strips.filterNotNull().forEach { strip ->
+            strip.isManaged = true
+            strip.isVisible = true
+            Timeline(
+                KeyFrame(Duration.millis(ANIM_MS),
+                    KeyValue(strip.prefHeightProperty(), STRIP_HEIGHT),
+                    KeyValue(strip.opacityProperty(),    1.0)
+                )
+            ).play()
+        }
+    }
+
+    private fun hideStrips(vararg strips: StackPane?) {
+        strips.filterNotNull().forEach { strip ->
+            Timeline(
+                KeyFrame(Duration.millis(ANIM_MS),
+                    KeyValue(strip.prefHeightProperty(), 0.0),
+                    KeyValue(strip.opacityProperty(),    0.0)
+                )
+            ).apply {
+                setOnFinished {
+                    strip.isManaged = false
+                    strip.isVisible = false
+                }
+                play()
+            }
+        }
+    }
+
+    // ── badge / label / detail helpers (unchanged) ────────────────────────
 
     private fun badge(step: Step): Label = when (step) {
         is ActionStep -> Label(actionBadgeText(step.action)).apply {
@@ -73,51 +187,50 @@ object StepCellGraphic {
     }
 
     private fun actionBadgeText(action: Action): String = when (action) {
-        is Action.Mouse.Click     -> "CLICK"
-        is Action.Mouse.Drag      -> "DRAG"
-        is Action.Mouse.MoveTo    -> "MOVE"
-        is Action.Mouse.Scroll    -> "SCROLL"
-        is Action.Keyboard.TypeText  -> "TYPE"
-        is Action.Keyboard.PressKeys -> "KEYS"
-        is Action.System.Wait        -> "WAIT"
+        is Action.Mouse.Click              -> "CLICK"
+        is Action.Mouse.Drag               -> "DRAG"
+        is Action.Mouse.MoveTo             -> "MOVE"
+        is Action.Mouse.Scroll             -> "SCROLL"
+        is Action.Keyboard.TypeText        -> "TYPE"
+        is Action.Keyboard.PressKeys       -> "KEYS"
+        is Action.System.Wait              -> "WAIT"
         is Action.System.LaunchApplication -> "LAUNCH"
         is Action.System.CloseApplication  -> "CLOSE"
     }
 
     private fun defaultLabel(step: Step): String = when (step) {
-        is ActionStep -> actionBadgeText(step.action).lowercase().replaceFirstChar { it.uppercase() } + " step"
-        is GroupBlock -> "Group"
+        is ActionStep       -> actionBadgeText(step.action).lowercase().replaceFirstChar { it.uppercase() } + " step"
+        is GroupBlock       -> "Group"
         is ConditionalBlock -> "Conditional"
-        is ObserverStep -> "Observer"
+        is ObserverStep     -> "Observer"
     }
 
     private fun detail(step: Step): String = when (step) {
-        is ActionStep -> actionDetail(step.action)
-        is GroupBlock -> "${step.steps.size} step(s)"
+        is ActionStep       -> actionDetail(step.action)
+        is GroupBlock       -> "${step.steps.size} step(s)"
         is ConditionalBlock -> "${step.steps.size} step(s)${if (step.elseSteps.isNotEmpty()) " / ${step.elseSteps.size} else" else ""}"
-        is ObserverStep -> "${step.steps.size} step(s) on trigger"
+        is ObserverStep     -> "${step.steps.size} step(s) on trigger"
     }
 
     private fun actionDetail(action: Action): String = when (action) {
-        is Action.Mouse.Click -> buildString {
+        is Action.Mouse.Click              -> buildString {
             append(action.button.name.lowercase())
             append(" ${action.type.name.lowercase()}")
             if (action.target != null) append(" @ ${identifierShort(action.target)}")
         }
-        is Action.Mouse.Drag -> "from ${identifierShort(action.from)} → ${identifierShort(action.to)}"
-        is Action.Mouse.MoveTo -> "→ ${identifierShort(action.target)}"
-        is Action.Mouse.Scroll -> "${action.direction.name.lowercase()} ×${action.amount}"
-        is Action.Keyboard.TypeText -> "\"${action.text.take(30)}${if (action.text.length > 30) "…" else ""}\""
-        is Action.Keyboard.PressKeys -> action.keys.joinToString("+") { it.name }
-        is Action.System.Wait -> "${action.milliseconds} ms"
+        is Action.Mouse.Drag               -> "from ${identifierShort(action.from)} → ${identifierShort(action.to)}"
+        is Action.Mouse.MoveTo             -> "→ ${identifierShort(action.target)}"
+        is Action.Mouse.Scroll             -> "${action.direction.name.lowercase()} ×${action.amount}"
+        is Action.Keyboard.TypeText        -> "\"${action.text.take(30)}${if (action.text.length > 30) "…" else ""}\""
+        is Action.Keyboard.PressKeys       -> action.keys.joinToString("+") { it.name }
+        is Action.System.Wait              -> "${action.milliseconds} ms"
         is Action.System.LaunchApplication -> action.path
-        is Action.System.CloseApplication -> action.processName
+        is Action.System.CloseApplication  -> action.processName
     }
 
     private fun identifierShort(id: ElementIdentifier?): String = when (id) {
         is ElementIdentifier.ByCoordinate -> "(${id.coordinate.x}, ${id.coordinate.y})"
-        is ElementIdentifier.ByImage -> "[image]"
-        null -> "?"
+        is ElementIdentifier.ByImage      -> "[image]"
+        null                              -> "?"
     }
 }
-
