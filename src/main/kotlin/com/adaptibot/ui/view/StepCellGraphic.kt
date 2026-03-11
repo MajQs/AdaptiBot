@@ -2,13 +2,20 @@ package com.adaptibot.ui.view
 
 import com.adaptibot.model.*
 import javafx.geometry.Pos
+import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.layout.HBox
+import javafx.scene.layout.Priority
+import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 
 object StepCellGraphic {
 
-    fun build(step: Step, isActive: Boolean): HBox {
+    /**
+     * @param onAddAfter called when the inline [+] button is clicked;
+     *                   receives the screen X/Y of the button for popup anchoring.
+     */
+    fun build(step: Step, isActive: Boolean, onAddAfter: ((anchorX: Double, anchorY: Double) -> Unit)? = null): HBox {
         val badge = badge(step)
         val labelText = Label(step.label ?: defaultLabel(step)).apply {
             styleClass.add("step-label-text")
@@ -25,10 +32,27 @@ object StepCellGraphic {
             style = "-fx-padding: 0 6 0 0; -fx-cursor: open-hand;"
         }
 
-        val box = HBox(4.0, dragHandle, badge, textBox).apply {
+        val spacer = Region().apply { HBox.setHgrow(this, Priority.ALWAYS) }
+
+        val addBtn = Button("＋").apply {
+            styleClass.add("inline-add-btn")
+            isVisible  = false   // shown only on row hover
+            isFocusTraversable = false
+            setOnAction { e ->
+                val bounds = localToScreen(boundsInLocal)
+                onAddAfter?.invoke(bounds.minX, bounds.maxY + 4)
+                e.consume()
+            }
+        }
+
+        val box = HBox(4.0, dragHandle, badge, textBox, spacer, addBtn).apply {
             alignment = Pos.CENTER_LEFT
             styleClass.add("step-cell-box")
             if (isActive) styleClass.add("step-cell-active")
+
+            // show/hide the [+] button on hover
+            setOnMouseEntered { addBtn.isVisible = true }
+            setOnMouseExited  { addBtn.isVisible = false }
         }
         return box
     }

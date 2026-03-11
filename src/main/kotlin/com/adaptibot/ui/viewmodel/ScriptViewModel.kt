@@ -131,6 +131,20 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         isDirtyProperty.set(true)
     }
 
+    /**
+     * Inserts [step] immediately after the step identified by [afterStepId]
+     * in the same parent list. Falls back to appending at the root level
+     * if [afterStepId] is not found.
+     */
+    fun addStepAfter(afterStepId: StepId, step: Step): Boolean {
+        val result = insertAfterInList(steps, afterStepId, step)
+        if (result) isDirtyProperty.set(true) else {
+            steps.add(step)
+            isDirtyProperty.set(true)
+        }
+        return result
+    }
+
     /** Adds [step] inside [parentId] block. Returns true on success. */
     fun addStepToParent(parentId: StepId, step: Step): Boolean {
         val result = mutateSteps(steps) { list, index ->
@@ -339,6 +353,35 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
     ): Boolean {
         for (i in list.indices) {
             if (action(list, i)) return true
+        }
+        return false
+    }
+
+    /** Inserts [newStep] right after the step with [afterId] anywhere in the tree. */
+    private fun insertAfterInList(list: ObservableList<Step>, afterId: StepId, newStep: Step): Boolean {
+        val idx = list.indexOfFirst { it.id == afterId }
+        if (idx >= 0) {
+            list.add(idx + 1, newStep)
+            return true
+        }
+        for (i in list.indices) {
+            when (val current = list[i]) {
+                is BlockStep -> {
+                    val nested = FXCollections.observableArrayList(current.steps)
+                    if (insertAfterInList(nested, afterId, newStep)) {
+                        list[i] = current.withSteps(nested.toList())
+                        return true
+                    }
+                }
+                is ObserverStep -> {
+                    val nested = FXCollections.observableArrayList(current.steps)
+                    if (insertAfterInList(nested, afterId, newStep)) {
+                        list[i] = current.copy(steps = nested.toList())
+                        return true
+                    }
+                }
+                else -> {}
+            }
         }
         return false
     }

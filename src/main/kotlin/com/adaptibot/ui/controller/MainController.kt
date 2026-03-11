@@ -47,7 +47,9 @@ class MainController : Initializable {
                 val updated = StepEditorDialogFactory.show(step, window())
                 updated?.let { viewModel.updateStep(it) }
             },
-            onAddStep = { parentId -> showAddStepFlow(parentId) }
+            onAddStep = { parentId, afterStepId, type ->
+                showAddStepFlow(parentId, afterStepId, type)
+            }
         )
 
         val logPanel = LogPanel(viewModel)
@@ -130,12 +132,12 @@ class MainController : Initializable {
 
     // ── Step add flow ──────────────────────────────────────────────────────────
 
-    private fun showAddStepFlow(parentId: StepId?) {
-        val typeDialog = AddStepDialog(window())
-        val type = typeDialog.showAndWait().orElse(null) ?: return
+    private fun showAddStepFlow(parentId: StepId?, afterStepId: StepId?, type: com.adaptibot.ui.dialog.StepType) {
         val newStep = StepEditorDialogFactory.showNew(type, parentId, window()) ?: return
         if (parentId != null) {
             viewModel.addStepToParent(parentId, newStep)
+        } else if (afterStepId != null) {
+            viewModel.addStepAfter(afterStepId, newStep)
         } else {
             viewModel.addStep(newStep)
         }

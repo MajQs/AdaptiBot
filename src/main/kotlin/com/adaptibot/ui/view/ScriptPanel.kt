@@ -1,8 +1,10 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.model.StepId
 import com.adaptibot.model.Step
+import com.adaptibot.model.StepId
+import com.adaptibot.ui.dialog.StepType
 import com.adaptibot.ui.viewmodel.ScriptViewModel
+import javafx.collections.ListChangeListener
 import javafx.geometry.Pos
 import javafx.scene.control.*
 import javafx.scene.layout.*
@@ -10,16 +12,23 @@ import javafx.scene.layout.*
 class ScriptPanel(
     private val viewModel: ScriptViewModel,
     private val onEditStep: (Step) -> Unit,
-    private val onAddStep: (parentId: StepId?) -> Unit
+    /**
+     * Called when the user picks a type to add.
+     * [parentId]     – container to add into (null = root).
+     * [afterStepId]  – insert after this step (null = append at end).
+     * [type]         – the chosen [StepType].
+     */
+    private val onAddStep: (parentId: StepId?, afterStepId: StepId?, type: StepType) -> Unit
 ) : BorderPane() {
 
     val treeView = StepTreeView(viewModel)
 
+    /** Shown when the script is empty instead of the tree. */
+    private val emptyState = buildEmptyState()
+
     init {
         styleClass.add("script-panel")
-
-        val header = buildHeader()
-        top = header
+        top = buildHeader()
 
         treeView.setOnEditStep(onEditStep)
         treeView.setOnAddStep(onAddStep)
@@ -29,23 +38,47 @@ class ScriptPanel(
             isFitToHeight = true
             styleClass.add("scroll-pane")
         }
-        center = scroll
+
+        // Switch between empty-state and tree based on step count
+        center = if (viewModel.steps.isEmpty()) emptyState else scroll
+        viewModel.steps.addListener(ListChangeListener {
+            center = if (viewModel.steps.isEmpty()) emptyState else scroll
+        })
     }
 
     private fun buildHeader(): HBox {
         val title = Label("SCRIPT STEPS").apply { styleClass.add("panel-title") }
-
-        val addBtn = Button("＋  Add Step").apply {
-            styleClass.add("toolbar-btn")
-            style = "-fx-padding: 2 10 2 10; -fx-font-size: 11px;"
-            setOnAction { onAddStep(null) }
-        }
-
         val spacer = Region().apply { HBox.setHgrow(this, Priority.ALWAYS) }
-        return HBox(8.0, title, spacer, addBtn).apply {
+        return HBox(8.0, title, spacer).apply {
             styleClass.add("panel-header")
             alignment = Pos.CENTER_LEFT
         }
     }
+
+    private fun buildEmptyState(): VBox {
+        val icon   = Label("📜").apply { style = "-fx-font-size: 36px;" }
+        val title  = Label("No steps yet").apply { styleClass.add("panel-title") }
+        val hint   = Label("Choose a step type below to get started").apply {
+            styleClass.add("step-detail-text")
+        }
+
+        // Inline picker rendered directly in the empty state
+        val picker = StepTypePickerPopup { type -> onAddStep(null, null, type) }
+
+        val addFirstBtn = Button("＋  Add first step").apply {
+            styleClass.add("toolbar-btn-primary")
+            setOnAction { e ->
+                val bounds = localToScreen(boundsInLocal)
+                picker.show(scene.window, bounds.minX, bounds.maxY + 6)
+                e.consume()
+            }
+        }
+
+        return VBox(12.0, icon, title, hint, addFirstBtn).apply {
+            styleClass.add("empty-state")
+            alignment = Pos.CENTER
+        }
+    }
 }
+
 

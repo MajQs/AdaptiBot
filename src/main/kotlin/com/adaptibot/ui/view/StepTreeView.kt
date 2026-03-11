@@ -1,16 +1,20 @@
 package com.adaptibot.ui.view
 
 import com.adaptibot.model.*
-import com.adaptibot.ui.util.StepDragData
+import com.adaptibot.ui.dialog.StepType
 import com.adaptibot.ui.viewmodel.ScriptViewModel
 import javafx.collections.ListChangeListener
 import javafx.scene.control.*
-import javafx.scene.input.*
 
 class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<Step>() {
 
     private var onEditStep: ((Step) -> Unit)? = null
-    private var onAddStep: ((parentId: StepId?) -> Unit)? = null
+    /**
+     * Called when user picks a type from the inline picker.
+     * [parentId] – id of the container to add into (null = root level).
+     * [afterStepId] – id of the step after which to insert (null = append to end).
+     */
+    private var onAddStep: ((parentId: StepId?, afterStepId: StepId?, type: StepType) -> Unit)? = null
 
     init {
         styleClass.add("step-tree-view")
@@ -24,15 +28,24 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<Step>() {
 
         viewModel.steps.addListener(ListChangeListener { rebuildTree() })
 
-        viewModel.activeStepIdProperty.addListener { _, _, newId ->
-            refresh()
-        }
+        viewModel.activeStepIdProperty.addListener { _, _, _ -> refresh() }
 
-        setCellFactory { StepTreeCell(viewModel, { onEditStep?.invoke(it) }, { onAddStep?.invoke(it) }) }
+        setCellFactory {
+            StepTreeCell(viewModel, { onEditStep?.invoke(it) }) { parentId, afterStepId, type ->
+                onAddStep?.invoke(parentId, afterStepId, type)
+            }
+        }
     }
 
     fun setOnEditStep(handler: (Step) -> Unit) { onEditStep = handler }
-    fun setOnAddStep(handler: (parentId: StepId?) -> Unit) { onAddStep = handler }
+
+    /**
+     * Legacy convenience – wraps old (parentId) → showAddStepFlow style.
+     * Kept so ScriptPanel can wire simply; the type is forwarded.
+     */
+    fun setOnAddStep(handler: (parentId: StepId?, afterStepId: StepId?, type: StepType) -> Unit) {
+        onAddStep = handler
+    }
 
     private fun rebuildTree() {
         root.children.setAll(viewModel.steps.map { buildItem(it) })
@@ -57,10 +70,28 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<Step>() {
 private class StepTreeCell(
     private val viewModel: ScriptViewModel,
     private val onEdit: (Step) -> Unit,
-    private val onAddStep: (parentId: StepId?) -> Unit
+    private val onAddStep: (parentId: StepId?, afterStepId: StepId?, type: StepType) -> Unit
 ) : TreeCell<Step>() {
 
     private var dragDropHandler = StepCellDragDropHandler(this, viewModel)
+
+    /** Reused popup – lazily created once per cell instance. */
+    private val picker by lazy {
+        StepTypePickerPopup { type ->
+            val step = item ?: return@StepTypePickerPopup
+            // "add after this step" → parent is step's parent, insert after this step
+            onAddStep(parentStepId(), step.id, type)
+        }
+    }
+
+    /** Popup for "add inside" (container steps). */
+    private val pickerInside by lazy {
+        StepTypePickerPopup { type ->
+            val step = item ?: return@StepTypePickerPopup
+            // "add inside this container" → parent is this step, append at end
+            onAddStep(step.id, null, type)
+        }
+    }
 
     init {
         dragDropHandler.install()
@@ -80,7 +111,10 @@ private class StepTreeCell(
             val activeId = viewModel.activeStepIdProperty.get()
             val isActive = activeId != null && step.id == activeId
 
-            graphic = StepCellGraphic.build(step, isActive)
+            graphic = StepCellGraphic.build(step, isActive) { anchorX, anchorY ->
+                // inline [+] button → "add after" picker
+                picker.show(scene.window, anchorX, anchorY)
+            }
             text = null
             contextMenu = buildContextMenu(step)
         }
@@ -95,21 +129,27 @@ private class StepTreeCell(
         val deleteItem = MenuItem("🗑  Delete")
         deleteItem.setOnAction { viewModel.removeStep(step.id) }
 
-        menu.items.addAll(editItem, SeparatorMenuItem(), deleteItem)
-
-        // "Add step" submenu only for block-like steps
+        // "Add inside" only for containers
         if (step is BlockStep || step is ObserverStep) {
-            val addItem = MenuItem("＋  Add step inside")
-            addItem.setOnAction { onAddStep(step.id) }
-            menu.items.add(0, addItem)
-            menu.items.add(1, SeparatorMenuItem())
+            val addInsideItem = MenuItem("＋  Add step inside")
+            addInsideItem.setOnAction {
+                val bounds = graphic?.localToScreen(graphic!!.boundsInLocal)
+                val x = bounds?.minX ?: 0.0
+                val y = bounds?.maxY?.plus(4) ?: 0.0
+                pickerInside.show(scene.window, x, y)
+            }
+            menu.items.addAll(addInsideItem, SeparatorMenuItem())
         }
 
         val addAfterItem = MenuItem("＋  Add step after")
-        addAfterItem.setOnAction { onAddStep(parentStepId()) }
-        menu.items.add(menu.items.size - 1, addAfterItem)
-        menu.items.add(menu.items.size - 1, SeparatorMenuItem())
+        addAfterItem.setOnAction {
+            val bounds = graphic?.localToScreen(graphic!!.boundsInLocal)
+            val x = bounds?.minX ?: 0.0
+            val y = bounds?.maxY?.plus(4) ?: 0.0
+            picker.show(scene.window, x, y)
+        }
 
+        menu.items.addAll(addAfterItem, SeparatorMenuItem(), editItem, SeparatorMenuItem(), deleteItem)
         return menu
     }
 

@@ -503,3 +503,72 @@
     -fx-background-radius: 6;
 }
 
+/* ── Inline [+] add button (shown on step row hover) ─────────────────────── */
+
+.inline-add-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #585b70;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 4 0 4;
+    -fx-cursor: hand;
+    -fx-background-radius: 4;
+    -fx-min-width: 22;
+    -fx-min-height: 22;
+}
+
+.inline-add-btn:hover {
+    -fx-background-color: #313244;
+    -fx-text-fill: #89b4fa;
+}
+
+.inline-add-btn:pressed {
+    -fx-background-color: #45475a;
+}
+
+/* ── Step type picker popup ──────────────────────────────────────────────── */
+
+.step-type-picker {
+    -fx-background-color: #24273a;
+    -fx-border-color: #45475a;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #00000099, 16, 0, 0, 6);
+}
+
+.picker-section-label {
+    -fx-text-fill: #585b70;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.08em;
+    -fx-padding: 4 0 0 2;
+}
+
+.picker-type-btn {
+    -fx-background-color: #313244;
+    -fx-text-fill: #cdd6f4;
+    -fx-font-size: 11px;
+    -fx-background-radius: 6;
+    -fx-padding: 5 10 5 10;
+    -fx-cursor: hand;
+    -fx-min-width: 90;
+}
+
+.picker-type-btn:hover {
+    -fx-background-color: #45475a;
+    -fx-text-fill: #89b4fa;
+}
+
+.picker-type-btn:pressed {
+    -fx-background-color: #585b70;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+
+.empty-state {
+    -fx-background-color: #1e1e2e;
+    -fx-padding: 40;
+}
+
+
