@@ -6,6 +6,7 @@ import com.adaptibot.model.ImagePattern
 import com.adaptibot.serialization.ImageEncoder
 import com.adaptibot.ui.util.CoordinatePicker
 import com.adaptibot.ui.util.ScreenRegionPicker
+import javafx.application.Platform
 import javafx.embed.swing.SwingFXUtils
 import javafx.geometry.Insets
 import javafx.geometry.Pos
@@ -22,8 +23,7 @@ import javafx.stage.Window
  * Embed inside any dialog pane.
  */
 class ElementIdentifierEditor(
-    initial: ElementIdentifier? = null,
-    private val ownerWindow: Window? = null
+    initial: ElementIdentifier? = null
 ) : VBox(8.0) {
 
     private val typeGroup = ToggleGroup()
@@ -119,51 +119,63 @@ class ElementIdentifierEditor(
         return VBox(6.0, previewBox, thresholdRow, captureBtn)
     }
 
+    private fun hideAllWindows(): List<Stage> {
+        return Window.getWindows()
+            .filterIsInstance<Stage>()
+            .filter { it.isShowing }
+            .onEach { it.opacity = 0.0 }
+    }
+
+    private fun restoreAllWindows(windows: List<Stage>) {
+        windows.forEach { it.opacity = 1.0 }
+        windows.lastOrNull()?.toFront()
+    }
+
     private fun launchCoordPicker() {
-        val stage = ownerWindow as? Stage
-        stage?.isIconified = true
+        val visible = hideAllWindows()
         CoordinatePicker.pick(
             onPicked = { x, y ->
                 xField.text = x.toString()
                 yField.text = y.toString()
-                stage?.isIconified = false
-                stage?.toFront()
+                restoreAllWindows(visible)
             },
             onCancel = {
-                stage?.isIconified = false
-                stage?.toFront()
+                restoreAllWindows(visible)
             }
         )
     }
 
     private fun launchImageCapture() {
-        val stage = ownerWindow as? Stage
-        stage?.isIconified = true
+        val visible = hideAllWindows()
         ScreenRegionPicker.pick(
             onCapture = { b64 ->
                 capturedBase64 = b64
                 showImagePreview(b64)
-                stage?.isIconified = false
-                stage?.toFront()
+                restoreAllWindows(visible)
             },
             onCancel = {
-                stage?.isIconified = false
-                stage?.toFront()
+                restoreAllWindows(visible)
             }
         )
     }
 
     private fun showImagePreview(base64: String) {
-        try {
-            val buffered = ImageEncoder.decodeFromBase64(base64)
-            val fxImage = SwingFXUtils.toFXImage(buffered, null)
-            imagePreview.image = fxImage
-            noImageLabel.isVisible = false
-            noImageLabel.isManaged = false
-        } catch (_: Exception) {
-            noImageLabel.isVisible = true
-            noImageLabel.isManaged = true
-        }
+        Thread {
+            try {
+                val buffered = ImageEncoder.decodeFromBase64(base64)
+                val fxImage = SwingFXUtils.toFXImage(buffered, null)
+                Platform.runLater {
+                    imagePreview.image = fxImage
+                    noImageLabel.isVisible = false
+                    noImageLabel.isManaged = false
+                }
+            } catch (_: Exception) {
+                Platform.runLater {
+                    noImageLabel.isVisible = true
+                    noImageLabel.isManaged = true
+                }
+            }
+        }.also { it.isDaemon = true; it.start() }
     }
 }
 

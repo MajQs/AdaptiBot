@@ -6,22 +6,20 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.control.*
 import javafx.scene.layout.*
-import javafx.stage.Window
 
 /**
  * Recursive visual editor for [Condition] tree.
  * Displays AND / OR / NOT / ElementExists nodes, each with add/remove controls.
  */
 class ConditionEditor(
-    initial: Condition? = null,
-    private val ownerWindow: Window? = null
+    initial: Condition? = null
 ) : ScrollPane() {
 
     private val rootNodeWrapper = VBox()
 
-    private var rootNode: ConditionNode = initial?.let { ConditionNode(it, ownerWindow) }
+    private var rootNode: ConditionNode = initial?.let { ConditionNode(it) }
         ?: ConditionNode(Condition.ElementExists(ElementIdentifier.ByCoordinate(
-            com.adaptibot.model.Coordinate(0, 0))), ownerWindow)
+            com.adaptibot.model.Coordinate(0, 0))))
 
     init {
         isFitToWidth = true
@@ -42,8 +40,7 @@ class ConditionEditor(
  * and supports adding / removing children.
  */
 private class ConditionNode(
-    initial: Condition,
-    private val ownerWindow: Window?
+    initial: Condition
 ) : VBox(4.0) {
 
     private val typeCombo = ComboBox<String>().apply {
@@ -63,8 +60,7 @@ private class ConditionNode(
         styleClass.add("condition-node")
 
         identifierEditor = ElementIdentifierEditor(
-            initial = if (initial is Condition.ElementExists) initial.identifier else null,
-            ownerWindow = ownerWindow
+            initial = if (initial is Condition.ElementExists) initial.identifier else null
         )
 
         currentType = when (initial) {
@@ -76,9 +72,9 @@ private class ConditionNode(
         typeCombo.value = currentType
 
         when (initial) {
-            is Condition.And -> initial.conditions.forEach { condChildren.add(ConditionNode(it, ownerWindow)) }
-            is Condition.Or  -> initial.conditions.forEach { condChildren.add(ConditionNode(it, ownerWindow)) }
-            is Condition.Not -> condChildren.add(ConditionNode(initial.condition, ownerWindow))
+            is Condition.And -> initial.conditions.forEach { condChildren.add(ConditionNode(it)) }
+            is Condition.Or  -> initial.conditions.forEach { condChildren.add(ConditionNode(it)) }
+            is Condition.Not -> condChildren.add(ConditionNode(initial.condition))
             else -> {}
         }
 
@@ -119,8 +115,7 @@ private class ConditionNode(
                     style = "-fx-font-size: 10px; -fx-padding: 2 8 2 8;"
                     setOnAction {
                         condChildren.add(ConditionNode(
-                            Condition.ElementExists(ElementIdentifier.ByCoordinate(com.adaptibot.model.Coordinate(0, 0))),
-                            ownerWindow
+                            Condition.ElementExists(ElementIdentifier.ByCoordinate(com.adaptibot.model.Coordinate(0, 0)))
                         ))
                         rebuildChildren()
                     }
@@ -132,8 +127,7 @@ private class ConditionNode(
                 styleClass.add("condition-node-not")
                 if (condChildren.isEmpty()) {
                     condChildren.add(ConditionNode(
-                        Condition.ElementExists(ElementIdentifier.ByCoordinate(com.adaptibot.model.Coordinate(0, 0))),
-                        ownerWindow
+                        Condition.ElementExists(ElementIdentifier.ByCoordinate(com.adaptibot.model.Coordinate(0, 0)))
                     ))
                 }
                 rebuildChildren()

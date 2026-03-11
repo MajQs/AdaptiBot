@@ -136,9 +136,9 @@ private class ActionStepDialog(
 
     private fun buildActionEditor(action: Action, startRow: Int, grid: GridPane, owner: Window?): ActionEditor {
         return when (action) {
-            is Action.Mouse.Click    -> MouseClickEditor(action, startRow, grid, owner)
-            is Action.Mouse.Drag     -> MouseDragEditor(action, startRow, grid, owner)
-            is Action.Mouse.MoveTo   -> MouseMoveEditor(action, startRow, grid, owner)
+            is Action.Mouse.Click    -> MouseClickEditor(action, startRow, grid)
+            is Action.Mouse.Drag     -> MouseDragEditor(action, startRow, grid)
+            is Action.Mouse.MoveTo   -> MouseMoveEditor(action, startRow, grid)
             is Action.Mouse.Scroll   -> MouseScrollEditor(action, startRow, grid)
             is Action.Keyboard.TypeText  -> KeyboardTypeEditor(action, startRow, grid)
             is Action.Keyboard.PressKeys -> KeyboardKeysEditor(action, startRow, grid)
@@ -156,9 +156,9 @@ private class StaticActionEditor(private val action: Action) : ActionEditor {
 }
 
 private class MouseClickEditor(
-    private val orig: Action.Mouse.Click, startRow: Int, grid: GridPane, owner: Window?
+    private val orig: Action.Mouse.Click, startRow: Int, grid: GridPane
 ) : ActionEditor {
-    private val targetEditor = ElementIdentifierEditor(orig.target, owner)
+    private val targetEditor = ElementIdentifierEditor(orig.target)
     private val buttonCombo = ComboBox<MouseButton>().apply {
         styleClass.add("form-combo"); items.setAll(MouseButton.entries); value = orig.button
     }
@@ -184,10 +184,10 @@ private class MouseClickEditor(
 }
 
 private class MouseDragEditor(
-    private val orig: Action.Mouse.Drag, startRow: Int, grid: GridPane, owner: Window?
+    private val orig: Action.Mouse.Drag, startRow: Int, grid: GridPane
 ) : ActionEditor {
-    private val fromEditor = ElementIdentifierEditor(orig.from, owner)
-    private val toEditor = ElementIdentifierEditor(orig.to, owner)
+    private val fromEditor = ElementIdentifierEditor(orig.from)
+    private val toEditor = ElementIdentifierEditor(orig.to)
 
     init {
         var r = startRow
@@ -200,9 +200,9 @@ private class MouseDragEditor(
 }
 
 private class MouseMoveEditor(
-    private val orig: Action.Mouse.MoveTo, startRow: Int, grid: GridPane, owner: Window?
+    private val orig: Action.Mouse.MoveTo, startRow: Int, grid: GridPane
 ) : ActionEditor {
-    private val editor = ElementIdentifierEditor(orig.target, owner)
+    private val editor = ElementIdentifierEditor(orig.target)
     init { grid.add(formLabel("Target"), 0, startRow); grid.add(editor, 1, startRow) }
     override fun getAction() = orig.copy(target = editor.getIdentifier()
         ?: ElementIdentifier.ByCoordinate(Coordinate(0, 0)))
@@ -306,7 +306,7 @@ private class ConditionalBlockDialog(private val original: ConditionalBlock, own
         grid.add(formLabel("Delay before (ms)"), 0, 1); grid.add(delayField, 1, 1)
         grid.add(sectionTitle("CONDITION"), 0, 2, 2, 1)
 
-        val condEditor = ConditionEditor(original.condition, owner)
+        val condEditor = ConditionEditor(original.condition)
         grid.add(condEditor, 0, 3, 2, 1)
 
         val scrollPane = ScrollPane(grid).apply {
@@ -342,7 +342,7 @@ private class ObserverStepDialog(private val original: ObserverStep, owner: Wind
         grid.add(formLabel("Delay before (ms)"), 0, 1); grid.add(delayField, 1, 1)
         grid.add(sectionTitle("TRIGGER CONDITION"), 0, 2, 2, 1)
 
-        val condEditor = ConditionEditor(original.condition, owner)
+        val condEditor = ConditionEditor(original.condition)
         grid.add(condEditor, 0, 3, 2, 1)
 
         val scrollPane = ScrollPane(grid).apply {
