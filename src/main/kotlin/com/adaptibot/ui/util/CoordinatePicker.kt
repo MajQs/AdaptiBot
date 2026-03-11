@@ -48,24 +48,21 @@ object CoordinatePicker {
         val scene = Scene(overlay, screen.width, screen.height, Color.color(0.0, 0.0, 0.0, 0.3))
         stage.scene = scene
 
-        val scaleX = Screen.getPrimary().outputScaleX
-        val scaleY = Screen.getPrimary().outputScaleY
-
         scene.setOnMouseMoved { e ->
-            val physicalX = (e.screenX * scaleX).toInt()
-            val physicalY = (e.screenY * scaleY).toInt()
+            val x = e.screenX.toInt()
+            val y = e.screenY.toInt()
             crosshair.x = e.sceneX - 8
             crosshair.y = e.sceneY + 8
-            coordsText.text = "x=$physicalX  y=$physicalY"
+            coordsText.text = "x=$x  y=$y"
             coordsText.x = e.sceneX + 16
             coordsText.y = e.sceneY - 6
         }
 
         scene.setOnMouseClicked { e ->
-            val physicalX = (e.screenX * scaleX).toInt()
-            val physicalY = (e.screenY * scaleY).toInt()
+            val x = e.screenX.toInt()
+            val y = e.screenY.toInt()
             stage.hide()
-            Platform.runLater { onPicked(physicalX, physicalY) }
+            Platform.runLater { onPicked(x, y) }
         }
 
         scene.setOnKeyPressed { e ->

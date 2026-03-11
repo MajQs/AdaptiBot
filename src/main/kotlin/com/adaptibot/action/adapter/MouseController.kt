@@ -21,7 +21,10 @@ internal object MouseController {
         }
     }
 
-    fun moveTo(coordinate: Coordinate) = moveTo(coordinate.x, coordinate.y)
+    fun moveTo(coordinate: Coordinate) {
+        val physical = DpiScaler.toPhysical(coordinate)
+        moveTo(physical.x, physical.y)
+    }
 
     fun click(
         button: MouseButton = MouseButton.LEFT,
