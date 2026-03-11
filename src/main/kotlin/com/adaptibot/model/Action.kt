@@ -1,6 +1,5 @@
 package com.adaptibot.model
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -14,7 +13,7 @@ sealed class Action {
             val target: ElementIdentifier? = null,
             val button: MouseButton = MouseButton.LEFT,
             val type: MouseClickType = MouseClickType.SINGLE,
-            val holdDuration: Long = 0L
+            val holdDuration: Long = 100L
         ) : Mouse()
 
         @Serializable

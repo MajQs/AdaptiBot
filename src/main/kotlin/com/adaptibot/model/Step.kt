@@ -13,7 +13,7 @@ sealed class Step {
 data class ActionStep(
     override val id: StepId,
     override val label: String? = null,
-    override val delayBefore: Long = 0,
+    override val delayBefore: Long = 1000,
     val action: Action
 ) : Step()
 
