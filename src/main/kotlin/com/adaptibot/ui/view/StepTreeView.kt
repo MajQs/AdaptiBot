@@ -6,44 +6,37 @@ import com.adaptibot.ui.viewmodel.ScriptViewModel
 import javafx.collections.ListChangeListener
 import javafx.scene.control.*
 
-class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<Step>() {
+/** Which branch of a [ConditionalBlock] a new step should be added to. */
+enum class ConditionalBranch { TRUE, ELSE, DEFAULT }
+
+class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>() {
 
     private var onEditStep: ((Step) -> Unit)? = null
-    /**
-     * Called when user picks a type from the inline picker.
-     * [parentId] – id of the container to add into (null = root level).
-     * [afterStepId] – id of the step after which to insert (null = append to end).
-     */
-    private var onAddStep: ((parentId: StepId?, afterStepId: StepId?, type: StepType) -> Unit)? = null
+    private var onAddStep: ((parentId: StepId?, afterStepId: StepId?, type: StepType, branch: ConditionalBranch) -> Unit)? = null
 
     init {
         styleClass.add("step-tree-view")
         isShowRoot = false
         selectionModel.selectionMode = SelectionMode.SINGLE
 
-        val rootItem = TreeItem<Step>()
+        val rootItem = TreeItem<TreeNode>()
         this.root = rootItem
 
         rebuildTree()
 
         viewModel.steps.addListener(ListChangeListener { rebuildTree() })
-
         viewModel.activeStepIdProperty.addListener { _, _, _ -> refresh() }
 
         setCellFactory {
-            StepTreeCell(viewModel, { onEditStep?.invoke(it) }) { parentId, afterStepId, type ->
-                onAddStep?.invoke(parentId, afterStepId, type)
+            ScriptTreeCell(viewModel, { onEditStep?.invoke(it) }) { parentId, afterStepId, type, branch ->
+                onAddStep?.invoke(parentId, afterStepId, type, branch)
             }
         }
     }
 
     fun setOnEditStep(handler: (Step) -> Unit) { onEditStep = handler }
 
-    /**
-     * Legacy convenience – wraps old (parentId) → showAddStepFlow style.
-     * Kept so ScriptPanel can wire simply; the type is forwarded.
-     */
-    fun setOnAddStep(handler: (parentId: StepId?, afterStepId: StepId?, type: StepType) -> Unit) {
+    fun setOnAddStep(handler: (parentId: StepId?, afterStepId: StepId?, type: StepType, branch: ConditionalBranch) -> Unit) {
         onAddStep = handler
     }
 
@@ -51,15 +44,26 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<Step>() {
         root.children.setAll(viewModel.steps.map { buildItem(it) })
     }
 
-    private fun buildItem(step: Step): TreeItem<Step> {
-        val item = TreeItem(step)
+    private fun buildItem(step: Step): TreeItem<TreeNode> {
+        val item = TreeItem<TreeNode>(TreeNode.StepNode(step))
         item.isExpanded = true
         when (step) {
-            is GroupBlock -> step.steps.forEach { item.children.add(buildItem(it)) }
             is ConditionalBlock -> {
-                step.steps.forEach { item.children.add(buildItem(it)) }
-                step.elseSteps.forEach { item.children.add(buildItem(it)) }
+                // TRUE branch header + its children
+                val trueHeader = TreeItem<TreeNode>(
+                    TreeNode.BranchNode(step.id, ConditionalBranch.TRUE, step.steps.size)
+                ).also { it.isExpanded = true }
+                step.steps.forEach { trueHeader.children.add(buildItem(it)) }
+
+                // ELSE branch header + its children (always shown so user can add steps)
+                val elseHeader = TreeItem<TreeNode>(
+                    TreeNode.BranchNode(step.id, ConditionalBranch.ELSE, step.elseSteps.size)
+                ).also { it.isExpanded = true }
+                step.elseSteps.forEach { elseHeader.children.add(buildItem(it)) }
+
+                item.children.addAll(trueHeader, elseHeader)
             }
+            is GroupBlock   -> step.steps.forEach { item.children.add(buildItem(it)) }
             is ObserverStep -> step.steps.forEach { item.children.add(buildItem(it)) }
             else -> {}
         }
@@ -67,99 +71,173 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<Step>() {
     }
 }
 
-private class StepTreeCell(
+// ── Cell ──────────────────────────────────────────────────────────────────────
+
+private class ScriptTreeCell(
     private val viewModel: ScriptViewModel,
     private val onEdit: (Step) -> Unit,
-    private val onAddStep: (parentId: StepId?, afterStepId: StepId?, type: StepType) -> Unit
-) : TreeCell<Step>() {
+    private val onAddStep: (parentId: StepId?, afterStepId: StepId?, type: StepType, branch: ConditionalBranch) -> Unit
+) : TreeCell<TreeNode>() {
 
-    private var dragDropHandler = StepCellDragDropHandler(this, viewModel)
+    private val dragDropHandler = StepCellDragDropHandler(this, viewModel)
 
-    /** Reused popup – lazily created once per cell instance. */
+    /** Popup for "add after this step". */
     private val picker by lazy {
         StepTypePickerPopup { type ->
-            val step = item ?: return@StepTypePickerPopup
-            // "add after this step" → parent is step's parent, insert after this step
-            onAddStep(parentStepId(), step.id, type)
+            val node = item as? TreeNode.StepNode ?: return@StepTypePickerPopup
+            onAddStep(parentStepId(), node.step.id, type, ConditionalBranch.DEFAULT)
         }
     }
 
-    /** Popup for "add inside" (container steps). */
+    /** Popup for "add inside" (GroupBlock / ObserverStep). */
     private val pickerInside by lazy {
         StepTypePickerPopup { type ->
-            val step = item ?: return@StepTypePickerPopup
-            // "add inside this container" → parent is this step, append at end
-            onAddStep(step.id, null, type)
+            val node = item as? TreeNode.StepNode ?: return@StepTypePickerPopup
+            onAddStep(node.step.id, null, type, ConditionalBranch.DEFAULT)
+        }
+    }
+
+    /** Popup for "add to TRUE branch" – triggered from BranchNode or ConditionalBlock cell. */
+    private val pickerInsideTrue by lazy {
+        StepTypePickerPopup { type ->
+            val parentId = resolveConditionalParentId() ?: return@StepTypePickerPopup
+            onAddStep(parentId, null, type, ConditionalBranch.TRUE)
+        }
+    }
+
+    /** Popup for "add to ELSE branch" – triggered from BranchNode or ConditionalBlock cell. */
+    private val pickerInsideElse by lazy {
+        StepTypePickerPopup { type ->
+            val parentId = resolveConditionalParentId() ?: return@StepTypePickerPopup
+            onAddStep(parentId, null, type, ConditionalBranch.ELSE)
         }
     }
 
     init {
         dragDropHandler.install()
         setOnMouseClicked { e ->
-            if (e.clickCount == 2 && item != null) onEdit(item)
+            val node = item
+            if (e.clickCount == 2 && node is TreeNode.StepNode) onEdit(node.step)
         }
     }
 
-    override fun updateItem(step: Step?, empty: Boolean) {
-        super.updateItem(step, empty)
-        if (empty || step == null) {
-            graphic = null
-            text = null
-            contextMenu = null
-            styleClass.removeAll("step-cell-active")
-        } else {
-            val activeId = viewModel.activeStepIdProperty.get()
-            val isActive = activeId != null && step.id == activeId
+    override fun updateItem(node: TreeNode?, empty: Boolean) {
+        super.updateItem(node, empty)
+        if (empty || node == null) {
+            graphic = null; text = null; contextMenu = null
+            styleClass.removeAll("step-cell-active", "branch-node-cell")
+            return
+        }
+        when (node) {
+            is TreeNode.BranchNode -> {
+                styleClass.add("branch-node-cell")
+                styleClass.remove("step-cell-active")
+                graphic = BranchNodeGraphic.build(node)
+                text = null
+                contextMenu = buildBranchContextMenu(node)
+            }
+            is TreeNode.StepNode -> {
+                styleClass.remove("branch-node-cell")
+                val activeId = viewModel.activeStepIdProperty.get()
+                val isActive = activeId != null && node.step.id == activeId
 
-            graphic = StepCellGraphic.build(
-                step        = step,
-                isActive    = isActive,
-                onAddAfter  = { anchorX, anchorY ->
-                    picker.show(scene.window, anchorX, anchorY)
-                },
-                onAddInside = { anchorX, anchorY ->
-                    pickerInside.show(scene.window, anchorX, anchorY)
-                }
-            )
-            text = null
-            contextMenu = buildContextMenu(step)
+                graphic = StepCellGraphic.build(
+                    step            = node.step,
+                    isActive        = isActive,
+                    onAddAfter      = { ax, ay -> picker.show(scene.window, ax, ay) },
+                    onAddInside     = { ax, ay -> pickerInside.show(scene.window, ax, ay) },
+                    onAddInsideTrue = { ax, ay -> pickerInsideTrue.show(scene.window, ax, ay) },
+                    onAddInsideElse = { ax, ay -> pickerInsideElse.show(scene.window, ax, ay) }
+                )
+                text = null
+                contextMenu = buildStepContextMenu(node.step)
+            }
         }
     }
 
-    private fun buildContextMenu(step: Step): ContextMenu {
+    // ── Context menus ─────────────────────────────────────────────────────────
+
+    private fun buildBranchContextMenu(node: TreeNode.BranchNode): ContextMenu {
+        val menu = ContextMenu()
+        val label = if (node.branch == ConditionalBranch.TRUE) "TRUE" else "ELSE"
+        val popup = if (node.branch == ConditionalBranch.TRUE) pickerInsideTrue else pickerInsideElse
+
+        val addItem = MenuItem("＋  Add step to $label branch")
+        addItem.setOnAction {
+            val bounds = graphic?.localToScreen(graphic!!.boundsInLocal)
+            popup.show(scene.window, bounds?.minX ?: 0.0, bounds?.maxY?.plus(4) ?: 0.0)
+        }
+        menu.items.add(addItem)
+        return menu
+    }
+
+    private fun buildStepContextMenu(step: Step): ContextMenu {
         val menu = ContextMenu()
 
-        val editItem = MenuItem("✏  Edit")
-        editItem.setOnAction { onEdit(step) }
+        val editItem   = MenuItem("✏  Edit").also { it.setOnAction { onEdit(step) } }
+        val deleteItem = MenuItem("🗑  Delete").also { it.setOnAction { viewModel.removeStep(step.id) } }
 
-        val deleteItem = MenuItem("🗑  Delete")
-        deleteItem.setOnAction { viewModel.removeStep(step.id) }
-
-        // "Add inside" only for containers
-        if (step is BlockStep || step is ObserverStep) {
-            val addInsideItem = MenuItem("＋  Add step inside")
-            addInsideItem.setOnAction {
-                val bounds = graphic?.localToScreen(graphic!!.boundsInLocal)
-                val x = bounds?.minX ?: 0.0
-                val y = bounds?.maxY?.plus(4) ?: 0.0
-                pickerInside.show(scene.window, x, y)
+        when {
+            step is ConditionalBlock -> {
+                menu.items += MenuItem("＋  Add step to TRUE branch").also { mi ->
+                    mi.setOnAction {
+                        val b = graphic?.localToScreen(graphic!!.boundsInLocal)
+                        pickerInsideTrue.show(scene.window, b?.minX ?: 0.0, b?.maxY?.plus(4) ?: 0.0)
+                    }
+                }
+                menu.items += MenuItem("＋  Add step to ELSE branch").also { mi ->
+                    mi.setOnAction {
+                        val b = graphic?.localToScreen(graphic!!.boundsInLocal)
+                        pickerInsideElse.show(scene.window, b?.minX ?: 0.0, b?.maxY?.plus(4) ?: 0.0)
+                    }
+                }
+                menu.items += SeparatorMenuItem()
             }
-            menu.items.addAll(addInsideItem, SeparatorMenuItem())
+            step is BlockStep || step is ObserverStep -> {
+                menu.items += MenuItem("＋  Add step inside").also { mi ->
+                    mi.setOnAction {
+                        val b = graphic?.localToScreen(graphic!!.boundsInLocal)
+                        pickerInside.show(scene.window, b?.minX ?: 0.0, b?.maxY?.plus(4) ?: 0.0)
+                    }
+                }
+                menu.items += SeparatorMenuItem()
+            }
         }
 
-        val addAfterItem = MenuItem("＋  Add step after")
-        addAfterItem.setOnAction {
-            val bounds = graphic?.localToScreen(graphic!!.boundsInLocal)
-            val x = bounds?.minX ?: 0.0
-            val y = bounds?.maxY?.plus(4) ?: 0.0
-            picker.show(scene.window, x, y)
+        val addAfterItem = MenuItem("＋  Add step after").also { mi ->
+            mi.setOnAction {
+                val b = graphic?.localToScreen(graphic!!.boundsInLocal)
+                picker.show(scene.window, b?.minX ?: 0.0, b?.maxY?.plus(4) ?: 0.0)
+            }
         }
-
         menu.items.addAll(addAfterItem, SeparatorMenuItem(), editItem, SeparatorMenuItem(), deleteItem)
         return menu
     }
 
-    /** Returns parent block id or null (top-level). */
-    private fun parentStepId(): StepId? = treeItem?.parent?.value?.id
-}
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
+    /**
+     * Returns the [StepId] of the [ConditionalBlock] this cell belongs to.
+     * Works both when the cell IS the ConditionalBlock and when it IS a BranchNode child.
+     */
+    private fun resolveConditionalParentId(): StepId? {
+        return when (val n = item) {
+            is TreeNode.BranchNode -> n.parentId
+            is TreeNode.StepNode   -> (n.step as? ConditionalBlock)?.id
+            else                   -> null
+        }
+    }
+
+    /** Returns the [StepId] of the parent step (for "add after"). */
+    private fun parentStepId(): StepId? {
+        var parent = treeItem?.parent
+        // skip BranchNode headers – go up until we find a StepNode or root
+        while (parent != null) {
+            val v = parent.value
+            if (v is TreeNode.StepNode) return v.step.id
+            if (v == null) return null  // reached invisible root
+            parent = parent.parent
+        }
+        return null
+    }
+}

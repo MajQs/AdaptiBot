@@ -580,4 +580,53 @@
     -fx-padding: 40;
 }
 
+/* ── Branch node (ConditionalBlock TRUE / ELSE headers) ───────────────────── */
+
+.branch-node-cell {
+    -fx-padding: 0 0 0 0;
+    -fx-background-color: transparent;
+}
+
+.branch-node-cell > .tree-cell {
+    -fx-background-color: transparent;
+}
+
+.branch-node-row {
+    -fx-padding: 2 8 2 4;
+    -fx-background-radius: 4;
+    -fx-min-width: 160;
+}
+
+.branch-node-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 6 2 6;
+    -fx-background-radius: 3;
+}
+
+.branch-node-true {
+    -fx-background-color: #1e3a2f;
+    -fx-text-fill: #a6e3a1;
+    -fx-border-color: #2d5a42;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+}
+
+.branch-node-else {
+    -fx-background-color: #3a1e1e;
+    -fx-text-fill: #f38ba8;
+    -fx-border-color: #5a2d2d;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+}
+
+.branch-node-count {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6c7086;
+    -fx-padding: 1 5 1 5;
+    -fx-background-color: #313244;
+    -fx-background-radius: 8;
+}
+
+
 

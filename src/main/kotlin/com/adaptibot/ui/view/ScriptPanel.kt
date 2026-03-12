@@ -17,8 +17,9 @@ class ScriptPanel(
      * [parentId]     – container to add into (null = root).
      * [afterStepId]  – insert after this step (null = append at end).
      * [type]         – the chosen [StepType].
+     * [branch]       – which branch to add into (relevant for [ConditionalBlock]).
      */
-    private val onAddStep: (parentId: StepId?, afterStepId: StepId?, type: StepType) -> Unit
+    private val onAddStep: (parentId: StepId?, afterStepId: StepId?, type: StepType, branch: ConditionalBranch) -> Unit
 ) : BorderPane() {
 
     val treeView = StepTreeView(viewModel)
@@ -63,7 +64,7 @@ class ScriptPanel(
         }
 
         // Inline picker rendered directly in the empty state
-        val picker = StepTypePickerPopup { type -> onAddStep(null, null, type) }
+        val picker = StepTypePickerPopup { type -> onAddStep(null, null, type, ConditionalBranch.DEFAULT) }
 
         val addFirstBtn = Button("＋  Add first step").apply {
             styleClass.add("toolbar-btn-primary")

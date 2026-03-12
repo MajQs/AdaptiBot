@@ -22,23 +22,29 @@ object StepCellGraphic {
     /**
      * Builds the full cell graphic as a [VBox]:
      *  - the step content row
-     *  - optional "＋ inside" strip (blocks only, slides in on hover)
-     *  - "＋ after"  strip          (all steps,  slides in on hover)
+     *  - optional "＋ true" / "＋ else" strips (ConditionalBlock only, slide in on hover)
+     *  - optional "＋ inside" strip (GroupBlock / ObserverStep only, slides in on hover)
+     *  - "＋ after" strip (all steps, slides in on hover)
      *
      * Strips start collapsed (prefHeight = 0, isManaged = false) so they
      * take no space when hidden.  On hover they slide open smoothly.
      *
-     * @param onAddAfter   called when the "after" insert strip is pressed
-     * @param onAddInside  called when the "inside" insert strip is pressed (blocks only)
+     * @param onAddAfter        called when the "after" insert strip is pressed
+     * @param onAddInside       called when the "inside" insert strip is pressed (GroupBlock/ObserverStep)
+     * @param onAddInsideTrue   called when the "＋ true" strip is pressed (ConditionalBlock only)
+     * @param onAddInsideElse   called when the "＋ else" strip is pressed (ConditionalBlock only)
      */
     fun build(
         step: Step,
         isActive: Boolean,
-        onAddAfter:  ((anchorX: Double, anchorY: Double) -> Unit)? = null,
-        onAddInside: ((anchorX: Double, anchorY: Double) -> Unit)? = null
+        onAddAfter:       ((anchorX: Double, anchorY: Double) -> Unit)? = null,
+        onAddInside:      ((anchorX: Double, anchorY: Double) -> Unit)? = null,
+        onAddInsideTrue:  ((anchorX: Double, anchorY: Double) -> Unit)? = null,
+        onAddInsideElse:  ((anchorX: Double, anchorY: Double) -> Unit)? = null
     ): VBox {
 
-        val isBlock = step is GroupBlock || step is ConditionalBlock || step is ObserverStep
+        val isConditional = step is ConditionalBlock
+        val isBlock = step is GroupBlock || step is ObserverStep
 
         // ── content row ───────────────────────────────────────────────────
         val badge = badge(step)
@@ -64,15 +70,27 @@ object StepCellGraphic {
         }
 
         // ── insert strips ─────────────────────────────────────────────────
-        // Order: contentRow → insideStrip → afterStrip
+        // ConditionalBlock gets two branch strips (TRUE / ELSE) instead of a generic "inside".
+        // Order: contentRow → trueStrip / elseStrip / insideStrip → afterStrip
+        val trueStrip   = if (isConditional) buildInsertStrip(label = "true") else null
+        val elseStrip   = if (isConditional) buildInsertStrip(label = "else") else null
         val insideStrip = if (isBlock) buildInsertStrip(label = "inside") else null
-        val afterStrip  = buildInsertStrip(label = if (isBlock) "after" else null)
+        val afterStrip  = buildInsertStrip(label = if (isConditional || isBlock) "after" else null)
 
-        // wire press callbacks (setOnMousePressed avoids the need for a prior
-        // selection click that setOnMouseClicked would require)
+        // wire press callbacks
         afterStrip.setOnMousePressed { e ->
             val bounds = afterStrip.localToScreen(afterStrip.boundsInLocal)
             if (bounds != null) onAddAfter?.invoke(bounds.minX, bounds.minY + bounds.height / 2)
+            e.consume()
+        }
+        trueStrip?.setOnMousePressed { e ->
+            val bounds = trueStrip.localToScreen(trueStrip.boundsInLocal)
+            if (bounds != null) onAddInsideTrue?.invoke(bounds.minX, bounds.minY + bounds.height / 2)
+            e.consume()
+        }
+        elseStrip?.setOnMousePressed { e ->
+            val bounds = elseStrip.localToScreen(elseStrip.boundsInLocal)
+            if (bounds != null) onAddInsideElse?.invoke(bounds.minX, bounds.minY + bounds.height / 2)
             e.consume()
         }
         insideStrip?.setOnMousePressed { e ->
@@ -82,7 +100,7 @@ object StepCellGraphic {
         }
 
         // initially collapsed and removed from layout
-        listOfNotNull(insideStrip, afterStrip).forEach { strip ->
+        listOfNotNull(trueStrip, elseStrip, insideStrip, afterStrip).forEach { strip ->
             strip.prefHeight = 0.0
             strip.opacity    = 0.0
             strip.isManaged  = false
@@ -93,17 +111,20 @@ object StepCellGraphic {
         val wrapper = VBox(0.0).apply {
             children.addAll(buildList {
                 add(contentRow)
+                if (trueStrip  != null) add(trueStrip)
+                if (elseStrip  != null) add(elseStrip)
                 if (insideStrip != null) add(insideStrip)
                 add(afterStrip)
             })
             // Short delay so quick mouse pass-overs don't trigger the animation
+            val allStrips = listOfNotNull(trueStrip, elseStrip, insideStrip, afterStrip).toTypedArray()
             val showDelay = PauseTransition(Duration.millis(350.0)).apply {
-                setOnFinished { showStrips(insideStrip, afterStrip) }
+                setOnFinished { showStrips(*allStrips) }
             }
             setOnMouseEntered { showDelay.playFromStart() }
             setOnMouseExited  {
                 showDelay.stop()
-                hideStrips(insideStrip, afterStrip)
+                hideStrips(*allStrips)
             }
         }
 

@@ -145,7 +145,7 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return result
     }
 
-    /** Adds [step] inside [parentId] block. Returns true on success. */
+    /** Adds [step] inside [parentId] block (to `steps` list). Returns true on success. */
     fun addStepToParent(parentId: StepId, step: Step): Boolean {
         val result = mutateSteps(steps) { list, index ->
             val parent = list[index]
@@ -157,6 +157,13 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
                 true
             } else false
         }
+        if (result) isDirtyProperty.set(true)
+        return result
+    }
+
+    /** Adds [step] to `elseSteps` list of the [parentId] [ConditionalBlock]. Returns true on success. */
+    fun addStepToElse(parentId: StepId, step: Step): Boolean {
+        val result = addToElseInList(steps, parentId, step)
         if (result) isDirtyProperty.set(true)
         return result
     }
@@ -182,6 +189,21 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         val step = findStep(stepId) ?: return false
         if (!removeStep(stepId)) return false
         val result = insertStep(step, targetParentId, targetIndex)
+        if (result) isDirtyProperty.set(true)
+        return result
+    }
+
+    /**
+     * Moves step with [stepId] into the [branch] of the [ConditionalBlock] identified by [parentId],
+     * appending it at the end of that branch.
+     */
+    fun moveStepToBranch(stepId: StepId, parentId: StepId, branch: com.adaptibot.ui.view.ConditionalBranch): Boolean {
+        val step = findStep(stepId) ?: return false
+        if (!removeStep(stepId)) return false
+        val result = if (branch == com.adaptibot.ui.view.ConditionalBranch.ELSE)
+            addStepToElse(parentId, step)
+        else
+            addStepToParent(parentId, step)
         if (result) isDirtyProperty.set(true)
         return result
     }
@@ -233,6 +255,18 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         }
         for (i in list.indices) {
             when (val step = list[i]) {
+                is ConditionalBlock -> {
+                    val nested = FXCollections.observableArrayList(step.steps)
+                    if (removeFromList(nested, id)) {
+                        list[i] = step.copy(steps = nested.toList())
+                        return true
+                    }
+                    val nestedElse = FXCollections.observableArrayList(step.elseSteps)
+                    if (removeFromList(nestedElse, id)) {
+                        list[i] = step.copy(elseSteps = nestedElse.toList())
+                        return true
+                    }
+                }
                 is BlockStep -> {
                     val nested = FXCollections.observableArrayList(step.steps)
                     if (removeFromList(nested, id)) {
@@ -262,6 +296,18 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         for (i in list.indices) {
             val step = list[i]
             when (step) {
+                is ConditionalBlock -> {
+                    val nested = FXCollections.observableArrayList(step.steps)
+                    if (replaceInList(nested, updated)) {
+                        list[i] = step.copy(steps = nested.toList())
+                        return true
+                    }
+                    val nestedElse = FXCollections.observableArrayList(step.elseSteps)
+                    if (replaceInList(nestedElse, updated)) {
+                        list[i] = step.copy(elseSteps = nestedElse.toList())
+                        return true
+                    }
+                }
                 is BlockStep -> {
                     val nested = FXCollections.observableArrayList(step.steps)
                     if (replaceInList(nested, updated)) {
@@ -286,6 +332,7 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         for (step in list) {
             if (step.id == id) return step
             val nested: Step? = when (step) {
+                is ConditionalBlock -> findInList(step.steps, id) ?: findInList(step.elseSteps, id)
                 is BlockStep -> findInList(step.steps, id)
                 is ObserverStep -> findInList(step.steps, id)
                 else -> null
@@ -357,6 +404,47 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return false
     }
 
+    private fun addToElseInList(list: ObservableList<Step>, parentId: StepId, step: Step): Boolean {
+        for (i in list.indices) {
+            val current = list[i]
+            if (current is ConditionalBlock && current.id == parentId) {
+                list[i] = current.copy(elseSteps = current.elseSteps + step)
+                return true
+            }
+            // recurse into children
+            when (current) {
+                is ConditionalBlock -> {
+                    val nested = FXCollections.observableArrayList(current.steps)
+                    if (addToElseInList(nested, parentId, step)) {
+                        list[i] = current.copy(steps = nested.toList())
+                        return true
+                    }
+                    val nestedElse = FXCollections.observableArrayList(current.elseSteps)
+                    if (addToElseInList(nestedElse, parentId, step)) {
+                        list[i] = current.copy(elseSteps = nestedElse.toList())
+                        return true
+                    }
+                }
+                is BlockStep -> {
+                    val nested = FXCollections.observableArrayList(current.steps)
+                    if (addToElseInList(nested, parentId, step)) {
+                        list[i] = current.withSteps(nested.toList())
+                        return true
+                    }
+                }
+                is ObserverStep -> {
+                    val nested = FXCollections.observableArrayList(current.steps)
+                    if (addToElseInList(nested, parentId, step)) {
+                        list[i] = current.copy(steps = nested.toList())
+                        return true
+                    }
+                }
+                else -> {}
+            }
+        }
+        return false
+    }
+
     /** Inserts [newStep] right after the step with [afterId] anywhere in the tree. */
     private fun insertAfterInList(list: ObservableList<Step>, afterId: StepId, newStep: Step): Boolean {
         val idx = list.indexOfFirst { it.id == afterId }
@@ -366,6 +454,18 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         }
         for (i in list.indices) {
             when (val current = list[i]) {
+                is ConditionalBlock -> {
+                    val nested = FXCollections.observableArrayList(current.steps)
+                    if (insertAfterInList(nested, afterId, newStep)) {
+                        list[i] = current.copy(steps = nested.toList())
+                        return true
+                    }
+                    val nestedElse = FXCollections.observableArrayList(current.elseSteps)
+                    if (insertAfterInList(nestedElse, afterId, newStep)) {
+                        list[i] = current.copy(elseSteps = nestedElse.toList())
+                        return true
+                    }
+                }
                 is BlockStep -> {
                     val nested = FXCollections.observableArrayList(current.steps)
                     if (insertAfterInList(nested, afterId, newStep)) {
