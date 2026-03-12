@@ -41,30 +41,67 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
     }
 
     private fun rebuildTree() {
-        root.children.setAll(viewModel.steps.map { buildItem(it) })
+        // Snapshot expanded state before destroying the old items.
+        // Key for StepNode  → step id string  (e.g. "step_1")
+        // Key for BranchNode → "<parentId>:<TRUE|ELSE>"  (e.g. "cond_1:TRUE")
+        val expandedKeys = mutableSetOf<String>()
+        collectExpandedKeys(root.children, expandedKeys)
+
+        root.children.setAll(viewModel.steps.map { buildItem(it, expandedKeys) })
     }
 
-    private fun buildItem(step: Step): TreeItem<TreeNode> {
+    private fun collectExpandedKeys(
+        items: Iterable<TreeItem<TreeNode>>,
+        out: MutableSet<String>
+    ) {
+        for (item in items) {
+            if (item.isExpanded) {
+                when (val n = item.value) {
+                    is TreeNode.StepNode   -> out.add(n.step.id.value)
+                    is TreeNode.BranchNode -> out.add("${n.parentId.value}:${n.branch.name}")
+                    null -> {}
+                }
+            }
+            collectExpandedKeys(item.children, out)
+        }
+    }
+
+    private fun buildItem(step: Step, expandedKeys: Set<String> = emptySet()): TreeItem<TreeNode> {
+        // A node is expanded when:
+        //  • it is brand-new (not in expandedKeys at all) → default true for blocks
+        //  • it was previously expanded (key present in expandedKeys)
+        // A node is collapsed when its key was previously collapsed (absent from expandedKeys
+        // but the snapshot is non-empty, meaning it existed before and the user collapsed it).
+        val isNew = expandedKeys.isEmpty()  // first build – expand everything
+
         val item = TreeItem<TreeNode>(TreeNode.StepNode(step))
-        item.isExpanded = true
+        val stepKey = step.id.value
+        item.isExpanded = when {
+            isNew                         -> true
+            step is BlockStep             -> stepKey in expandedKeys
+            step is ObserverStep          -> stepKey in expandedKeys
+            else                          -> false   // leaf – doesn't matter
+        }
+
         when (step) {
             is ConditionalBlock -> {
-                // TRUE branch header + its children
+                val trueKey  = "${step.id.value}:${ConditionalBranch.TRUE.name}"
+                val elseKey  = "${step.id.value}:${ConditionalBranch.ELSE.name}"
+
                 val trueHeader = TreeItem<TreeNode>(
                     TreeNode.BranchNode(step.id, ConditionalBranch.TRUE, step.steps.size)
-                ).also { it.isExpanded = true }
-                step.steps.forEach { trueHeader.children.add(buildItem(it)) }
+                ).also { it.isExpanded = if (isNew) true else trueKey in expandedKeys }
+                step.steps.forEach { trueHeader.children.add(buildItem(it, expandedKeys)) }
 
-                // ELSE branch header + its children (always shown so user can add steps)
                 val elseHeader = TreeItem<TreeNode>(
                     TreeNode.BranchNode(step.id, ConditionalBranch.ELSE, step.elseSteps.size)
-                ).also { it.isExpanded = true }
-                step.elseSteps.forEach { elseHeader.children.add(buildItem(it)) }
+                ).also { it.isExpanded = if (isNew) true else elseKey in expandedKeys }
+                step.elseSteps.forEach { elseHeader.children.add(buildItem(it, expandedKeys)) }
 
                 item.children.addAll(trueHeader, elseHeader)
             }
-            is GroupBlock   -> step.steps.forEach { item.children.add(buildItem(it)) }
-            is ObserverStep -> step.steps.forEach { item.children.add(buildItem(it)) }
+            is GroupBlock   -> step.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
+            is ObserverStep -> step.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
             else -> {}
         }
         return item
@@ -132,7 +169,10 @@ private class ScriptTreeCell(
             is TreeNode.BranchNode -> {
                 styleClass.add("branch-node-cell")
                 styleClass.remove("step-cell-active")
-                graphic = BranchNodeGraphic.build(node)
+                val popup = if (node.branch == ConditionalBranch.TRUE) pickerInsideTrue else pickerInsideElse
+                graphic = BranchNodeGraphic.build(node) { anchorX, anchorY ->
+                    popup.show(scene.window, anchorX, anchorY)
+                }
                 text = null
                 contextMenu = buildBranchContextMenu(node)
             }
@@ -142,12 +182,10 @@ private class ScriptTreeCell(
                 val isActive = activeId != null && node.step.id == activeId
 
                 graphic = StepCellGraphic.build(
-                    step            = node.step,
-                    isActive        = isActive,
-                    onAddAfter      = { ax, ay -> picker.show(scene.window, ax, ay) },
-                    onAddInside     = { ax, ay -> pickerInside.show(scene.window, ax, ay) },
-                    onAddInsideTrue = { ax, ay -> pickerInsideTrue.show(scene.window, ax, ay) },
-                    onAddInsideElse = { ax, ay -> pickerInsideElse.show(scene.window, ax, ay) }
+                    step        = node.step,
+                    isActive    = isActive,
+                    onAddAfter  = { ax, ay -> picker.show(scene.window, ax, ay) },
+                    onAddInside = { ax, ay -> pickerInside.show(scene.window, ax, ay) }
                 )
                 text = null
                 contextMenu = buildStepContextMenu(node.step)

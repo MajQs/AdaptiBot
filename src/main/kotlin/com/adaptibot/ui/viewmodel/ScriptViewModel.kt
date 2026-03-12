@@ -147,16 +147,7 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
 
     /** Adds [step] inside [parentId] block (to `steps` list). Returns true on success. */
     fun addStepToParent(parentId: StepId, step: Step): Boolean {
-        val result = mutateSteps(steps) { list, index ->
-            val parent = list[index]
-            if (parent.id == parentId && parent is BlockStep) {
-                list[index] = parent.withSteps(parent.steps + step)
-                true
-            } else if (parent is ObserverStep && parent.id == parentId) {
-                list[index] = parent.copy(steps = parent.steps + step)
-                true
-            } else false
-        }
+        val result = addToStepsInList(steps, parentId, step)
         if (result) isDirtyProperty.set(true)
         return result
     }
@@ -400,6 +391,47 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
     ): Boolean {
         for (i in list.indices) {
             if (action(list, i)) return true
+        }
+        return false
+    }
+
+    private fun addToStepsInList(list: ObservableList<Step>, parentId: StepId, step: Step): Boolean {
+        for (i in list.indices) {
+            val current = list[i]
+            // Found the target parent – append to its `steps`
+            if (current.id == parentId) {
+                when (current) {
+                    is BlockStep    -> { list[i] = current.withSteps(current.steps + step); return true }
+                    is ObserverStep -> { list[i] = current.copy(steps = current.steps + step); return true }
+                    else            -> return false
+                }
+            }
+            // Recurse into children
+            when (current) {
+                is ConditionalBlock -> {
+                    val nested = FXCollections.observableArrayList(current.steps)
+                    if (addToStepsInList(nested, parentId, step)) {
+                        list[i] = current.copy(steps = nested.toList()); return true
+                    }
+                    val nestedElse = FXCollections.observableArrayList(current.elseSteps)
+                    if (addToStepsInList(nestedElse, parentId, step)) {
+                        list[i] = current.copy(elseSteps = nestedElse.toList()); return true
+                    }
+                }
+                is BlockStep -> {
+                    val nested = FXCollections.observableArrayList(current.steps)
+                    if (addToStepsInList(nested, parentId, step)) {
+                        list[i] = current.withSteps(nested.toList()); return true
+                    }
+                }
+                is ObserverStep -> {
+                    val nested = FXCollections.observableArrayList(current.steps)
+                    if (addToStepsInList(nested, parentId, step)) {
+                        list[i] = current.copy(steps = nested.toList()); return true
+                    }
+                }
+                else -> {}
+            }
         }
         return false
     }
