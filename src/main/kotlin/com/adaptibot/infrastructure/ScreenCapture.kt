@@ -1,5 +1,6 @@
 package com.adaptibot.infrastructure
 
+import java.awt.Color
 import java.awt.Rectangle
 import java.awt.Robot
 import java.awt.Toolkit
@@ -20,4 +21,6 @@ object ScreenCapture {
         val rect = Rectangle(x, y, width, height)
         return robot.createScreenCapture(rect)
     }
+
+    fun getPixelColor(x: Int, y: Int): Color = robot.getPixelColor(x, y)
 }

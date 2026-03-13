@@ -1,9 +1,10 @@
 package com.adaptibot.execution.domain
 
+import com.adaptibot.model.ColorTolerance
 import com.adaptibot.model.Condition
+import com.adaptibot.model.PixelColor
 import com.adaptibot.model.VisualMatcher
 import com.adaptibot.vision.VisionFacade
-import com.adaptibot.vision.dto.ElementLookupResult
 
 internal class ConditionEvaluator(
     private val visionFacade: VisionFacade,
@@ -17,6 +18,20 @@ internal class ConditionEvaluator(
     }
 
     private fun evaluateMatcher(matcher: VisualMatcher): Boolean = when (matcher) {
-        is VisualMatcher.ImagePresent -> visionFacade.findImage(matcher.pattern) is ElementLookupResult.Found
+        is VisualMatcher.ImagePresent -> {
+            val match = visionFacade.getImageMatch(matcher.pattern)
+            match != null && match.confidence >= matcher.pattern.matchThreshold
+        }
+        is VisualMatcher.ColorAt -> {
+            val actual = visionFacade.getPixelColor(matcher.point)
+            actual.matches(matcher.expected, matcher.tolerance)
+        }
     }
 }
+
+private fun PixelColor.matches(expected: PixelColor, tolerance: ColorTolerance): Boolean {
+    return kotlin.math.abs(r - expected.r) <= tolerance.value &&
+           kotlin.math.abs(g - expected.g) <= tolerance.value &&
+           kotlin.math.abs(b - expected.b) <= tolerance.value
+}
+

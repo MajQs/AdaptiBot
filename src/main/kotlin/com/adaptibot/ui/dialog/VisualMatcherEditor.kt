@@ -49,6 +49,7 @@ class VisualMatcherEditor(
                 thresholdSpinner.valueFactory.value = initial.pattern.matchThreshold
                 showImagePreview(initial.pattern.base64Data)
             }
+            is VisualMatcher.ColorAt -> TODO()
             null -> { /* empty state */ }
         }
     }

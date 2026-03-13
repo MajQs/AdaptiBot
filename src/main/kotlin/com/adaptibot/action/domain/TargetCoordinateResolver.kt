@@ -5,7 +5,6 @@ import com.adaptibot.action.ActionExecutionException.ImageNotFound
 import com.adaptibot.model.Coordinate
 import com.adaptibot.model.Target
 import com.adaptibot.vision.VisionFacade
-import com.adaptibot.vision.dto.ElementLookupResult
 import java.awt.Toolkit
 
 internal class TargetCoordinateResolver(
@@ -26,16 +25,13 @@ internal class TargetCoordinateResolver(
         return c
     }
 
-    private fun atImage(target: Target.AtImage): Coordinate =
-        visionFacade.findImage(target.pattern)
-            .let { lookupResult ->
-                when (lookupResult) {
-                    is ElementLookupResult.Found -> lookupResult.coordinate
-                    is ElementLookupResult.ImageNotFound -> throw ImageNotFound(
-                        lookupResult.bestConfidence,
-                        lookupResult.threshold
-                    )
-                }
-            }
-}
+    private fun atImage(target: Target.AtImage): Coordinate {
+        val match = visionFacade.getImageMatch(target.pattern)
 
+        if (match == null || match.confidence < target.pattern.matchThreshold) {
+            throw ImageNotFound(match?.confidence ?: 0.0, target.pattern.matchThreshold)
+        } else {
+            return match.coordinate
+        }
+    }
+}
