@@ -15,6 +15,7 @@ object ScriptSerializer {
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
+        classDiscriminator = "kind"
     }
 
     fun saveToFile(script: Script, path: Path) {

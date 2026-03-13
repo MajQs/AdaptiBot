@@ -5,13 +5,15 @@ import com.adaptibot.model.ActionStep
 import com.adaptibot.model.Condition
 import com.adaptibot.model.ConditionalBlock
 import com.adaptibot.model.Coordinate
-import com.adaptibot.model.ElementIdentifier
 import com.adaptibot.model.GroupBlock
+import com.adaptibot.model.ImagePattern
 import com.adaptibot.model.KeyboardKey
+import com.adaptibot.model.Target
 import com.adaptibot.model.Script
 import com.adaptibot.model.ScriptSettings
 import com.adaptibot.model.Step
 import com.adaptibot.model.StepId
+import com.adaptibot.model.VisualMatcher
 
 object TestUtils {
 
@@ -35,18 +37,14 @@ object TestUtils {
                 id = StepId("step_1"),
                 label = "Move to coordinates",
                 action = Action.Mouse.MoveTo(
-                    target = ElementIdentifier.ByCoordinate(
-                        coordinate = Coordinate(100, 200)
-                    )
+                    target = Target.AtCoordinate(coordinate = Coordinate(100, 200))
                 )
             ),
             ActionStep(
                 id = StepId("step_2"),
                 label = "Click",
                 action = Action.Mouse.Click(
-                    target = ElementIdentifier.ByCoordinate(
-                        coordinate = Coordinate(100, 200)
-                    )
+                    target = Target.AtCoordinate(coordinate = Coordinate(100, 200))
                 )
             ),
             ActionStep(
@@ -71,17 +69,13 @@ object TestUtils {
                     id = StepId("cond_1"),
                     label = "Check if element exists",
                     condition = Condition.ElementExists(
-                        identifier = ElementIdentifier.ByCoordinate(
-                            coordinate = Coordinate(50, 50)
-                        )
+                        matcher = VisualMatcher.ImagePresent(ImagePattern("", 0.8))
                     ),
                     steps = listOf(
                         ActionStep(
                             id = StepId("step_then"),
                             action = Action.Mouse.Click(
-                                target = ElementIdentifier.ByCoordinate(
-                                    coordinate = Coordinate(50, 50)
-                                )
+                                target = Target.AtCoordinate(coordinate = Coordinate(50, 50))
                             )
                         )
                     ),
@@ -104,14 +98,11 @@ object TestUtils {
                 GroupBlock(
                     id = StepId("group_1"),
                     label = "Login Group",
-
                     steps = listOf(
                         ActionStep(
                             id = StepId("login_1"),
                             action = Action.Mouse.Click(
-                                target = ElementIdentifier.ByCoordinate(
-                                    coordinate = Coordinate(300, 400)
-                                )
+                                target = Target.AtCoordinate(coordinate = Coordinate(300, 400))
                             )
                         ),
                         ActionStep(

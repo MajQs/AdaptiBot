@@ -14,9 +14,4 @@ sealed class ElementLookupResult {
         val threshold: Double
     ) : ElementLookupResult()
 
-    data class CoordinateOutOfBounds(
-        val given: Coordinate,
-        val screenWidth: Int,
-        val screenHeight: Int
-    ) : ElementLookupResult()
 }

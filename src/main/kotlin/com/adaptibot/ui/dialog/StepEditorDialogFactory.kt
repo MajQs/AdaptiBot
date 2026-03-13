@@ -1,8 +1,8 @@
 package com.adaptibot.ui.dialog
 
 import com.adaptibot.model.*
+import com.adaptibot.model.Target
 import javafx.geometry.Insets
-import javafx.geometry.Pos
 import javafx.scene.control.*
 import javafx.scene.layout.*
 import javafx.stage.Window
@@ -27,15 +27,15 @@ object StepEditorDialogFactory {
         val id = StepId("step_${UUID.randomUUID()}")
         return when (actionType) {
             StepType.MOUSE_CLICK   -> ActionStepDialog(ActionStep(id, action = Action.Mouse.Click()), owner).showAndWait().orElse(null)
-            StepType.MOUSE_DRAG    -> ActionStepDialog(ActionStep(id, action = Action.Mouse.Drag(to = ElementIdentifier.ByCoordinate(Coordinate(0,0)))), owner).showAndWait().orElse(null)
-            StepType.MOUSE_MOVE    -> ActionStepDialog(ActionStep(id, action = Action.Mouse.MoveTo(ElementIdentifier.ByCoordinate(Coordinate(0,0)))), owner).showAndWait().orElse(null)
+            StepType.MOUSE_DRAG    -> ActionStepDialog(ActionStep(id, action = Action.Mouse.Drag(to = Target.AtCoordinate(Coordinate(0,0)))), owner).showAndWait().orElse(null)
+            StepType.MOUSE_MOVE    -> ActionStepDialog(ActionStep(id, action = Action.Mouse.MoveTo(Target.AtCoordinate(Coordinate(0,0)))), owner).showAndWait().orElse(null)
             StepType.MOUSE_SCROLL  -> ActionStepDialog(ActionStep(id, action = Action.Mouse.Scroll(MouseScrollDirection.DOWN, 3)), owner).showAndWait().orElse(null)
             StepType.KEYBOARD_TYPE -> ActionStepDialog(ActionStep(id, action = Action.Keyboard.TypeText("")), owner).showAndWait().orElse(null)
             StepType.KEYBOARD_KEYS -> ActionStepDialog(ActionStep(id, action = Action.Keyboard.PressKeys(emptyList())), owner).showAndWait().orElse(null)
             StepType.WAIT          -> ActionStepDialog(ActionStep(id, action = Action.System.Wait(500)), owner).showAndWait().orElse(null)
             StepType.GROUP         -> GroupBlockDialog(GroupBlock(id, steps = emptyList()), owner).showAndWait().orElse(null)
-            StepType.CONDITIONAL   -> ConditionalBlockDialog(ConditionalBlock(id, condition = Condition.ElementExists(ElementIdentifier.ByCoordinate(Coordinate(0,0))), steps = emptyList()), owner).showAndWait().orElse(null)
-            StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(id, condition = Condition.ElementExists(ElementIdentifier.ByCoordinate(Coordinate(0,0))), steps = emptyList()), owner).showAndWait().orElse(null)
+            StepType.CONDITIONAL   -> ConditionalBlockDialog(ConditionalBlock(id, condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7))), steps = emptyList()), owner).showAndWait().orElse(null)
+            StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(id, condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7))), steps = emptyList()), owner).showAndWait().orElse(null)
         }
     }
 }
@@ -158,7 +158,7 @@ private class StaticActionEditor(private val action: Action) : ActionEditor {
 private class MouseClickEditor(
     private val orig: Action.Mouse.Click, startRow: Int, grid: GridPane
 ) : ActionEditor {
-    private val targetEditor = ElementIdentifierEditor(orig.target)
+    private val targetEditor = MouseTargetEditor(orig.target)
     private val buttonCombo = ComboBox<MouseButton>().apply {
         styleClass.add("form-combo"); items.setAll(MouseButton.entries); value = orig.button
     }
@@ -176,7 +176,7 @@ private class MouseClickEditor(
     }
 
     override fun getAction() = orig.copy(
-        target = targetEditor.getIdentifier(),
+        target = targetEditor.getTarget(),
         button = buttonCombo.value ?: MouseButton.LEFT,
         type = typeCombo.value ?: MouseClickType.SINGLE,
         holdDuration = holdField.text.toLongOrNull() ?: 0L
@@ -186,8 +186,8 @@ private class MouseClickEditor(
 private class MouseDragEditor(
     private val orig: Action.Mouse.Drag, startRow: Int, grid: GridPane
 ) : ActionEditor {
-    private val fromEditor = ElementIdentifierEditor(orig.from)
-    private val toEditor = ElementIdentifierEditor(orig.to)
+    private val fromEditor = MouseTargetEditor(orig.from)
+    private val toEditor   = MouseTargetEditor(orig.to)
 
     init {
         var r = startRow
@@ -195,17 +195,20 @@ private class MouseDragEditor(
         grid.add(formLabel("To"), 0, r); grid.add(toEditor, 1, r);
     }
 
-    override fun getAction() = orig.copy(from = fromEditor.getIdentifier(), to = toEditor.getIdentifier()
-        ?: ElementIdentifier.ByCoordinate(Coordinate(0, 0)))
+    override fun getAction() = orig.copy(
+        from = fromEditor.getTarget(),
+        to   = toEditor.getTarget() ?: Target.AtCoordinate(Coordinate(0, 0))
+    )
 }
 
 private class MouseMoveEditor(
     private val orig: Action.Mouse.MoveTo, startRow: Int, grid: GridPane
 ) : ActionEditor {
-    private val editor = ElementIdentifierEditor(orig.target)
+    private val editor = MouseTargetEditor(orig.target)
     init { grid.add(formLabel("Target"), 0, startRow); grid.add(editor, 1, startRow) }
-    override fun getAction() = orig.copy(target = editor.getIdentifier()
-        ?: ElementIdentifier.ByCoordinate(Coordinate(0, 0)))
+    override fun getAction() = orig.copy(
+        target = editor.getTarget() ?: Target.AtCoordinate(Coordinate(0, 0))
+    )
 }
 
 private class MouseScrollEditor(

@@ -1,33 +1,29 @@
 package com.adaptibot.action.domain
 
-import com.adaptibot.action.ActionExecutionException
 import com.adaptibot.action.adapter.MouseController
 import com.adaptibot.model.Action.Mouse
-import com.adaptibot.vision.VisionFacade
-import com.adaptibot.vision.dto.ElementLookupResult
 
 internal class MouseActionHandler(
-    private val visionFacade: VisionFacade,
+    private val targetCoordinateResolver: TargetCoordinateResolver,
 ) : ActionHandler<Mouse> {
 
     override fun handle(action: Mouse) {
         when (action) {
             is Mouse.Click -> {
                 action.target
-                    ?.let { visionFacade.findElement(it).toCoordinateOrThrow() }
+                    ?.let { targetCoordinateResolver.resolve(it) }
                     ?.let { MouseController.moveTo(it) }
                 MouseController.click(action.button, action.type, action.holdDuration)
             }
 
             is Mouse.Drag -> {
-                val toCoordinate = visionFacade.findElement(action.to).toCoordinateOrThrow()
-                val fromCoordinate = action.from
-                    ?.let { visionFacade.findElement(it).toCoordinateOrThrow() }
+                val toCoordinate   = targetCoordinateResolver.resolve(action.to)
+                val fromCoordinate = action.from?.let { targetCoordinateResolver.resolve(it) }
                 MouseController.drag(fromCoordinate, toCoordinate)
             }
 
             is Mouse.MoveTo -> {
-                val coordinate = visionFacade.findElement(action.target).toCoordinateOrThrow()
+                val coordinate = targetCoordinateResolver.resolve(action.target)
                 MouseController.moveTo(coordinate)
             }
 
@@ -36,11 +32,5 @@ internal class MouseActionHandler(
     }
 }
 
-private fun ElementLookupResult.toCoordinateOrThrow() = when (this) {
-    is ElementLookupResult.Found -> coordinate
-    is ElementLookupResult.ImageNotFound -> throw ActionExecutionException.ImageNotFound(bestConfidence, threshold)
-    is ElementLookupResult.CoordinateOutOfBounds -> throw ActionExecutionException.CoordinateOutOfBounds(
-        given.x, given.y, screenWidth, screenHeight
-    )
-}
+
 

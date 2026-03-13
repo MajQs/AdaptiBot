@@ -1,7 +1,8 @@
 package com.adaptibot.ui.dialog
 
 import com.adaptibot.model.Condition
-import com.adaptibot.model.ElementIdentifier
+import com.adaptibot.model.ImagePattern
+import com.adaptibot.model.VisualMatcher
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.control.*
@@ -18,8 +19,7 @@ class ConditionEditor(
     private val rootNodeWrapper = VBox()
 
     private var rootNode: ConditionNode = initial?.let { ConditionNode(it) }
-        ?: ConditionNode(Condition.ElementExists(ElementIdentifier.ByCoordinate(
-            com.adaptibot.model.Coordinate(0, 0))))
+        ?: ConditionNode(Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7))))
 
     init {
         isFitToWidth = true
@@ -50,7 +50,7 @@ private class ConditionNode(
     }
 
     private val childrenBox = VBox(4.0)
-    private val identifierEditor: ElementIdentifierEditor
+    private val matcherEditor: VisualMatcherEditor
 
     private var currentType: String
     private var condChildren: MutableList<ConditionNode> = mutableListOf()
@@ -59,8 +59,8 @@ private class ConditionNode(
         padding = Insets(4.0, 0.0, 4.0, 12.0)
         styleClass.add("condition-node")
 
-        identifierEditor = ElementIdentifierEditor(
-            initial = if (initial is Condition.ElementExists) initial.identifier else null
+        matcherEditor = VisualMatcherEditor(
+            initial = if (initial is Condition.ElementExists) initial.matcher else null
         )
 
         currentType = when (initial) {
@@ -82,13 +82,16 @@ private class ConditionNode(
         rebuild()
     }
 
+    private fun defaultCondition() =
+        Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))
+
     fun getCondition(): Condition = when (typeCombo.value) {
         "AND" -> Condition.And(condChildren.map { it.getCondition() })
         "OR"  -> Condition.Or(condChildren.map { it.getCondition() })
-        "NOT" -> Condition.Not(condChildren.firstOrNull()?.getCondition()
-            ?: Condition.ElementExists(ElementIdentifier.ByCoordinate(com.adaptibot.model.Coordinate(0, 0))))
-        else  -> Condition.ElementExists(identifierEditor.getIdentifier()
-            ?: ElementIdentifier.ByCoordinate(com.adaptibot.model.Coordinate(0, 0)))
+        "NOT" -> Condition.Not(condChildren.firstOrNull()?.getCondition() ?: defaultCondition())
+        else  -> Condition.ElementExists(
+            matcherEditor.getMatcher() ?: VisualMatcher.ImagePresent(ImagePattern("", 0.7))
+        )
     }
 
     private fun onTypeChanged() {
@@ -101,12 +104,12 @@ private class ConditionNode(
         styleClass.removeAll("condition-node-and", "condition-node-or", "condition-node-not", "condition-node-leaf")
 
         val typeLabel = Label(currentType).apply { styleClass.add("condition-op-label") }
-        val header = HBox(8.0, typeLabel, typeCombo).apply { alignment = Pos.CENTER_LEFT }
+        val header    = HBox(8.0, typeLabel, typeCombo).apply { alignment = Pos.CENTER_LEFT }
 
         when (currentType) {
             "ElementExists" -> {
                 styleClass.add("condition-node-leaf")
-                children.addAll(header, identifierEditor)
+                children.addAll(header, matcherEditor)
             }
             "AND", "OR" -> {
                 styleClass.add(if (currentType == "AND") "condition-node-and" else "condition-node-or")
@@ -114,9 +117,7 @@ private class ConditionNode(
                     styleClass.add("toolbar-btn")
                     style = "-fx-font-size: 10px; -fx-padding: 2 8 2 8;"
                     setOnAction {
-                        condChildren.add(ConditionNode(
-                            Condition.ElementExists(ElementIdentifier.ByCoordinate(com.adaptibot.model.Coordinate(0, 0)))
-                        ))
+                        condChildren.add(ConditionNode(defaultCondition()))
                         rebuildChildren()
                     }
                 }
@@ -125,11 +126,7 @@ private class ConditionNode(
             }
             "NOT" -> {
                 styleClass.add("condition-node-not")
-                if (condChildren.isEmpty()) {
-                    condChildren.add(ConditionNode(
-                        Condition.ElementExists(ElementIdentifier.ByCoordinate(com.adaptibot.model.Coordinate(0, 0)))
-                    ))
-                }
+                if (condChildren.isEmpty()) condChildren.add(ConditionNode(defaultCondition()))
                 rebuildChildren()
                 children.addAll(header, childrenBox)
             }
@@ -144,10 +141,7 @@ private class ConditionNode(
         val removeBtn = Button("✕").apply {
             styleClass.add("toolbar-btn")
             style = "-fx-padding: 2 6 2 6; -fx-font-size: 10px;"
-            setOnAction {
-                condChildren.remove(child)
-                rebuildChildren()
-            }
+            setOnAction { condChildren.remove(child); rebuildChildren() }
         }
         return HBox(6.0, child, removeBtn).apply {
             alignment = Pos.TOP_RIGHT
@@ -155,4 +149,3 @@ private class ConditionNode(
         }
     }
 }
-

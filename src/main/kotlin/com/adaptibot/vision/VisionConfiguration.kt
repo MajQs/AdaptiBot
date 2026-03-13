@@ -6,12 +6,12 @@ import com.adaptibot.vision.domain.ImageMatcher
 
 object VisionConfiguration {
 
-    fun getVisionFacade() = VisionFacade(
-        elementFinder = ElementFinder(
-            screenCapture = ScreenCapture,
-            imageMatcher = ImageMatcher()
+    fun getVisionFacade(): VisionFacade {
+        return VisionFacade(
+            elementFinder = ElementFinder(
+                screenCapture = ScreenCapture,
+                imageMatcher = ImageMatcher()
+            )
         )
-    )
-
+    }
 }
-

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class Condition {
     @Serializable
-    data class ElementExists(val identifier: ElementIdentifier) : Condition()
+    data class ElementExists(val matcher: VisualMatcher) : Condition()
 
     @Serializable
     data class And(val conditions: List<Condition>) : Condition()
@@ -16,4 +16,3 @@ sealed class Condition {
     @Serializable
     data class Not(val condition: Condition) : Condition()
 }
-

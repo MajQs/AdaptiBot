@@ -1,6 +1,7 @@
 package com.adaptibot.ui.view
 
 import com.adaptibot.model.*
+import com.adaptibot.model.Target
 import javafx.animation.KeyFrame
 import javafx.animation.KeyValue
 import javafx.animation.PauseTransition
@@ -219,10 +220,10 @@ object StepCellGraphic {
         is Action.Mouse.Click              -> buildString {
             append(action.button.name.lowercase())
             append(" ${action.type.name.lowercase()}")
-            if (action.target != null) append(" @ ${identifierShort(action.target)}")
+            if (action.target != null) append(" @ ${targetShort(action.target)}")
         }
-        is Action.Mouse.Drag               -> "from ${identifierShort(action.from)} → ${identifierShort(action.to)}"
-        is Action.Mouse.MoveTo             -> "→ ${identifierShort(action.target)}"
+        is Action.Mouse.Drag               -> "from ${targetShort(action.from)} → ${targetShort(action.to)}"
+        is Action.Mouse.MoveTo             -> "→ ${targetShort(action.target)}"
         is Action.Mouse.Scroll             -> "${action.direction.name.lowercase()} ×${action.amount}"
         is Action.Keyboard.TypeText        -> "\"${action.text.take(30)}${if (action.text.length > 30) "…" else ""}\""
         is Action.Keyboard.PressKeys       -> action.keys.joinToString("+") { it.name }
@@ -231,9 +232,9 @@ object StepCellGraphic {
         is Action.System.CloseApplication  -> action.processName
     }
 
-    private fun identifierShort(id: ElementIdentifier?): String = when (id) {
-        is ElementIdentifier.ByCoordinate -> "(${id.coordinate.x}, ${id.coordinate.y})"
-        is ElementIdentifier.ByImage      -> "[image]"
-        null                              -> "?"
+    private fun targetShort(target: Target?): String = when (target) {
+        is Target.AtCoordinate -> "(${target.coordinate.x}, ${target.coordinate.y})"
+        is Target.AtImage      -> "[image]"
+        null                        -> "?"
     }
 }

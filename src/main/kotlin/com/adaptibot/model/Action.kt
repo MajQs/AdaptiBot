@@ -10,7 +10,7 @@ sealed class Action {
 
         @Serializable
         data class Click(
-            val target: ElementIdentifier? = null,
+            val target: Target? = null,
             val button: MouseButton = MouseButton.LEFT,
             val type: MouseClickType = MouseClickType.SINGLE,
             val holdDuration: Long = 100L
@@ -18,12 +18,12 @@ sealed class Action {
 
         @Serializable
         data class Drag(
-            val from: ElementIdentifier? = null,
-            val to: ElementIdentifier
+            val from: Target? = null,
+            val to: Target
         ) : Mouse()
 
         @Serializable
-        data class MoveTo(val target: ElementIdentifier) : Mouse()
+        data class MoveTo(val target: Target) : Mouse()
 
         @Serializable
         data class Scroll(
@@ -53,5 +53,3 @@ sealed class Action {
         data class CloseApplication(val processName: String) : System()
     }
 }
-
-
