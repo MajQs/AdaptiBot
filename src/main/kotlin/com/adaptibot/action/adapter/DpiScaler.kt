@@ -1,6 +1,6 @@
 package com.adaptibot.action.adapter
 
-import com.adaptibot.model.Coordinate
+import com.adaptibot.script.Coordinate
 import org.slf4j.LoggerFactory
 import java.awt.GraphicsEnvironment
 

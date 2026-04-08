@@ -1,8 +1,8 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.model.ConditionalBlock
-import com.adaptibot.model.Step
-import com.adaptibot.model.StepId
+import com.adaptibot.script.ConditionalBlock
+import com.adaptibot.script.Step
+import com.adaptibot.script.StepId
 
 /**
  * Unified node type for the script tree view.

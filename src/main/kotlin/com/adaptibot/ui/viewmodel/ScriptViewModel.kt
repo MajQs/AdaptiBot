@@ -2,7 +2,7 @@ package com.adaptibot.ui.viewmodel
 
 import com.adaptibot.execution.ExecutionFacade
 import com.adaptibot.execution.dto.ExecutionStateDto
-import com.adaptibot.model.*
+import com.adaptibot.script.*
 import com.adaptibot.serialization.ScriptSerializer
 import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty

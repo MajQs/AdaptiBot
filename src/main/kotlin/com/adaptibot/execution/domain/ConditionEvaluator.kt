@@ -1,9 +1,9 @@
 package com.adaptibot.execution.domain
 
-import com.adaptibot.model.ColorTolerance
-import com.adaptibot.model.Condition
-import com.adaptibot.model.PixelColor
-import com.adaptibot.model.VisualMatcher
+import com.adaptibot.script.ColorTolerance
+import com.adaptibot.script.Condition
+import com.adaptibot.script.PixelColor
+import com.adaptibot.script.VisualMatcher
 import com.adaptibot.vision.VisionFacade
 
 internal class ConditionEvaluator(

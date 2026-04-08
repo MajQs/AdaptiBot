@@ -1,13 +1,13 @@
 package com.adaptibot.execution.domain.observer
 
-import com.adaptibot.model.ObserverStep
+import com.adaptibot.script.ObserverStep
 import com.adaptibot.execution.domain.ConditionEvaluator
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal class ObserverRegistry(
     private val conditionEvaluator: ConditionEvaluator,
-    private val checkDelayMs: Long = 1000
+    @Volatile var checkDelayMs: Long = 1000
 ) {
 
     private val logger = LoggerFactory.getLogger(ObserverRegistry::class.java)
@@ -24,9 +24,9 @@ internal class ObserverRegistry(
         observersScopeStack.addLast(mutableSetOf())
     }
 
-    fun registerObserver(observer: ObserverStep) {
+    fun activateObserver(observer: ObserverStep) {
         observersScopeStack.lastOrNull()?.add(observer)
-        logger.debug("Registered observer: ${observer.id.value} in scope depth ${observersScopeStack.size}")
+        logger.debug("Activated observer: ${observer.id.value} in scope depth ${observersScopeStack.size}")
 
         // Lazy start: ensure observer thread is running
         ensureObserverThreadRunning()

@@ -1,7 +1,7 @@
 package com.adaptibot.action.domain
 
 import com.adaptibot.action.adapter.MouseController
-import com.adaptibot.model.Action.Mouse
+import com.adaptibot.script.Action.Mouse
 
 internal class MouseActionHandler(
     private val targetCoordinateResolver: TargetCoordinateResolver,

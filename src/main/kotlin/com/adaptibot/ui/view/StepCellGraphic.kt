@@ -1,7 +1,7 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.model.*
-import com.adaptibot.model.Target
+import com.adaptibot.script.*
+import com.adaptibot.script.Target
 import javafx.animation.KeyFrame
 import javafx.animation.KeyValue
 import javafx.animation.PauseTransition

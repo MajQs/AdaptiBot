@@ -1,7 +1,7 @@
 package com.adaptibot.action
 
 import com.adaptibot.action.domain.*
-import com.adaptibot.model.Action
+import com.adaptibot.script.Action
 import com.adaptibot.vision.VisionConfiguration
 
 object ActionConfiguration {
@@ -11,7 +11,7 @@ object ActionConfiguration {
         actionHandlerPerType = mapOf(
             Action.Mouse::class.java to MouseActionHandler(
                 targetCoordinateResolver = TargetCoordinateResolver(
-                    visionFacade = VisionConfiguration.getVisionFacade()
+                    visionFacade = VisionConfiguration.visionFacade
                 )
             ),
             Action.Keyboard::class.java to KeyboardActionHandler(),

@@ -1,8 +1,8 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.model.Coordinate
-import com.adaptibot.model.ImagePattern
-import com.adaptibot.model.Target
+import com.adaptibot.script.Coordinate
+import com.adaptibot.script.ImagePattern
+import com.adaptibot.script.Target
 import com.adaptibot.serialization.ImageEncoder
 import com.adaptibot.ui.util.CoordinatePicker
 import com.adaptibot.ui.util.ScreenRegionPicker

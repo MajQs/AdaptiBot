@@ -1,7 +1,7 @@
 package com.adaptibot.ui.controller
 
 import com.adaptibot.execution.ExecutionConfiguration
-import com.adaptibot.model.StepId
+import com.adaptibot.script.StepId
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
 import com.adaptibot.ui.dialog.*
 import com.adaptibot.ui.view.*

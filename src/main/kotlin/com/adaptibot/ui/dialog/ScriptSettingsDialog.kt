@@ -1,6 +1,6 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.model.ScriptSettings
+import com.adaptibot.script.ScriptSettings
 import javafx.geometry.Insets
 import javafx.scene.control.*
 import javafx.scene.layout.*

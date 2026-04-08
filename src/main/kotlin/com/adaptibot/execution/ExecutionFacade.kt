@@ -1,6 +1,6 @@
 package com.adaptibot.execution
 
-import com.adaptibot.model.Script
+import com.adaptibot.script.Script
 import com.adaptibot.execution.domain.ScriptRunner
 import com.adaptibot.execution.dto.ExecutionStateDto
 

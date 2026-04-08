@@ -1,7 +1,7 @@
 package com.adaptibot.execution.domain.observer
 
-import com.adaptibot.model.ObserverStep
-import com.adaptibot.model.Step
+import com.adaptibot.script.ObserverStep
+import com.adaptibot.script.Step
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicReference
 

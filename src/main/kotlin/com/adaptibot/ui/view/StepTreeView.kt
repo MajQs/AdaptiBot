@@ -1,6 +1,6 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.model.*
+import com.adaptibot.script.*
 import com.adaptibot.ui.dialog.StepType
 import com.adaptibot.ui.viewmodel.ScriptViewModel
 import javafx.collections.ListChangeListener

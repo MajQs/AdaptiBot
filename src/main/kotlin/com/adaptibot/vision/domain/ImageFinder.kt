@@ -1,7 +1,7 @@
 package com.adaptibot.vision.domain
 
 import com.adaptibot.infrastructure.ScreenCapture
-import com.adaptibot.model.ImagePattern
+import com.adaptibot.script.ImagePattern
 import com.adaptibot.serialization.ImageEncoder
 
 internal class ImageFinder(

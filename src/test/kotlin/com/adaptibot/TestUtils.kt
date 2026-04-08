@@ -1,19 +1,19 @@
 package com.adaptibot
 
-import com.adaptibot.model.Action
-import com.adaptibot.model.ActionStep
-import com.adaptibot.model.Condition
-import com.adaptibot.model.ConditionalBlock
-import com.adaptibot.model.Coordinate
-import com.adaptibot.model.GroupBlock
-import com.adaptibot.model.ImagePattern
-import com.adaptibot.model.KeyboardKey
-import com.adaptibot.model.Target
-import com.adaptibot.model.Script
-import com.adaptibot.model.ScriptSettings
-import com.adaptibot.model.Step
-import com.adaptibot.model.StepId
-import com.adaptibot.model.VisualMatcher
+import com.adaptibot.script.Action
+import com.adaptibot.script.ActionStep
+import com.adaptibot.script.Condition
+import com.adaptibot.script.ConditionalBlock
+import com.adaptibot.script.Coordinate
+import com.adaptibot.script.GroupBlock
+import com.adaptibot.script.ImagePattern
+import com.adaptibot.script.KeyboardKey
+import com.adaptibot.script.Target
+import com.adaptibot.script.Script
+import com.adaptibot.script.ScriptSettings
+import com.adaptibot.script.Step
+import com.adaptibot.script.StepId
+import com.adaptibot.script.VisualMatcher
 
 object TestUtils {
 

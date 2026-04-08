@@ -1,6 +1,6 @@
 package com.adaptibot.vision.dto
 
-import com.adaptibot.model.Coordinate
+import com.adaptibot.script.Coordinate
 
 data class ImageMatchData(
     val coordinate: Coordinate,

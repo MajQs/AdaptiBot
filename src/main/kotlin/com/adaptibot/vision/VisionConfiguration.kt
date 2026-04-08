@@ -7,8 +7,8 @@ import com.adaptibot.vision.domain.PixelColorReader
 
 object VisionConfiguration {
 
-    fun getVisionFacade(): VisionFacade {
-        return VisionFacade(
+    val visionFacade: VisionFacade by lazy {
+        VisionFacade(
             elementFinder = ImageFinder(
                 screenCapture = ScreenCapture,
                 imageMatcher = ImageMatcher()

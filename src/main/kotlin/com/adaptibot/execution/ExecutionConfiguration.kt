@@ -8,7 +8,7 @@ import com.adaptibot.vision.VisionConfiguration
 
 object ExecutionConfiguration {
     fun getFacade(eventPublisher: ExecutionEventPublisher): ExecutionFacade {
-        val conditionEvaluator = ConditionEvaluator(VisionConfiguration.getVisionFacade())
+        val conditionEvaluator = ConditionEvaluator(VisionConfiguration.visionFacade)
         val scriptExecutionState = ScriptExecutionState(eventPublisher)
 
         return ExecutionFacade(

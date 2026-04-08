@@ -1,7 +1,7 @@
 package com.adaptibot.action
 
 import com.adaptibot.action.domain.ActionHandler
-import com.adaptibot.model.Action
+import com.adaptibot.script.Action
 
 /**
  * The module is responsible for **physically executing automation actions** at the operating system level:

@@ -1,7 +1,7 @@
 package com.adaptibot.execution.dto
 
-import com.adaptibot.model.Script
-import com.adaptibot.model.Step
+import com.adaptibot.script.Script
+import com.adaptibot.script.Step
 
 internal data class ExecutionContext(
     val script: Script = Script("", steps = emptyList()),

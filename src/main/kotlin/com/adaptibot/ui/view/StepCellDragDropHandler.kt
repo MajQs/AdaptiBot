@@ -1,10 +1,10 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.model.BlockStep
-import com.adaptibot.model.ConditionalBlock
-import com.adaptibot.model.ObserverStep
-import com.adaptibot.model.Step
-import com.adaptibot.model.StepId
+import com.adaptibot.script.BlockStep
+import com.adaptibot.script.ConditionalBlock
+import com.adaptibot.script.ObserverStep
+import com.adaptibot.script.Step
+import com.adaptibot.script.StepId
 import com.adaptibot.ui.util.StepDragData
 import com.adaptibot.ui.viewmodel.ScriptViewModel
 import javafx.scene.control.TreeCell
