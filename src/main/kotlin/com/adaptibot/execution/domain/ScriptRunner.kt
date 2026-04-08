@@ -2,7 +2,7 @@ package com.adaptibot.execution.domain
 
 import com.adaptibot.script.Script
 import com.adaptibot.execution.dto.ExecutionContext
-import com.adaptibot.execution.dto.ExecutionState
+import com.adaptibot.execution.dto.ExecutionStateDto
 
 internal class ScriptRunner(
     private val scriptExecutionState: ScriptExecutionState,
@@ -24,7 +24,7 @@ internal class ScriptRunner(
         executionThread = null
     }
 
-    fun getExecutionState(): ExecutionState = scriptExecutionState.getState()
+    fun getExecutionState(): ExecutionStateDto = scriptExecutionState.getState()
 
     private fun ExecutionContext.runLoop() {
         executionThread = Thread.ofVirtual()
@@ -34,4 +34,3 @@ internal class ScriptRunner(
             }
     }
 }
-

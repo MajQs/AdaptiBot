@@ -3,7 +3,7 @@ package com.adaptibot.execution.domain
 import com.adaptibot.script.Script
 import com.adaptibot.script.Step
 import com.adaptibot.execution.dto.ExecutionContext
-import com.adaptibot.execution.dto.ExecutionState
+import com.adaptibot.execution.dto.ExecutionStateDto
 import org.slf4j.LoggerFactory
 
 internal class ScriptExecutionState(
@@ -16,7 +16,7 @@ internal class ScriptExecutionState(
     private val logger = LoggerFactory.getLogger(ScriptExecutionState::class.java)
 
     fun create(script: Script): ExecutionContext {
-        if (currentContext.state != ExecutionState.IDLE) {
+        if (currentContext.state != ExecutionStateDto.IDLE) {
             logger.warn("Cannot start script - already running")
             throw SessionRunningException()
         }
@@ -27,18 +27,18 @@ internal class ScriptExecutionState(
 
     fun stop() {
         eventPublisher.logExecutionStop()
-        currentContext = currentContext.copy(state = ExecutionState.STOPPED)
+        currentContext = currentContext.copy(state = ExecutionStateDto.STOPPED)
     }
 
     fun completeExecution() {
         currentContext = ExecutionContext.default()
     }
 
-    fun getState(): ExecutionState = currentContext.state
+    fun getState(): ExecutionStateDto = currentContext.state
 
-    fun isRunning(): Boolean = currentContext.state == ExecutionState.RUNNING
+    fun isRunning(): Boolean = currentContext.state == ExecutionStateDto.RUNNING
 
-    fun isStopped(): Boolean = currentContext.state == ExecutionState.STOPPED
+    fun isStopped(): Boolean = currentContext.state == ExecutionStateDto.STOPPED
 
     fun recordActiveStep(step: Step) {
         currentContext = currentContext.copy(activeStep = step)
@@ -46,4 +46,3 @@ internal class ScriptExecutionState(
 
     private class SessionRunningException : RuntimeException("Session is already running")
 }
-

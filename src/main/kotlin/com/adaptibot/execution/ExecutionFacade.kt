@@ -33,5 +33,5 @@ class ExecutionFacade internal constructor(
     /**
      * Returns the current state of the execution session.
      */
-    fun getExecutionState(): ExecutionStateDto = ExecutionStateDto.valueOf(scriptRunner.getExecutionState().name)
+    fun getExecutionState(): ExecutionStateDto = scriptRunner.getExecutionState()
 }
