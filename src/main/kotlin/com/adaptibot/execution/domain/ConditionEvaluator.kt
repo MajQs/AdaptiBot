@@ -1,8 +1,6 @@
 package com.adaptibot.execution.domain
 
-import com.adaptibot.script.ColorTolerance
 import com.adaptibot.script.Condition
-import com.adaptibot.script.PixelColor
 import com.adaptibot.script.VisualMatcher
 import com.adaptibot.vision.VisionFacade
 
@@ -29,9 +27,4 @@ internal class ConditionEvaluator(
     }
 }
 
-private fun PixelColor.matches(expected: PixelColor, tolerance: ColorTolerance): Boolean {
-    return kotlin.math.abs(r - expected.r) <= tolerance.value &&
-           kotlin.math.abs(g - expected.g) <= tolerance.value &&
-           kotlin.math.abs(b - expected.b) <= tolerance.value
-}
 
