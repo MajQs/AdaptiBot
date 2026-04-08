@@ -1,7 +1,6 @@
 # AdaptiBot
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
-![Build](https://github.com/<your-org>/AdaptiBot/actions/workflows/ci.yml/badge.svg)
 
 ## Table of Contents
 
@@ -15,40 +14,28 @@
 
 ## Project Description
 
-AdaptiBot is an advanced desktop application for Windows (portable `.exe`) and other operating systems (portable `.jar`) that automates complex user interactions with the graphical user interface.  
-It lets you **define, save and execute automation scripts** that emulate mouse, keyboard and other UI operations, complete with conditional logic and real-time event listeners.
-
-Main goals of the MVP:
-
-- Provide a simple **list / table-based script editor**.
-- Execute scripts in an **infinite loop** while handling errors gracefully.
-- Offer a **multi-threaded Observer mechanism** that reacts to UI events without blocking the main flow.
-- Package as a **self-contained Windows executable** with an embedded JVM and a cross-platform `.jar`.
-
-For a detailed functional specification see the [Product Requirements Document](./.ai/prd.md).
+AdaptiBot is a desktop application that automates complex user interactions with the graphical user interface.  
+It lets you **define, save and execute automation scripts** that emulate mouse, keyboard and system operations, complete with conditional logic, action grouping and a real-time observer mechanism.
 
 ## Tech Stack
 
 | Layer / Concern | Technology | Purpose |
 |-----------------|------------|---------|
-| Core Language & Runtime | Kotlin 1.9 on JVM 21 LTS | Single language for all modules; modern syntax & coroutines |
-| Build / Dependency | Gradle Kotlin DSL | Compilation, testing, packaging, jlink/jpackage |
+| Core Language & Runtime | Kotlin 1.9 on JVM 21 LTS | Single language for all modules; modern syntax |
+| Build / Dependency | Gradle Kotlin DSL | Compilation, testing, packaging |
 | UI Layer | JavaFX 21, ControlsFX | Native-style desktop UI + extra controls |
-| Automation Layer | JNA / optional JNI stubs | WinAPI access for mouse & keyboard events |
-| Vision Layer | OpenCV 4.x (opencv-java) / BoofCV | Template matching & image processing |
-| Data / Serialization | kotlinx.serialization (JSON) | Persist scripts & embedded Base64 screenshots |
-| Concurrency | Kotlin Coroutines | Clean multi-thread execution (observer thread, main executor) |
-| Logging & Diagnostics | SLF4J + Logback, JavaFX log pane | Structured runtime logging & live history (max 1000 entries) |
-| Testing | JUnit 5, TestFX, MockK | Unit, UI and mocking support (≥80 % coverage goal) |
-| Packaging & Distribution | jpackage / jlink, fat .jar | Produce self-contained `.exe` and cross-platform `.jar` |
-| CI/CD | GitHub Actions | Automated build, test & artifact creation |
-| Documentation | MkDocs Material, Dokka | End-user & developer docs bundled offline |
+| Automation Layer | JNA 5.14 / WinAPI | Mouse & keyboard simulation via native OS calls |
+| Vision Layer | OpenCV 4.7 (opencv-java) | Template matching & pixel color sampling |
+| Data / Serialization | kotlinx.serialization (JSON) | Persist scripts as JSON files with embedded Base64 screenshots |
+| Concurrency | Java Virtual Threads (`Thread.ofVirtual()`) | Dedicated script-execution and observer threads |
+| Logging & Diagnostics | SLF4J + Logback, in-app log panel | Structured runtime logging & live execution log |
+| Testing | JUnit 5, TestFX, MockK | Unit and mocking support |
 
 ## Getting Started Locally
 
 ### Prerequisites
 
-- **JDK 21** or later (only required for building – the distributed `.exe` ships with an embedded JVM).
+- **JDK 21** or later (required for building and running).
 - **Git** and **Gradle** (the repository includes the Gradle Wrapper so you do not need a global installation).
 
 ### Clone & Build
@@ -69,94 +56,38 @@ cd AdaptiBot
 ./gradlew run
 ```
 
-### Package Distributables
-
-```bash
-# Windows self-contained executable in build/dist
-./gradlew packageExe
-
-# Cross-platform fat-jar in build/libs
-./gradlew shadowJar
-```
-
-> CI builds the same artifacts on every push and attaches them to the workflow run.
-
 ## Available Scripts
 
 | Command | Description |
 |---------|-------------|
 | `./gradlew run` | Run the application locally |
-| `./gradlew test` | Execute unit & UI tests |
-| `./gradlew packageExe` | Create a self-contained Windows `.exe` with embedded JVM |
-| `./gradlew shadowJar` | Build a cross-platform fat `.jar` |
-| `./gradlew javadoc` | Generate developer API docs (Dokka) |
-| `./gradlew spotlessApply` | Auto-format Kotlin sources |
+| `./gradlew test` | Execute unit tests |
+| `./gradlew build` | Compile, test and package the application |
 
 ## Project Scope
 
-The MVP delivers the following MUST-HAVE capabilities (see PRD §4.1):
+The application delivers the following capabilities:
 
-- Basic **script editor** (list/table view) with unlimited steps & nesting.
-- **Action grouping** - organize related actions into named blocks for better readability.
-- Full set of **mouse & keyboard actions** (click, type, drag, scroll …).
-- Dual **element identification** strategies: coordinates & template-matching vision.
-- **Conditional logic** with IF/ELSE and logical operators AND/OR/NOT.
-- **Observer mechanism** running in a dedicated thread with priorities & scope rules.
-- **Infinite loop execution** with robust error handling & detailed logging.
-- **Portable distribution**: self-contained `.exe` for Windows and fat `.jar` for Linux/macOS.
+- **Script editor** with a tree-based view supporting unlimited steps and nesting.
+- **Action grouping** – organize related actions into named `GroupBlock` blocks for better readability.
+- **Mouse actions** – click (left/right/middle, single/double/hold), drag-and-drop, move to target, scroll.
+- **Keyboard actions** – type text, press key combinations.
+- **System actions** – wait (configurable delay), launch application, close application.
+- **Dual element targeting** – by screen coordinates or by image pattern (template matching).
+- **Conditional logic** (`ConditionalBlock`) with IF/ELSE branches and compound conditions using AND/OR/NOT operators.
+- **Visual conditions** – detect UI elements by image presence or by pixel color at a coordinate (with configurable tolerance).
+- **Observer mechanism** (`ObserverStep`) running in a dedicated background thread with scope-based lifecycle management; triggers a sequence of steps when its condition becomes true.
+- **Continuous loop execution** – a script runs in an infinite loop until manually stopped.
+- **Configurable script settings** – default delays before/after steps, observer check interval and image match threshold.
+- **File I/O** – save and load scripts as JSON files (`kotlinx.serialization` with `kind` discriminator).
+- **In-app execution log** – timestamped INFO / SUCCESS / ERROR entries with an auto-scroll log panel and a clear button.
+- **Dirty-state tracking** – unsaved-change detection with a confirmation dialog when creating a new script.
 
-Out-of-scope items (post-MVP) include a visual node-based editor, cloud script storage, advanced AI vision, plugin ecosystem, multi-monitor support and more (see PRD §4.2).
-
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         UI Layer                             │
-│  ┌────────────┐  ┌─────────────┐  ┌──────────────────────┐ │
-│  │ MainView   │  │ Controllers │  │ Services             │ │
-│  │ (JavaFX)   │→ │ (Actions)   │→ │ (Script, Execution)  │ │
-│  └────────────┘  └─────────────┘  └──────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────────┐
-│                      Core Executor                           │
-│  ┌──────────────┐  ┌────────────────┐  ┌────────────────┐  │
-│  │ Script       │  │ Execution      │  │ Observer       │  │
-│  │ Executor     │→ │ Context        │← │ Manager        │  │
-│  │ (Main Loop)  │  │ (State)        │  │ (Async Thread) │  │
-│  └──────────────┘  └────────────────┘  └────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────────┐
-│                  Automation & Vision                         │
-│  ┌──────────────┐  ┌─────────────┐  ┌──────────────────┐   │
-│  │ Action       │  │ Element     │  │ Condition        │   │
-│  │ Dispatcher   │  │ Finder      │  │ Evaluator        │   │
-│  │ (Mouse/Kbd)  │  │ (Vision)    │  │ (Logic)          │   │
-│  └──────────────┘  └─────────────┘  └──────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────────┐
-│                   System Integration                         │
-│  ┌──────────────┐  ┌─────────────┐  ┌──────────────────┐   │
-│  │ JNA/WinAPI   │  │ OpenCV      │  │ Serialization    │   │
-│  │ (Input)      │  │ (Vision)    │  │ (JSON/Base64)    │   │
-│  └──────────────┘  └─────────────┘  └──────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for detailed design documentation.
+Items not yet implemented (marked TODO in source): launching and terminating external processes.
 
 ## Project Status
 
-- Current PRD version: **v1.2 (2025-11-21)**
-- Development phase: **MVP Active Development** – Core architecture complete (18 implementation steps), automation layer in progress
-- Current implementation status:
-  - ✅ Complete: Data models, Core executor skeleton, UI structure, Validation, Serialization
-  - 🚧 In Progress: Mouse/Keyboard automation (JNA), Vision layer (OpenCV)
-  - 📋 Planned: Full executor implementation, UI dialogs, Capture tools
-
-Track progress in the PRD changelog and [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+The project is at version `0.1.0-SNAPSHOT` and is under active development.
 
 ## License
 
