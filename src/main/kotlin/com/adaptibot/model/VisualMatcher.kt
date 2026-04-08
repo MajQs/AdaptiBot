@@ -1,6 +1,5 @@
 package com.adaptibot.model
 
-import com.adaptibot.model.Coordinate
 import kotlinx.serialization.Serializable
 
 @Serializable
