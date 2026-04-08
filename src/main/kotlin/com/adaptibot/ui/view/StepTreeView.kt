@@ -6,8 +6,6 @@ import com.adaptibot.ui.viewmodel.ScriptViewModel
 import javafx.collections.ListChangeListener
 import javafx.scene.control.*
 
-/** Which branch of a [ConditionalBlock] a new step should be added to. */
-enum class ConditionalBranch { TRUE, ELSE, DEFAULT }
 
 class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>() {
 

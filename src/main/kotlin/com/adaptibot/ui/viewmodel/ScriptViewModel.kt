@@ -188,10 +188,10 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
      * Moves step with [stepId] into the [branch] of the [ConditionalBlock] identified by [parentId],
      * appending it at the end of that branch.
      */
-    fun moveStepToBranch(stepId: StepId, parentId: StepId, branch: com.adaptibot.ui.view.ConditionalBranch): Boolean {
+    fun moveStepToBranch(stepId: StepId, parentId: StepId, branch: ConditionalBranch): Boolean {
         val step = findStep(stepId) ?: return false
         if (!removeStep(stepId)) return false
-        val result = if (branch == com.adaptibot.ui.view.ConditionalBranch.ELSE)
+        val result = if (branch == ConditionalBranch.ELSE)
             addStepToElse(parentId, step)
         else
             addStepToParent(parentId, step)

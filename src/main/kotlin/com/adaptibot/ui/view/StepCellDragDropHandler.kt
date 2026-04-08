@@ -2,6 +2,7 @@ package com.adaptibot.ui.view
 
 import com.adaptibot.script.BlockStep
 import com.adaptibot.script.ConditionalBlock
+import com.adaptibot.script.ConditionalBranch
 import com.adaptibot.script.ObserverStep
 import com.adaptibot.script.Step
 import com.adaptibot.script.StepId

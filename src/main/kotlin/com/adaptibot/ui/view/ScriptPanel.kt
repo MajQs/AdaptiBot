@@ -1,5 +1,6 @@
 package com.adaptibot.ui.view
 
+import com.adaptibot.script.ConditionalBranch
 import com.adaptibot.script.Step
 import com.adaptibot.script.StepId
 import com.adaptibot.ui.dialog.StepType

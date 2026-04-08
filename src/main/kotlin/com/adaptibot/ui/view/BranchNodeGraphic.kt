@@ -1,5 +1,6 @@
 package com.adaptibot.ui.view
 
+import com.adaptibot.script.ConditionalBranch
 import javafx.animation.KeyFrame
 import javafx.animation.KeyValue
 import javafx.animation.PauseTransition
