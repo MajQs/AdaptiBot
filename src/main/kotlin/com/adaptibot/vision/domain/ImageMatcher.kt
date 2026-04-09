@@ -1,6 +1,6 @@
 package com.adaptibot.vision.domain
 
-import com.adaptibot.script.Coordinate
+import com.adaptibot.script.value.Coordinate
 import nu.pattern.OpenCV
 import org.opencv.core.Core
 import org.opencv.core.CvType

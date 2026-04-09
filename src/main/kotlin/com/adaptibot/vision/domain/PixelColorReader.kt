@@ -1,8 +1,8 @@
 package com.adaptibot.vision.domain
 
-import com.adaptibot.script.Coordinate
+import com.adaptibot.script.value.Coordinate
 import com.adaptibot.infrastructure.ScreenCapture
-import com.adaptibot.script.PixelColor
+import com.adaptibot.script.value.PixelColor
 import org.slf4j.LoggerFactory
 
 internal class PixelColorReader {

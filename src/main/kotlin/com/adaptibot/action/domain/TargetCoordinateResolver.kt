@@ -2,8 +2,8 @@ package com.adaptibot.action.domain
 
 import com.adaptibot.action.ActionExecutionException.CoordinateOutOfBounds
 import com.adaptibot.action.ActionExecutionException.ImageNotFound
-import com.adaptibot.script.Coordinate
-import com.adaptibot.script.Target
+import com.adaptibot.script.value.Coordinate
+import com.adaptibot.script.value.Target
 import com.adaptibot.vision.VisionFacade
 import java.awt.Toolkit
 

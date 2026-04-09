@@ -2,12 +2,12 @@ package com.adaptibot.execution.domain
 
 import com.adaptibot.execution.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.execution.domain.observer.ObserverRegistry
-import com.adaptibot.script.ActionStep
-import com.adaptibot.script.BlockStep
-import com.adaptibot.script.ObserverStep
+import com.adaptibot.script.step.ActionStep
+import com.adaptibot.script.step.BlockStep
+import com.adaptibot.script.step.ObserverStep
 import com.adaptibot.script.Script
 import com.adaptibot.script.ScriptSettings
-import com.adaptibot.script.Step
+import com.adaptibot.script.step.Step
 
 internal class ScriptInterpreter(
     private val actionStepHandler: ActionStepHandler,

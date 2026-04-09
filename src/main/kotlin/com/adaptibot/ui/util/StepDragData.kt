@@ -1,6 +1,6 @@
 package com.adaptibot.ui.util
 
-import com.adaptibot.script.StepId
+import com.adaptibot.script.step.StepId
 import javafx.scene.input.DataFormat
 
 data class StepDragData(val stepId: String) {

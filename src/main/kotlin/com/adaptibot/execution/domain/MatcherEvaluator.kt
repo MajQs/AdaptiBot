@@ -1,6 +1,6 @@
 package com.adaptibot.execution.domain
 
-import com.adaptibot.script.VisualMatcher
+import com.adaptibot.script.value.VisualMatcher
 
 /**
  * Evaluates a [VisualMatcher] to a boolean result.

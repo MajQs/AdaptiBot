@@ -1,7 +1,7 @@
 package com.adaptibot.execution.domain
 
-import com.adaptibot.script.Condition
-import com.adaptibot.script.VisualMatcher
+import com.adaptibot.script.value.Condition
+import com.adaptibot.script.value.VisualMatcher
 import com.adaptibot.vision.VisionFacade
 
 internal class ConditionEvaluator(

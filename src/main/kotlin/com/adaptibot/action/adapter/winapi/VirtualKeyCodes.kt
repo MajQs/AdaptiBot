@@ -1,6 +1,6 @@
 package com.adaptibot.action.adapter.winapi
 
-import com.adaptibot.script.KeyboardKey
+import com.adaptibot.script.value.KeyboardKey
 
 internal object VirtualKeyCodes {
 

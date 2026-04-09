@@ -1,8 +1,8 @@
 package com.adaptibot.vision
 
-import com.adaptibot.script.Coordinate
-import com.adaptibot.script.ImagePattern
-import com.adaptibot.script.PixelColor
+import com.adaptibot.script.value.Coordinate
+import com.adaptibot.script.value.ImagePattern
+import com.adaptibot.script.value.PixelColor
 import com.adaptibot.vision.domain.ImageFinder
 import com.adaptibot.vision.domain.PixelColorReader
 import com.adaptibot.vision.dto.ImageMatchData

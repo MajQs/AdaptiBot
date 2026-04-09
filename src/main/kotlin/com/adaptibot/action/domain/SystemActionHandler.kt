@@ -1,6 +1,6 @@
 package com.adaptibot.action.domain
 
-import com.adaptibot.script.Action.System
+import com.adaptibot.script.value.Action.System
 
 internal class SystemActionHandler : ActionHandler<System> {
     override fun handle(action: System) {

@@ -1,7 +1,9 @@
 package com.adaptibot.ui.view
 
 import com.adaptibot.script.*
-import com.adaptibot.script.Target
+import com.adaptibot.script.step.*
+import com.adaptibot.script.value.*
+import com.adaptibot.script.value.Target as ScriptTarget
 import javafx.animation.KeyFrame
 import javafx.animation.KeyValue
 import javafx.animation.PauseTransition
@@ -232,9 +234,9 @@ object StepCellGraphic {
         is Action.System.CloseApplication  -> action.processName
     }
 
-    private fun targetShort(target: Target?): String = when (target) {
-        is Target.AtCoordinate -> "(${target.coordinate.x}, ${target.coordinate.y})"
-        is Target.AtImage      -> "[image]"
+    private fun targetShort(target: ScriptTarget?): String = when (target) {
+        is ScriptTarget.AtCoordinate -> "(${target.coordinate.x}, ${target.coordinate.y})"
+        is ScriptTarget.AtImage      -> "[image]"
         null                        -> "?"
     }
 }

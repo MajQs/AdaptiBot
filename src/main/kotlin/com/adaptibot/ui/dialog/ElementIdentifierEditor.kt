@@ -1,8 +1,8 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.script.Coordinate
-import com.adaptibot.script.ImagePattern
-import com.adaptibot.script.Target
+import com.adaptibot.script.value.Coordinate
+import com.adaptibot.script.value.ImagePattern
+import com.adaptibot.script.value.Target as ScriptTarget
 import com.adaptibot.serialization.ImageEncoder
 import com.adaptibot.ui.util.CoordinatePicker
 import com.adaptibot.ui.util.ScreenRegionPicker
@@ -23,7 +23,7 @@ import javafx.stage.Window
  * Embed inside any dialog pane that configures a mouse action target.
  */
 class MouseTargetEditor(
-    initial: Target? = null
+    initial: ScriptTarget? = null
 ) : VBox(8.0) {
 
     private val typeGroup  = ToggleGroup()
@@ -59,12 +59,12 @@ class MouseTargetEditor(
         captureBtn.setOnAction { launchImageCapture() }
 
         when (initial) {
-            is Target.AtCoordinate -> {
+            is ScriptTarget.AtCoordinate -> {
                 coordRadio.isSelected = true
                 xField.text = initial.coordinate.x.toString()
                 yField.text = initial.coordinate.y.toString()
             }
-            is Target.AtImage -> {
+            is ScriptTarget.AtImage -> {
                 imageRadio.isSelected = true
                 capturedBase64 = initial.pattern.base64Data
                 thresholdSpinner.valueFactory.value = initial.pattern.matchThreshold
@@ -75,17 +75,17 @@ class MouseTargetEditor(
         refreshVisibility()
     }
 
-    /** Returns the current [Target] or null if not fully configured. */
-    fun getTarget(): Target? {
+    /** Returns the current [ScriptTarget] or null if not fully configured. */
+    fun getTarget(): ScriptTarget? {
         return when {
             coordRadio.isSelected -> {
                 val x = xField.text.trim().toIntOrNull() ?: return null
                 val y = yField.text.trim().toIntOrNull() ?: return null
-                Target.AtCoordinate(Coordinate(x, y))
+                ScriptTarget.AtCoordinate(Coordinate(x, y))
             }
             imageRadio.isSelected -> {
                 val b64 = capturedBase64 ?: return null
-                Target.AtImage(ImagePattern(b64, thresholdSpinner.value))
+                ScriptTarget.AtImage(ImagePattern(b64, thresholdSpinner.value))
             }
             else -> null
         }
@@ -157,4 +157,3 @@ class MouseTargetEditor(
         }.also { it.isDaemon = true; it.start() }
     }
 }
-

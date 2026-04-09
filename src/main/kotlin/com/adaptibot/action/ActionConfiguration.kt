@@ -1,7 +1,7 @@
 package com.adaptibot.action
 
 import com.adaptibot.action.domain.*
-import com.adaptibot.script.Action
+import com.adaptibot.script.value.Action
 import com.adaptibot.vision.VisionConfiguration
 
 object ActionConfiguration {

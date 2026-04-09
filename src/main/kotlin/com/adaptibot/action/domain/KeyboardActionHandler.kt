@@ -2,7 +2,7 @@ package com.adaptibot.action.domain
 
 import com.adaptibot.action.ActionExecutionException
 import com.adaptibot.action.adapter.KeyboardController
-import com.adaptibot.script.Action.Keyboard
+import com.adaptibot.script.value.Action.Keyboard
 
 internal class KeyboardActionHandler : ActionHandler<Keyboard> {
 

@@ -1,8 +1,8 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.script.ConditionalBranch
-import com.adaptibot.script.Step
-import com.adaptibot.script.StepId
+import com.adaptibot.script.step.ConditionalBranch
+import com.adaptibot.script.step.Step
+import com.adaptibot.script.step.StepId
 import com.adaptibot.ui.dialog.StepType
 import com.adaptibot.ui.viewmodel.ScriptViewModel
 import javafx.collections.ListChangeListener

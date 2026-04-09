@@ -1,7 +1,7 @@
 package com.adaptibot.execution.domain
 
 import com.adaptibot.script.Script
-import com.adaptibot.script.Step
+import com.adaptibot.script.step.Step
 import com.adaptibot.execution.dto.ExecutionContext
 import com.adaptibot.execution.dto.ExecutionStateDto
 import org.slf4j.LoggerFactory

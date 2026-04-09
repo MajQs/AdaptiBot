@@ -1,12 +1,13 @@
 package com.adaptibot.ui.dialog
 
 import com.adaptibot.script.*
-import com.adaptibot.script.Target
+import com.adaptibot.script.step.*
+import com.adaptibot.script.value.*
+import com.adaptibot.script.value.Target as ScriptTarget
 import javafx.geometry.Insets
 import javafx.scene.control.*
 import javafx.scene.layout.*
 import javafx.stage.Window
-import java.util.UUID
 
 /**
  * Creates and shows an edit dialog for any [Step] subtype.
@@ -23,19 +24,18 @@ object StepEditorDialogFactory {
 
     // ── New step creation ──────────────────────────────────────────────────────
 
-    fun showNew(actionType: StepType, parentId: StepId?, owner: Window?): Step? {
-        val id = StepId("step_${UUID.randomUUID()}")
+    fun showNew(actionType: StepType, owner: Window?): Step? {
         return when (actionType) {
-            StepType.MOUSE_CLICK   -> ActionStepDialog(ActionStep(id, action = Action.Mouse.Click()), owner).showAndWait().orElse(null)
-            StepType.MOUSE_DRAG    -> ActionStepDialog(ActionStep(id, action = Action.Mouse.Drag(to = Target.AtCoordinate(Coordinate(0,0)))), owner).showAndWait().orElse(null)
-            StepType.MOUSE_MOVE    -> ActionStepDialog(ActionStep(id, action = Action.Mouse.MoveTo(Target.AtCoordinate(Coordinate(0,0)))), owner).showAndWait().orElse(null)
-            StepType.MOUSE_SCROLL  -> ActionStepDialog(ActionStep(id, action = Action.Mouse.Scroll(MouseScrollDirection.DOWN, 3)), owner).showAndWait().orElse(null)
-            StepType.KEYBOARD_TYPE -> ActionStepDialog(ActionStep(id, action = Action.Keyboard.TypeText("")), owner).showAndWait().orElse(null)
-            StepType.KEYBOARD_KEYS -> ActionStepDialog(ActionStep(id, action = Action.Keyboard.PressKeys(emptyList())), owner).showAndWait().orElse(null)
-            StepType.WAIT          -> ActionStepDialog(ActionStep(id, action = Action.System.Wait(500)), owner).showAndWait().orElse(null)
-            StepType.GROUP         -> GroupBlockDialog(GroupBlock(id, steps = emptyList()), owner).showAndWait().orElse(null)
-            StepType.CONDITIONAL   -> ConditionalBlockDialog(ConditionalBlock(id, condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7))), steps = emptyList()), owner).showAndWait().orElse(null)
-            StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(id, condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7))), steps = emptyList()), owner).showAndWait().orElse(null)
+            StepType.MOUSE_CLICK   -> ActionStepDialog(ActionStep(action = Action.Mouse.Click()), owner).showAndWait().orElse(null)
+            StepType.MOUSE_DRAG    -> ActionStepDialog(ActionStep(action = Action.Mouse.Drag(to = ScriptTarget.AtCoordinate(Coordinate(0, 0)))), owner).showAndWait().orElse(null)
+            StepType.MOUSE_MOVE    -> ActionStepDialog(ActionStep(action = Action.Mouse.MoveTo(ScriptTarget.AtCoordinate(Coordinate(0, 0)))), owner).showAndWait().orElse(null)
+            StepType.MOUSE_SCROLL  -> ActionStepDialog(ActionStep(action = Action.Mouse.Scroll(MouseScrollDirection.DOWN, 3)), owner).showAndWait().orElse(null)
+            StepType.KEYBOARD_TYPE -> ActionStepDialog(ActionStep(action = Action.Keyboard.TypeText("")), owner).showAndWait().orElse(null)
+            StepType.KEYBOARD_KEYS -> ActionStepDialog(ActionStep(action = Action.Keyboard.PressKeys(emptyList())), owner).showAndWait().orElse(null)
+            StepType.WAIT          -> ActionStepDialog(ActionStep(action = Action.System.Wait(500)), owner).showAndWait().orElse(null)
+            StepType.GROUP         -> GroupBlockDialog(GroupBlock(steps = emptyList()), owner).showAndWait().orElse(null)
+            StepType.CONDITIONAL   -> ConditionalBlockDialog(ConditionalBlock(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7))), steps = emptyList()), owner).showAndWait().orElse(null)
+            StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7))), steps = emptyList()), owner).showAndWait().orElse(null)
         }
     }
 }
@@ -197,7 +197,7 @@ private class MouseDragEditor(
 
     override fun getAction() = orig.copy(
         from = fromEditor.getTarget(),
-        to   = toEditor.getTarget() ?: Target.AtCoordinate(Coordinate(0, 0))
+        to   = toEditor.getTarget() ?: ScriptTarget.AtCoordinate(Coordinate(0, 0))
     )
 }
 
@@ -207,7 +207,7 @@ private class MouseMoveEditor(
     private val editor = MouseTargetEditor(orig.target)
     init { grid.add(formLabel("Target"), 0, startRow); grid.add(editor, 1, startRow) }
     override fun getAction() = orig.copy(
-        target = editor.getTarget() ?: Target.AtCoordinate(Coordinate(0, 0))
+        target = editor.getTarget() ?: ScriptTarget.AtCoordinate(Coordinate(0, 0))
     )
 }
 

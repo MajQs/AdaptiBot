@@ -2,7 +2,7 @@ package com.adaptibot.action.adapter
 
 import com.adaptibot.action.adapter.winapi.User32
 import com.adaptibot.action.adapter.winapi.VirtualKeyCodes
-import com.adaptibot.script.KeyboardKey
+import com.adaptibot.script.value.KeyboardKey
 import org.slf4j.LoggerFactory
 
 internal object KeyboardController {

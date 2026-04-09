@@ -1,8 +1,8 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.script.Condition
-import com.adaptibot.script.ImagePattern
-import com.adaptibot.script.VisualMatcher
+import com.adaptibot.script.value.Condition
+import com.adaptibot.script.value.ImagePattern
+import com.adaptibot.script.value.VisualMatcher
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.control.*

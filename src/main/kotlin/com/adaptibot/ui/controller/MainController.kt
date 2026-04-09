@@ -1,8 +1,8 @@
 package com.adaptibot.ui.controller
 
 import com.adaptibot.execution.ExecutionConfiguration
-import com.adaptibot.script.ConditionalBranch
-import com.adaptibot.script.StepId
+import com.adaptibot.script.step.ConditionalBranch
+import com.adaptibot.script.step.StepId
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
 import com.adaptibot.ui.dialog.*
 import com.adaptibot.ui.view.*
@@ -119,22 +119,21 @@ class MainController : Initializable {
 
     private fun onSettings() {
         val dialog = ScriptSettingsDialog(
-            current = viewModel.settingsProperty.get(),
-            scriptName = viewModel.scriptNameProperty.get(),
-            scriptDescription = viewModel.scriptDescriptionProperty.get(),
+            current = viewModel.getScriptSettings(),
+            scriptName = viewModel.getScriptName(),
+            scriptDescription = viewModel.getScriptDescription(),
             owner = window()
         )
         val result = dialog.showAndWait().orElse(null) ?: return
-        viewModel.scriptNameProperty.set(result.name)
-        viewModel.scriptDescriptionProperty.set(result.description)
-        viewModel.settingsProperty.set(result.settings)
+        viewModel.renameScript(result.name)
+        viewModel.updateDescription(result.description)
         viewModel.isDirtyProperty.set(true)
     }
 
     // ── Step add flow ──────────────────────────────────────────────────────────
 
     private fun showAddStepFlow(parentId: StepId?, afterStepId: StepId?, type: com.adaptibot.ui.dialog.StepType, branch: ConditionalBranch = ConditionalBranch.DEFAULT) {
-        val newStep = StepEditorDialogFactory.showNew(type, parentId, window()) ?: return
+        val newStep = StepEditorDialogFactory.showNew(type, window()) ?: return
         when {
             parentId != null && branch == ConditionalBranch.ELSE ->
                 viewModel.addStepToElse(parentId, newStep)

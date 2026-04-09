@@ -1,10 +1,10 @@
 package com.adaptibot.action.adapter
 
 import com.adaptibot.action.adapter.winapi.User32
-import com.adaptibot.script.MouseClickType
-import com.adaptibot.script.Coordinate
-import com.adaptibot.script.MouseButton
-import com.adaptibot.script.MouseScrollDirection
+import com.adaptibot.script.value.MouseClickType
+import com.adaptibot.script.value.Coordinate
+import com.adaptibot.script.value.MouseButton
+import com.adaptibot.script.value.MouseScrollDirection
 import org.slf4j.LoggerFactory
 
 internal object MouseController {

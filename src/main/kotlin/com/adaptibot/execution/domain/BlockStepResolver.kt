@@ -1,9 +1,9 @@
 package com.adaptibot.execution.domain
 
-import com.adaptibot.script.BlockStep
-import com.adaptibot.script.ConditionalBlock
-import com.adaptibot.script.GroupBlock
-import com.adaptibot.script.Step
+import com.adaptibot.script.step.BlockStep
+import com.adaptibot.script.step.ConditionalBlock
+import com.adaptibot.script.step.GroupBlock
+import com.adaptibot.script.step.Step
 import org.slf4j.LoggerFactory
 
 internal class BlockStepResolver(

@@ -1,9 +1,9 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.script.ColorTolerance
-import com.adaptibot.script.Coordinate
-import com.adaptibot.script.PixelColor
-import com.adaptibot.script.VisualMatcher
+import com.adaptibot.script.value.ColorTolerance
+import com.adaptibot.script.value.Coordinate
+import com.adaptibot.script.value.PixelColor
+import com.adaptibot.script.value.VisualMatcher
 import com.adaptibot.ui.util.ColorPickerOverlay
 import javafx.geometry.Insets
 import javafx.geometry.Pos

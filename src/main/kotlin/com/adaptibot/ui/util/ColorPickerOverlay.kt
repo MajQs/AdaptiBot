@@ -1,6 +1,6 @@
 package com.adaptibot.ui.util
 
-import com.adaptibot.script.PixelColor
+import com.adaptibot.script.value.PixelColor
 import javafx.application.Platform
 import javafx.scene.Cursor
 import javafx.scene.Scene

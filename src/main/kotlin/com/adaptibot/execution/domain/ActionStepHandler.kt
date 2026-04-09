@@ -2,7 +2,7 @@ package com.adaptibot.execution.domain
 
 import com.adaptibot.action.ActionExecutionException
 import com.adaptibot.action.ActionFacade
-import com.adaptibot.script.ActionStep
+import com.adaptibot.script.step.ActionStep
 import org.slf4j.LoggerFactory
 
 internal class ActionStepHandler(

@@ -1,7 +1,7 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.script.ImagePattern
-import com.adaptibot.script.VisualMatcher
+import com.adaptibot.script.value.ImagePattern
+import com.adaptibot.script.value.VisualMatcher
 import com.adaptibot.serialization.ImageEncoder
 import com.adaptibot.ui.util.ScreenRegionPicker
 import javafx.application.Platform

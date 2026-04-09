@@ -42,7 +42,7 @@ object ScriptSerializer {
 
     private fun serialize(script: Script): String =
         try {
-            json.encodeToString(script)
+            json.encodeToString(script.toDocument())
         } catch (e: Exception) {
             logger.error("Failed to serialize script", e)
             throw SerializationException("Failed to serialize script: ${e.message}", e)
@@ -50,7 +50,7 @@ object ScriptSerializer {
 
     private fun deserialize(jsonString: String): Script =
         try {
-            json.decodeFromString(jsonString)
+            json.decodeFromString<ScriptDocument>(jsonString).toDomain()
         } catch (e: Exception) {
             logger.error("Failed to deserialize script", e)
             throw SerializationException("Failed to deserialize script: ${e.message}", e)
