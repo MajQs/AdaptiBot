@@ -1,7 +1,6 @@
 package com.adaptibot.ui.controller
 
 import com.adaptibot.execution.ExecutionConfiguration
-import com.adaptibot.script.step.ConditionalBranch
 import com.adaptibot.script.step.StepId
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
 import com.adaptibot.ui.dialog.*
@@ -48,8 +47,8 @@ class MainController : Initializable {
                 val updated = StepEditorDialogFactory.show(step, window())
                 updated?.let { viewModel.updateStep(it) }
             },
-            onAddStep = { parentId, afterStepId, type, branch ->
-                showAddStepFlow(parentId, afterStepId, type, branch)
+            onAddStep = { parentId, afterStepId, type ->
+                showAddStepFlow(parentId, afterStepId, type)
             }
         )
 
@@ -132,17 +131,12 @@ class MainController : Initializable {
 
     // ── Step add flow ──────────────────────────────────────────────────────────
 
-    private fun showAddStepFlow(parentId: StepId?, afterStepId: StepId?, type: com.adaptibot.ui.dialog.StepType, branch: ConditionalBranch = ConditionalBranch.DEFAULT) {
+    private fun showAddStepFlow(parentId: StepId?, afterStepId: StepId?, type: com.adaptibot.ui.dialog.StepType) {
         val newStep = StepEditorDialogFactory.showNew(type, window()) ?: return
         when {
-            parentId != null && branch == ConditionalBranch.ELSE ->
-                viewModel.addStepToElse(parentId, newStep)
-            parentId != null ->
-                viewModel.addStepToParent(parentId, newStep)
-            afterStepId != null ->
-                viewModel.addStepAfter(afterStepId, newStep)
-            else ->
-                viewModel.addStep(newStep)
+            parentId != null    -> viewModel.addStepToParent(parentId, newStep)
+            afterStepId != null -> viewModel.addStepAfter(afterStepId, newStep)
+            else                -> viewModel.addStep(newStep)
         }
     }
 

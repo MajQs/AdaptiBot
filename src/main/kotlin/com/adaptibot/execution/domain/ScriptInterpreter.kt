@@ -4,18 +4,22 @@ import com.adaptibot.execution.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.execution.domain.observer.ObserverRegistry
 import com.adaptibot.script.step.ActionStep
 import com.adaptibot.script.step.BlockStep
+import com.adaptibot.script.step.ConditionalStep
 import com.adaptibot.script.step.ObserverStep
 import com.adaptibot.script.Script
 import com.adaptibot.script.ScriptSettings
 import com.adaptibot.script.step.Step
+import org.slf4j.LoggerFactory
 
 internal class ScriptInterpreter(
     private val actionStepHandler: ActionStepHandler,
-    private val blockStepResolver: BlockStepResolver,
+    private val blockStepHandler: BlockStepHandler,
+    private val conditionalStepHandler: ConditionalStepHandler,
     private val observerRegistry: ObserverRegistry,
     private val scriptExecutionState: ScriptExecutionState,
     private val observerInterruptCoordinator: ObserverInterruptCoordinator
 ) {
+    private val logger = LoggerFactory.getLogger(ScriptInterpreter::class.java)
     init {
         observerInterruptCoordinator.setExecuteSequenceCallback { steps ->
             executeSteps(steps)
@@ -58,7 +62,8 @@ internal class ScriptInterpreter(
 
             when (step) {
                 is ActionStep -> actionStepHandler.execute(step)
-                is BlockStep -> executeSteps(blockStepResolver.resolveNestedSteps(step))
+                is BlockStep -> executeSteps(blockStepHandler.resolve(step))
+                is ConditionalStep -> executeSteps(conditionalStepHandler.resolve(step))
                 is ObserverStep -> observerRegistry.activateObserver(step)
             }
         }

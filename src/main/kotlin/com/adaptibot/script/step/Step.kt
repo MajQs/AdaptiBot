@@ -24,13 +24,27 @@ sealed class BlockStep : Step() {
 }
 
 @Serializable
-data class ConditionalBlock(
+data class IfBlock(
+    override val label: String? = null,
+    override val delayBefore: Long = 0,
+    override val steps: List<Step> = emptyList()
+) : BlockStep()
+
+@Serializable
+data class ElseBlock(
+    override val label: String? = null,
+    override val delayBefore: Long = 0,
+    override val steps: List<Step> = emptyList()
+) : BlockStep()
+
+@Serializable
+data class ConditionalStep(
     override val label: String? = null,
     override val delayBefore: Long = 0,
     val condition: Condition,
-    override val steps: List<Step>,
-    val elseSteps: List<Step> = emptyList()
-) : BlockStep()
+    val ifBlock: IfBlock = IfBlock(),
+    val elseBlock: ElseBlock = ElseBlock()
+) : Step()
 
 @Serializable
 data class GroupBlock(
@@ -41,7 +55,7 @@ data class GroupBlock(
 
 @Serializable
 data class ObserverStep(
-     override val label: String? = null,
+    override val label: String? = null,
     override val delayBefore: Long = 0,
     val condition: Condition,
     val steps: List<Step>

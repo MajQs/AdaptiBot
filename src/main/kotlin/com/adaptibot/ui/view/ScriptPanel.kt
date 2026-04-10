@@ -1,6 +1,5 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.script.step.ConditionalBranch
 import com.adaptibot.script.step.Step
 import com.adaptibot.script.step.StepId
 import com.adaptibot.ui.dialog.StepType
@@ -18,9 +17,8 @@ class ScriptPanel(
      * [parentId]     – container to add into (null = root).
      * [afterStepId]  – insert after this step (null = append at end).
      * [type]         – the chosen [StepType].
-     * [branch]       – which branch to add into (relevant for [ConditionalBlock]).
      */
-    private val onAddStep: (parentId: StepId?, afterStepId: StepId?, type: StepType, branch: ConditionalBranch) -> Unit
+    private val onAddStep: (parentId: StepId?, afterStepId: StepId?, type: StepType) -> Unit
 ) : BorderPane() {
 
     val treeView = StepTreeView(viewModel)
@@ -65,7 +63,7 @@ class ScriptPanel(
         }
 
         // Inline picker rendered directly in the empty state
-        val picker = StepTypePickerPopup { type -> onAddStep(null, null, type, ConditionalBranch.DEFAULT) }
+        val picker = StepTypePickerPopup { type -> onAddStep(null, null, type) }
 
         val addFirstBtn = Button("＋  Add first step").apply {
             styleClass.add("toolbar-btn-primary")
@@ -82,5 +80,3 @@ class ScriptPanel(
         }
     }
 }
-
-

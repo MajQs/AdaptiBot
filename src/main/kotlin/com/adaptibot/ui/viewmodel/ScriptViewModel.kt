@@ -137,11 +137,6 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return result
     }
 
-    fun addStepToElse(parentId: StepId, step: Step): Boolean {
-        val result = script.addStepToElse(parentId, step)
-        if (result) { syncStepsFromAggregate(); markDirty() }
-        return result
-    }
 
     fun removeStep(id: StepId): Boolean {
         val result = script.removeStep(id)
@@ -157,15 +152,6 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
 
     fun moveStep(stepId: StepId, targetParentId: StepId?, targetIndex: Int): Boolean {
         val result = script.moveStep(stepId, targetParentId, targetIndex)
-        if (result) { syncStepsFromAggregate(); markDirty() }
-        return result
-    }
-
-    fun moveStepToBranch(stepId: StepId, parentId: StepId, branch: ConditionalBranch): Boolean {
-        val result = if (branch == ConditionalBranch.ELSE)
-            script.addStepToElse(parentId, script.findStep(stepId)?.also { script.removeStep(stepId) } ?: return false)
-        else
-            script.addStepToParent(parentId, script.findStep(stepId)?.also { script.removeStep(stepId) } ?: return false)
         if (result) { syncStepsFromAggregate(); markDirty() }
         return result
     }

@@ -20,11 +20,11 @@ class ScriptTest {
     )
 
     private fun conditionalBlock(vararg ifSteps: Step, elseSteps: List<Step> = emptyList()) =
-        ConditionalBlock(
+        ConditionalStep(
             label = "cond",
             condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.8))),
-            steps = ifSteps.toList(),
-            elseSteps = elseSteps
+            ifBlock = IfBlock(steps = ifSteps.toList()),
+            elseBlock = ElseBlock(steps = elseSteps)
         )
 
     // ── create ────────────────────────────────────────────────────────────────
@@ -174,28 +174,28 @@ class ScriptTest {
         assertFalse(result)
     }
 
-    // ── addStepToElse ─────────────────────────────────────────────────────────
+    // ── addStepToParent (else branch via ElseBlock id) ────────────────────────
 
     @Test
-    fun `addStepToElse adds step to else branch of ConditionalBlock`() {
+    fun `addStepToParent adds step to else branch of ConditionalBlock via elseBlock id`() {
         val cond = conditionalBlock(actionStep("if-step"))
         val script = Script.restore(ScriptId(), "S", "", listOf(cond), ScriptSettings())
         val elseStep = actionStep("else-step")
 
-        val result = script.addStepToElse(cond.id, elseStep)
+        val result = script.addStepToParent(cond.elseBlock.id, elseStep)
 
         assertTrue(result)
-        // After addStepToElse the ConditionalBlock is replaced with a copy (new id) – access by index
-        val updated = script.steps[0] as ConditionalBlock
-        assertTrue(updated.elseSteps.any { it.id == elseStep.id })
+        // After addStepToParent the ConditionalBlock is replaced with a copy (new id) – access by index
+        val updated = script.steps[0] as ConditionalStep
+        assertTrue(updated.elseBlock.steps.any { it.id == elseStep.id })
     }
 
     @Test
-    fun `addStepToElse returns false when id is not a ConditionalBlock`() {
+    fun `addStepToParent returns false when id is not a known container`() {
         val group = groupBlock()
         val script = Script.restore(ScriptId(), "S", "", listOf(group), ScriptSettings())
 
-        val result = script.addStepToElse(group.id, actionStep())
+        val result = script.addStepToParent(StepId(), actionStep())
 
         assertFalse(result)
     }

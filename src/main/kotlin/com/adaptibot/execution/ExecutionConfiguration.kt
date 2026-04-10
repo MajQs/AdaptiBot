@@ -19,7 +19,8 @@ object ExecutionConfiguration {
                         actionFacade = ActionConfiguration.getActionFacade(),
                         eventPublisher = eventPublisher
                     ),
-                    blockStepResolver = BlockStepResolver(conditionEvaluator),
+                    blockStepHandler = BlockStepHandler(),
+                    conditionalStepHandler = ConditionalStepHandler(conditionEvaluator),
                     observerRegistry = ObserverRegistry(conditionEvaluator, 1000),
                     scriptExecutionState = scriptExecutionState,
                     observerInterruptCoordinator = ObserverInterruptCoordinator()

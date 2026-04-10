@@ -43,9 +43,6 @@ class Script private constructor(
     fun addStepToParent(parentId: StepId, step: Step): Boolean =
         StepTreeEditor.addToChildren(_steps, parentId, step)
 
-    fun addStepToElse(parentId: StepId, step: Step): Boolean =
-        StepTreeEditor.addToElse(_steps, parentId, step)
-
     fun removeStep(id: StepId): Boolean =
         StepTreeEditor.remove(_steps, id)
 

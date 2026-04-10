@@ -3,7 +3,9 @@ package com.adaptibot
 import com.adaptibot.script.value.Action
 import com.adaptibot.script.step.ActionStep
 import com.adaptibot.script.value.Condition
-import com.adaptibot.script.step.ConditionalBlock
+import com.adaptibot.script.step.ConditionalStep
+import com.adaptibot.script.step.ElseBlock
+import com.adaptibot.script.step.IfBlock
 import com.adaptibot.script.value.Coordinate
 import com.adaptibot.script.step.GroupBlock
 import com.adaptibot.script.value.ImagePattern
@@ -63,21 +65,25 @@ object TestUtils {
             name = "Conditional Test",
             description = "Script with conditional logic",
             steps = listOf(
-                ConditionalBlock(
+                ConditionalStep(
                     label = "Check if element exists",
                     condition = Condition.ElementExists(
                         matcher = VisualMatcher.ImagePresent(ImagePattern("", 0.8))
                     ),
-                    steps = listOf(
-                        ActionStep(
-                            action = Action.Mouse.Click(
-                                target = Target.AtCoordinate(coordinate = Coordinate(50, 50))
+                    ifBlock = IfBlock(
+                        steps = listOf(
+                            ActionStep(
+                                action = Action.Mouse.Click(
+                                    target = Target.AtCoordinate(coordinate = Coordinate(50, 50))
+                                )
                             )
                         )
                     ),
-                    elseSteps = listOf(
-                        ActionStep(
-                            action = Action.System.Wait(500)
+                    elseBlock = ElseBlock(
+                        steps = listOf(
+                            ActionStep(
+                                action = Action.System.Wait(500)
+                            )
                         )
                     )
                 )

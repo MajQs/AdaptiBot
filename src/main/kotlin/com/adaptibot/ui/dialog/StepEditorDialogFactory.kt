@@ -1,6 +1,5 @@
 package com.adaptibot.ui.dialog
 
-import com.adaptibot.script.*
 import com.adaptibot.script.step.*
 import com.adaptibot.script.value.*
 import com.adaptibot.script.value.Target as ScriptTarget
@@ -18,8 +17,9 @@ object StepEditorDialogFactory {
     fun show(step: Step, owner: Window?): Step? = when (step) {
         is ActionStep       -> ActionStepDialog(step, owner).showAndWait().orElse(null)
         is GroupBlock       -> GroupBlockDialog(step, owner).showAndWait().orElse(null)
-        is ConditionalBlock -> ConditionalBlockDialog(step, owner).showAndWait().orElse(null)
+        is ConditionalStep -> ConditionalBlockDialog(step, owner).showAndWait().orElse(null)
         is ObserverStep     -> ObserverStepDialog(step, owner).showAndWait().orElse(null)
+        is IfBlock, is ElseBlock -> null  // branch containers are not edited directly
     }
 
     // ── New step creation ──────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ object StepEditorDialogFactory {
             StepType.KEYBOARD_KEYS -> ActionStepDialog(ActionStep(action = Action.Keyboard.PressKeys(emptyList())), owner).showAndWait().orElse(null)
             StepType.WAIT          -> ActionStepDialog(ActionStep(action = Action.System.Wait(500)), owner).showAndWait().orElse(null)
             StepType.GROUP         -> GroupBlockDialog(GroupBlock(steps = emptyList()), owner).showAndWait().orElse(null)
-            StepType.CONDITIONAL   -> ConditionalBlockDialog(ConditionalBlock(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7))), steps = emptyList()), owner).showAndWait().orElse(null)
+            StepType.CONDITIONAL   -> ConditionalBlockDialog(ConditionalStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
             StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7))), steps = emptyList()), owner).showAndWait().orElse(null)
         }
     }
@@ -295,7 +295,7 @@ private class GroupBlockDialog(private val original: GroupBlock, owner: Window?)
 
 // ── ConditionalBlock Dialog ───────────────────────────────────────────────────
 
-private class ConditionalBlockDialog(private val original: ConditionalBlock, owner: Window?) : Dialog<ConditionalBlock>() {
+private class ConditionalBlockDialog(private val original: ConditionalStep, owner: Window?) : Dialog<ConditionalStep>() {
     init {
         title = "Edit Conditional Block"
         owner?.let { initOwner(it) }

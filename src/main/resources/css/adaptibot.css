@@ -191,6 +191,38 @@
 .step-badge-cond     { -fx-background-color: #313244; -fx-text-fill: #f9e2af; }
 .step-badge-observer { -fx-background-color: #313244; -fx-text-fill: #cba6f7; }
 
+/* ── Branch headers (IfBlock / ElseBlock) ───────────────────────────────── */
+/* These are non-draggable section headers inside a ConditionalBlock.        */
+/* No drag handle, no "add after" strip, no edit/delete actions.             */
+
+.branch-header-cell {
+    -fx-background-color: #1e1e2e;
+    -fx-background-radius: 4;
+    -fx-padding: 3 10 3 10;
+    -fx-spacing: 6;
+    -fx-border-color: #313244;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+    -fx-border-style: dashed;
+    -fx-cursor: default;
+}
+
+.branch-header-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.branch-header-true  { -fx-text-fill: #a6e3a1; }
+.branch-header-else  { -fx-text-fill: #f38ba8; }
+
+.branch-header-count {
+    -fx-background-color: #313244;
+    -fx-background-radius: 8;
+    -fx-padding: 1 6 1 6;
+    -fx-font-size: 10px;
+    -fx-text-fill: #6c7086;
+}
+
 .step-label-text {
     -fx-text-fill: #cdd6f4;
     -fx-font-size: 12px;
