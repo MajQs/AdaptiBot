@@ -2,12 +2,11 @@ package com.adaptibot
 
 import com.adaptibot.script.value.Action
 import com.adaptibot.script.step.ActionStep
+import com.adaptibot.script.step.Branch
 import com.adaptibot.script.value.Condition
 import com.adaptibot.script.step.ConditionalStep
-import com.adaptibot.script.step.ElseBlock
-import com.adaptibot.script.step.IfBlock
 import com.adaptibot.script.value.Coordinate
-import com.adaptibot.script.step.GroupBlock
+import com.adaptibot.script.step.GroupStep
 import com.adaptibot.script.value.ImagePattern
 import com.adaptibot.script.value.KeyboardKey
 import com.adaptibot.script.value.Target
@@ -70,7 +69,7 @@ object TestUtils {
                     condition = Condition.ElementExists(
                         matcher = VisualMatcher.ImagePresent(ImagePattern("", 0.8))
                     ),
-                    ifBlock = IfBlock(
+                    trueBranch = Branch(
                         steps = listOf(
                             ActionStep(
                                 action = Action.Mouse.Click(
@@ -79,7 +78,7 @@ object TestUtils {
                             )
                         )
                     ),
-                    elseBlock = ElseBlock(
+                    elseBranch = Branch(
                         steps = listOf(
                             ActionStep(
                                 action = Action.System.Wait(500)
@@ -98,7 +97,7 @@ object TestUtils {
             name = "Group Test",
             description = "Script with grouped actions",
             steps = listOf(
-                GroupBlock(
+                GroupStep(
                     label = "Login Group",
                     steps = listOf(
                         ActionStep(

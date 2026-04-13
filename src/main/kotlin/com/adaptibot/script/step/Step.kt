@@ -19,44 +19,46 @@ data class ActionStep(
 ) : Step()
 
 @Serializable
-sealed class BlockStep : Step() {
-    abstract val steps: List<Step>
-}
-
-@Serializable
-data class IfBlock(
+data class GroupStep(
     override val label: String? = null,
     override val delayBefore: Long = 0,
-    override val steps: List<Step> = emptyList()
-) : BlockStep()
-
-@Serializable
-data class ElseBlock(
-    override val label: String? = null,
-    override val delayBefore: Long = 0,
-    override val steps: List<Step> = emptyList()
-) : BlockStep()
-
-@Serializable
-data class ConditionalStep(
-    override val label: String? = null,
-    override val delayBefore: Long = 0,
-    val condition: Condition,
-    val ifBlock: IfBlock = IfBlock(),
-    val elseBlock: ElseBlock = ElseBlock()
+    val steps: List<Step> = emptyList()
 ) : Step()
-
-@Serializable
-data class GroupBlock(
-    override val label: String? = null,
-    override val delayBefore: Long = 0,
-    override val steps: List<Step>
-) : BlockStep()
 
 @Serializable
 data class ObserverStep(
     override val label: String? = null,
     override val delayBefore: Long = 0,
     val condition: Condition,
-    val steps: List<Step>
+    val steps: List<Step> = emptyList()
+) : Step()
+
+@Serializable
+data class ConditionalStep(
+    override val label: String? = null,
+    override val delayBefore: Long = 0,
+    val condition: Condition,
+    val trueBranch: Branch = Branch(),
+    val elseBranch: Branch = Branch()
+) : Step()
+
+// ── Future loop steps ─────────────────────────────────────────────────────────
+// Defined here so the sealed class hierarchy is exhaustive and the compiler
+// enforces handling in every `when` expression. Execution is not yet implemented
+// – ScriptInterpreter will throw UnsupportedOperationException for these types.
+
+@Serializable
+data class WhileStep(
+    override val label: String? = null,
+    override val delayBefore: Long = 0,
+    val condition: Condition,
+    val steps: List<Step> = emptyList()
+) : Step()
+
+@Serializable
+data class ForStep(
+    override val label: String? = null,
+    override val delayBefore: Long = 0,
+    val iterations: Int = 1,
+    val steps: List<Step> = emptyList()
 ) : Step()

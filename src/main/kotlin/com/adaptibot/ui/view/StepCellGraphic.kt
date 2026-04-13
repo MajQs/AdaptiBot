@@ -40,12 +40,8 @@ object StepCellGraphic {
         onAddAfter:  ((anchorX: Double, anchorY: Double) -> Unit)? = null,
         onAddInside: ((anchorX: Double, anchorY: Double) -> Unit)? = null
     ): VBox {
-        // Branch containers are rendered as non-draggable section headers
-        if (step is IfBlock || step is ElseBlock) {
-            return buildBranchHeader(step, onAddInside)
-        }
-
-        val isBlock = step is BlockStep || step is ObserverStep || step is ConditionalStep
+        val isContainer = step is GroupStep || step is ObserverStep
+                || step is WhileStep  || step is ForStep
 
         // ── content row ───────────────────────────────────────────────────
         val badge = badge(step)
@@ -59,7 +55,7 @@ object StepCellGraphic {
             alignment = Pos.CENTER_LEFT
         }
         val dragHandle = Label("⠿").apply {
-            styleClass.addAll("step-detail-text")
+            styleClass.add("step-detail-text")
             style = "-fx-padding: 0 6 0 0; -fx-cursor: open-hand;"
         }
         val spacer = Region().apply { HBox.setHgrow(this, Priority.ALWAYS) }
@@ -71,8 +67,8 @@ object StepCellGraphic {
         }
 
         // ── insert strips ─────────────────────────────────────────────────────
-        val insideStrip = if (isBlock) buildInsertStrip(label = "inside") else null
-        val afterStrip  = buildInsertStrip(label = if (isBlock) "after" else null)
+        val insideStrip = if (isContainer) buildInsertStrip(label = "inside") else null
+        val afterStrip  = buildInsertStrip(label = if (isContainer) "after" else null)
 
         // wire press callbacks
         afterStrip.setOnMousePressed { e ->
@@ -116,27 +112,24 @@ object StepCellGraphic {
         return wrapper
     }
 
-    // ── branch header (IfBlock / ElseBlock) ──────────────────────────────
+    // ── Branch header ─────────────────────────────────────────────────────────
 
     /**
-     * Renders [IfBlock] / [ElseBlock] as a non-draggable section header.
+     * Renders a [Branch] (TRUE or ELSE) as a non-draggable section header.
      * No drag handle, no "after" strip. Only interaction: "＋ inside".
      */
-    private fun buildBranchHeader(
-        step: Step,
+    fun buildBranchHeader(
+        branch: Branch,
+        isTrueBranch: Boolean,
         onAddInside: ((anchorX: Double, anchorY: Double) -> Unit)?
     ): VBox {
-        val isTrueBranch = step is IfBlock
         val branchLabel = Label(if (isTrueBranch) "▸  IF TRUE" else "▸  IF ELSE").apply {
             styleClass.addAll(
                 "branch-header-label",
                 if (isTrueBranch) "branch-header-true" else "branch-header-else"
             )
         }
-        val stepCount = (step as BlockStep).steps.size
-        val countBadge = Label("$stepCount").apply {
-            styleClass.add("branch-header-count")
-        }
+        val countBadge = Label("${branch.steps.size}").apply { styleClass.add("branch-header-count") }
         val spacer = Region().apply { HBox.setHgrow(this, Priority.ALWAYS) }
         val headerRow = HBox(6.0, branchLabel, spacer, countBadge).apply {
             alignment = Pos.CENTER_LEFT
@@ -149,13 +142,11 @@ object StepCellGraphic {
             if (bounds != null) onAddInside?.invoke(bounds.minX, bounds.minY + bounds.height / 2)
             e.consume()
         }
-        insideStrip.prefHeight = 0.0
-        insideStrip.opacity    = 0.0
-        insideStrip.isManaged  = false
-        insideStrip.isVisible  = false
+        insideStrip.prefHeight = 0.0; insideStrip.opacity = 0.0
+        insideStrip.isManaged  = false; insideStrip.isVisible = false
 
         return VBox(0.0, headerRow, insideStrip).apply {
-            val showDelay = javafx.animation.PauseTransition(Duration.millis(350.0)).apply {
+            val showDelay = PauseTransition(Duration.millis(350.0)).apply {
                 setOnFinished { showStrips(insideStrip) }
             }
             setOnMouseEntered { showDelay.playFromStart() }
@@ -163,7 +154,7 @@ object StepCellGraphic {
         }
     }
 
-    // ── insert strip builder ──────────────────────────────────────────────
+    // ── Insert strip builder ──────────────────────────────────────────────────
 
     private fun buildInsertStrip(label: String?): StackPane {
         val makeLine = {
@@ -190,16 +181,15 @@ object StepCellGraphic {
         }
     }
 
-    // ── slide-in / slide-out helpers ──────────────────────────────────────
+    // ── Animation helpers ─────────────────────────────────────────────────────
 
     private fun showStrips(vararg strips: StackPane?) {
         strips.filterNotNull().forEach { strip ->
-            strip.isManaged = true
-            strip.isVisible = true
+            strip.isManaged = true; strip.isVisible = true
             Timeline(
                 KeyFrame(Duration.millis(ANIM_MS),
                     KeyValue(strip.prefHeightProperty(), STRIP_HEIGHT),
-                    KeyValue(strip.opacityProperty(),    1.0)
+                    KeyValue(strip.opacityProperty(), 1.0)
                 )
             ).play()
         }
@@ -210,39 +200,24 @@ object StepCellGraphic {
             Timeline(
                 KeyFrame(Duration.millis(ANIM_MS),
                     KeyValue(strip.prefHeightProperty(), 0.0),
-                    KeyValue(strip.opacityProperty(),    0.0)
+                    KeyValue(strip.opacityProperty(), 0.0)
                 )
             ).apply {
-                setOnFinished {
-                    strip.isManaged = false
-                    strip.isVisible = false
-                }
+                setOnFinished { strip.isManaged = false; strip.isVisible = false }
                 play()
             }
         }
     }
 
-    // ── badge / label / detail helpers (unchanged) ────────────────────────
+    // ── Badge / label / detail helpers ────────────────────────────────────────
 
     private fun badge(step: Step): Label = when (step) {
-        is ActionStep -> Label(actionBadgeText(step.action)).apply {
-            styleClass.addAll("step-badge", "step-badge-action")
-        }
-        is IfBlock -> Label("IF").apply {
-            styleClass.addAll("step-badge", "step-badge-cond")
-        }
-        is ElseBlock -> Label("ELSE").apply {
-            styleClass.addAll("step-badge", "step-badge-cond")
-        }
-        is GroupBlock -> Label("GROUP").apply {
-            styleClass.addAll("step-badge", "step-badge-group")
-        }
-        is ConditionalStep -> Label("IF").apply {
-            styleClass.addAll("step-badge", "step-badge-cond")
-        }
-        is ObserverStep -> Label("OBS").apply {
-            styleClass.addAll("step-badge", "step-badge-observer")
-        }
+        is ActionStep      -> Label(actionBadgeText(step.action)).apply { styleClass.addAll("step-badge", "step-badge-action") }
+        is GroupStep       -> Label("GROUP").apply { styleClass.addAll("step-badge", "step-badge-group") }
+        is ConditionalStep -> Label("IF").apply { styleClass.addAll("step-badge", "step-badge-cond") }
+        is ObserverStep    -> Label("OBS").apply { styleClass.addAll("step-badge", "step-badge-observer") }
+        is WhileStep       -> Label("WHILE").apply { styleClass.addAll("step-badge", "step-badge-loop") }
+        is ForStep         -> Label("FOR").apply { styleClass.addAll("step-badge", "step-badge-loop") }
     }
 
     private fun actionBadgeText(action: Action): String = when (action) {
@@ -258,21 +233,21 @@ object StepCellGraphic {
     }
 
     private fun defaultLabel(step: Step): String = when (step) {
-        is ActionStep       -> actionBadgeText(step.action).lowercase().replaceFirstChar { it.uppercase() } + " step"
-        is IfBlock          -> "IF TRUE"
-        is ElseBlock        -> "IF ELSE"
-        is GroupBlock       -> "Group"
+        is ActionStep      -> actionBadgeText(step.action).lowercase().replaceFirstChar { it.uppercase() } + " step"
+        is GroupStep       -> "Group"
         is ConditionalStep -> "Conditional"
-        is ObserverStep     -> "Observer"
+        is ObserverStep    -> "Observer"
+        is WhileStep       -> "While"
+        is ForStep         -> "For"
     }
 
     private fun detail(step: Step): String = when (step) {
-        is ActionStep       -> actionDetail(step.action)
-        is IfBlock          -> "${step.steps.size} step(s)"
-        is ElseBlock        -> "${step.steps.size} step(s)"
-        is GroupBlock       -> "${step.steps.size} step(s)"
-        is ConditionalStep -> "if: ${step.ifBlock.steps.size} / else: ${step.elseBlock.steps.size} step(s)"
-        is ObserverStep     -> "${step.steps.size} step(s) on trigger"
+        is ActionStep      -> actionDetail(step.action)
+        is GroupStep       -> "${step.steps.size} step(s)"
+        is ConditionalStep -> "if: ${step.trueBranch.steps.size} / else: ${step.elseBranch.steps.size} step(s)"
+        is ObserverStep    -> "${step.steps.size} step(s) on trigger"
+        is WhileStep       -> "${step.steps.size} step(s)  [while condition]"
+        is ForStep         -> "${step.steps.size} step(s)  ×${step.iterations}"
     }
 
     private fun actionDetail(action: Action): String = when (action) {
@@ -294,6 +269,6 @@ object StepCellGraphic {
     private fun targetShort(target: ScriptTarget?): String = when (target) {
         is ScriptTarget.AtCoordinate -> "(${target.coordinate.x}, ${target.coordinate.y})"
         is ScriptTarget.AtImage      -> "[image]"
-        null                        -> "?"
+        null                         -> "?"
     }
 }

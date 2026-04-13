@@ -15,14 +15,13 @@ import javafx.stage.Window
 object StepEditorDialogFactory {
 
     fun show(step: Step, owner: Window?): Step? = when (step) {
-        is ActionStep       -> ActionStepDialog(step, owner).showAndWait().orElse(null)
-        is GroupBlock       -> GroupBlockDialog(step, owner).showAndWait().orElse(null)
-        is ConditionalStep -> ConditionalBlockDialog(step, owner).showAndWait().orElse(null)
-        is ObserverStep     -> ObserverStepDialog(step, owner).showAndWait().orElse(null)
-        is IfBlock, is ElseBlock -> null  // branch containers are not edited directly
+        is ActionStep      -> ActionStepDialog(step, owner).showAndWait().orElse(null)
+        is GroupStep       -> GroupStepDialog(step, owner).showAndWait().orElse(null)
+        is ConditionalStep -> ConditionalStepDialog(step, owner).showAndWait().orElse(null)
+        is ObserverStep    -> ObserverStepDialog(step, owner).showAndWait().orElse(null)
+        // Loop steps – dialogs not yet implemented
+        is WhileStep, is ForStep -> null
     }
-
-    // ── New step creation ──────────────────────────────────────────────────────
 
     fun showNew(actionType: StepType, owner: Window?): Step? {
         return when (actionType) {
@@ -33,9 +32,9 @@ object StepEditorDialogFactory {
             StepType.KEYBOARD_TYPE -> ActionStepDialog(ActionStep(action = Action.Keyboard.TypeText("")), owner).showAndWait().orElse(null)
             StepType.KEYBOARD_KEYS -> ActionStepDialog(ActionStep(action = Action.Keyboard.PressKeys(emptyList())), owner).showAndWait().orElse(null)
             StepType.WAIT          -> ActionStepDialog(ActionStep(action = Action.System.Wait(500)), owner).showAndWait().orElse(null)
-            StepType.GROUP         -> GroupBlockDialog(GroupBlock(steps = emptyList()), owner).showAndWait().orElse(null)
-            StepType.CONDITIONAL   -> ConditionalBlockDialog(ConditionalStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
-            StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7))), steps = emptyList()), owner).showAndWait().orElse(null)
+            StepType.GROUP         -> GroupStepDialog(GroupStep(), owner).showAndWait().orElse(null)
+            StepType.CONDITIONAL   -> ConditionalStepDialog(ConditionalStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
+            StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
         }
     }
 }
@@ -268,11 +267,11 @@ private class WaitEditor(
     override fun getAction() = orig.copy(milliseconds = msField.text.toLongOrNull() ?: 500L)
 }
 
-// ── GroupBlock Dialog ─────────────────────────────────────────────────────────
+// ── GroupStep Dialog ──────────────────────────────────────────────────────────
 
-private class GroupBlockDialog(private val original: GroupBlock, owner: Window?) : Dialog<GroupBlock>() {
+private class GroupStepDialog(private val original: GroupStep, owner: Window?) : Dialog<GroupStep>() {
     init {
-        title = "Edit Group Block"
+        title = "Edit Group Step"
         owner?.let { initOwner(it) }
         dialogPane.stylesheets.add(javaClass.getResource("/css/adaptibot.css")?.toExternalForm() ?: "")
         dialogPane.style = "-fx-background-color: #1e1e2e;"
@@ -293,9 +292,9 @@ private class GroupBlockDialog(private val original: GroupBlock, owner: Window?)
     }
 }
 
-// ── ConditionalBlock Dialog ───────────────────────────────────────────────────
+// ── ConditionalStep Dialog ────────────────────────────────────────────────────
 
-private class ConditionalBlockDialog(private val original: ConditionalStep, owner: Window?) : Dialog<ConditionalStep>() {
+private class ConditionalStepDialog(private val original: ConditionalStep, owner: Window?) : Dialog<ConditionalStep>() {
     init {
         title = "Edit Conditional Block"
         owner?.let { initOwner(it) }

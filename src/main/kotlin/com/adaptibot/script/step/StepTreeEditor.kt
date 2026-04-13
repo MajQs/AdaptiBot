@@ -2,19 +2,24 @@ package com.adaptibot.script.step
 
 internal object StepTreeEditor {
 
+    // ── Step-level operations ─────────────────────────────────────────────────
+
     fun find(steps: List<Step>, id: StepId): Step? {
         for (step in steps) {
             if (step.id == id) return step
-            val nested: Step? = when (step) {
-                is ConditionalStep -> find(step.ifBlock.steps, id)
-                    ?: find(step.elseBlock.steps, id)
-                    ?: if (step.ifBlock.id == id) step.ifBlock
-                       else if (step.elseBlock.id == id) step.elseBlock
-                       else null
-                is BlockStep    -> find(step.steps, id)
-                is ObserverStep -> find(step.steps, id)
-                else            -> null
+            val nested = step.childSteps().let { find(it, id) }
+            if (nested != null) return nested
+        }
+        return null
+    }
+
+    fun findBranch(steps: List<Step>, branchId: BranchId): Branch? {
+        for (step in steps) {
+            if (step is ConditionalStep) {
+                if (step.trueBranch.id == branchId) return step.trueBranch
+                if (step.elseBranch.id == branchId) return step.elseBranch
             }
+            val nested = findBranch(step.childSteps(), branchId)
             if (nested != null) return nested
         }
         return null
@@ -58,6 +63,19 @@ internal object StepTreeEditor {
         }
     }
 
+    fun addToBranch(steps: MutableList<Step>, branchId: BranchId, step: Step): Boolean {
+        for (i in steps.indices) {
+            val current = steps[i]
+            if (current is ConditionalStep) {
+                val updated = current.withAppendedToBranch(branchId, step)
+                if (updated != null) { steps[i] = updated; return true }
+            }
+        }
+        return recurse(steps) { current, nested ->
+            if (addToBranch(nested, branchId, step)) current.withUpdatedChildren(nested) else null
+        }
+    }
+
     fun insertAt(steps: MutableList<Step>, step: Step, parentId: StepId?, index: Int): Boolean {
         if (parentId == null) {
             steps.add(index.coerceIn(0, steps.size), step)
@@ -82,22 +100,14 @@ internal object StepTreeEditor {
         }
     }
 
-    /**
-     * Iterates over [steps], and for each container step calls [transform] with a mutable copy
-     * of its primary children list. If [transform] returns a non-null replacement step,
-     * that replacement is written back and the function returns `true`.
-     *
-     * [ConditionalStep] is handled by delegating into its [IfBlock] and [ElseBlock] branches,
-     * which are themselves [BlockStep]s and processed uniformly – no special case needed here.
-     */
     private inline fun recurse(
         steps: MutableList<Step>,
         transform: (Step, MutableList<Step>) -> Step?
     ): Boolean {
         for (i in steps.indices) {
             val current = steps[i]
-            val primaryChildren = current.childSteps().toMutableList()
-            val replacement = transform(current, primaryChildren)
+            val children = current.childSteps().toMutableList()
+            val replacement = transform(current, children)
             if (replacement != null) { steps[i] = replacement; return true }
         }
         return false
@@ -106,43 +116,54 @@ internal object StepTreeEditor {
 
 // ── Step extension helpers ────────────────────────────────────────────────────
 
-/**
- * Returns the primary children of a container step.
- * For [ConditionalStep] the "children" at this level are [IfBlock] and [ElseBlock] themselves;
- * their inner steps are handled when those blocks are visited in turn.
- */
+/** All direct child [Step]s of a container step; empty for leaf steps. */
 private fun Step.childSteps(): List<Step> = when (this) {
-    is ConditionalStep -> listOf(ifBlock, elseBlock)
-    is BlockStep        -> steps
-    is ObserverStep     -> steps
-    else                -> emptyList()
+    is GroupStep       -> steps
+    is ObserverStep    -> steps
+    is ConditionalStep -> trueBranch.steps + elseBranch.steps
+    is WhileStep       -> steps
+    is ForStep         -> steps
+    is ActionStep      -> emptyList()
 }
 
 /**
- * Returns a copy of this step with [newChildren] as its children list,
- * or `null` if this step type does not support children.
- *
- * For [ConditionalStep] [newChildren] must be exactly [IfBlock, ElseBlock].
+ * Returns a copy of this step with [newChildren] replacing its flat child list.
+ * For [ConditionalStep] the children are the concatenation of both branches;
+ * this function splits them back by preserving the original branch sizes.
  */
 private fun Step.withUpdatedChildren(newChildren: List<Step>): Step? = when (this) {
-    is GroupBlock       -> copy(steps = newChildren)
-    is IfBlock          -> copy(steps = newChildren)
-    is ElseBlock        -> copy(steps = newChildren)
+    is GroupStep       -> copy(steps = newChildren)
+    is ObserverStep    -> copy(steps = newChildren)
+    is WhileStep       -> copy(steps = newChildren)
+    is ForStep         -> copy(steps = newChildren)
     is ConditionalStep -> {
-        val newIf   = newChildren.filterIsInstance<IfBlock>().firstOrNull()   ?: ifBlock
-        val newElse = newChildren.filterIsInstance<ElseBlock>().firstOrNull() ?: elseBlock
-        copy(ifBlock = newIf, elseBlock = newElse)
+        // newChildren is the merged flat list from both branches; re-split by original sizes
+        val trueSize = trueBranch.steps.size
+        copy(
+            trueBranch = trueBranch.copy(steps = newChildren.take(trueSize)),
+            elseBranch = elseBranch.copy(steps = newChildren.drop(trueSize))
+        )
     }
-    is ObserverStep     -> copy(steps = newChildren)
-    else                -> null
+    is ActionStep      -> null
+}
+
+/** Returns a copy with [newStep] appended to the primary steps list, or `null` for leaf steps. */
+private fun Step.withAppendedChild(newStep: Step): Step? = when (this) {
+    is GroupStep       -> copy(steps = steps + newStep)
+    is ObserverStep    -> copy(steps = steps + newStep)
+    is WhileStep       -> copy(steps = steps + newStep)
+    is ForStep         -> copy(steps = steps + newStep)
+    is ConditionalStep -> null  // use withAppendedToBranch instead
+    is ActionStep      -> null
 }
 
 /**
- * Returns a copy of this step with [newStep] appended to its primary children list,
- * or `null` if this step type does not support children.
+ * Returns a copy of this [ConditionalStep] with [newStep] appended to the branch
+ * identified by [branchId], or `null` if [branchId] does not match either branch.
  */
-private fun Step.withAppendedChild(newStep: Step): Step? = when (this) {
-    is BlockStep    -> withUpdatedChildren(steps + newStep)
-    is ObserverStep -> copy(steps = steps + newStep)
-    else            -> null
-}
+private fun ConditionalStep.withAppendedToBranch(branchId: BranchId, newStep: Step): ConditionalStep? =
+    when (branchId) {
+        trueBranch.id -> copy(trueBranch = trueBranch.copy(steps = trueBranch.steps + newStep))
+        elseBranch.id -> copy(elseBranch = elseBranch.copy(steps = elseBranch.steps + newStep))
+        else          -> null
+    }

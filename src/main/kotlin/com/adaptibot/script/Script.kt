@@ -1,5 +1,7 @@
 package com.adaptibot.script
 
+import com.adaptibot.script.step.Branch
+import com.adaptibot.script.step.BranchId
 import com.adaptibot.script.step.Step
 import com.adaptibot.script.step.StepId
 import com.adaptibot.script.step.StepTreeEditor
@@ -43,6 +45,9 @@ class Script private constructor(
     fun addStepToParent(parentId: StepId, step: Step): Boolean =
         StepTreeEditor.addToChildren(_steps, parentId, step)
 
+    fun addStepToBranch(branchId: BranchId, step: Step): Boolean =
+        StepTreeEditor.addToBranch(_steps, branchId, step)
+
     fun removeStep(id: StepId): Boolean =
         StepTreeEditor.remove(_steps, id)
 
@@ -56,6 +61,8 @@ class Script private constructor(
     }
 
     fun findStep(id: StepId): Step? = StepTreeEditor.find(_steps, id)
+
+    fun findBranch(id: BranchId): Branch? = StepTreeEditor.findBranch(_steps, id)
 
     companion object {
         fun create(

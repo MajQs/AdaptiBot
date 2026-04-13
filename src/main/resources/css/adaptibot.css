@@ -190,6 +190,7 @@
 .step-badge-group    { -fx-background-color: #313244; -fx-text-fill: #89b4fa; }
 .step-badge-cond     { -fx-background-color: #313244; -fx-text-fill: #f9e2af; }
 .step-badge-observer { -fx-background-color: #313244; -fx-text-fill: #cba6f7; }
+.step-badge-loop     { -fx-background-color: #313244; -fx-text-fill: #89dceb; }
 
 /* ── Branch headers (IfBlock / ElseBlock) ───────────────────────────────── */
 /* These are non-draggable section headers inside a ConditionalBlock.        */

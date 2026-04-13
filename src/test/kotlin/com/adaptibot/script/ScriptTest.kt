@@ -14,7 +14,7 @@ class ScriptTest {
         action = Action.System.Wait(100)
     )
 
-    private fun groupBlock(vararg children: Step) = GroupBlock(
+    private fun groupStep(vararg children: Step) = GroupStep(
         label = "group",
         steps = children.toList()
     )
@@ -23,8 +23,8 @@ class ScriptTest {
         ConditionalStep(
             label = "cond",
             condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.8))),
-            ifBlock = IfBlock(steps = ifSteps.toList()),
-            elseBlock = ElseBlock(steps = elseSteps)
+            trueBranch = Branch(steps = ifSteps.toList()),
+            elseBranch = Branch(steps = elseSteps)
         )
 
     // ── create ────────────────────────────────────────────────────────────────
@@ -151,17 +151,16 @@ class ScriptTest {
     // ── addStepToParent ───────────────────────────────────────────────────────
 
     @Test
-    fun `addStepToParent adds step inside a GroupBlock`() {
+    fun `addStepToParent adds step inside a GroupStep`() {
         val child = actionStep("child")
-        val group = groupBlock(child)
+        val group = groupStep(child)
         val script = Script.restore(ScriptId(), "S", "", listOf(group), ScriptSettings())
         val newStep = actionStep("new")
 
         val result = script.addStepToParent(group.id, newStep)
 
         assertTrue(result)
-        // After addStepToParent the GroupBlock is replaced with a copy (new id) – access by index
-        val updatedGroup = script.steps[0] as GroupBlock
+        val updatedGroup = script.steps[0] as GroupStep
         assertTrue(updatedGroup.steps.any { it.id == newStep.id })
     }
 
@@ -174,28 +173,39 @@ class ScriptTest {
         assertFalse(result)
     }
 
-    // ── addStepToParent (else branch via ElseBlock id) ────────────────────────
+    // ── addStepToBranch ───────────────────────────────────────────────────────
 
     @Test
-    fun `addStepToParent adds step to else branch of ConditionalBlock via elseBlock id`() {
+    fun `addStepToBranch adds step to else branch of ConditionalStep`() {
         val cond = conditionalBlock(actionStep("if-step"))
         val script = Script.restore(ScriptId(), "S", "", listOf(cond), ScriptSettings())
         val elseStep = actionStep("else-step")
 
-        val result = script.addStepToParent(cond.elseBlock.id, elseStep)
+        val result = script.addStepToBranch(cond.elseBranch.id, elseStep)
 
         assertTrue(result)
-        // After addStepToParent the ConditionalBlock is replaced with a copy (new id) – access by index
         val updated = script.steps[0] as ConditionalStep
-        assertTrue(updated.elseBlock.steps.any { it.id == elseStep.id })
+        assertTrue(updated.elseBranch.steps.any { it.id == elseStep.id })
     }
 
     @Test
-    fun `addStepToParent returns false when id is not a known container`() {
-        val group = groupBlock()
-        val script = Script.restore(ScriptId(), "S", "", listOf(group), ScriptSettings())
+    fun `addStepToBranch adds step to true branch of ConditionalStep`() {
+        val cond = conditionalBlock()
+        val script = Script.restore(ScriptId(), "S", "", listOf(cond), ScriptSettings())
+        val trueStep = actionStep("true-step")
 
-        val result = script.addStepToParent(StepId(), actionStep())
+        val result = script.addStepToBranch(cond.trueBranch.id, trueStep)
+
+        assertTrue(result)
+        val updated = script.steps[0] as ConditionalStep
+        assertTrue(updated.trueBranch.steps.any { it.id == trueStep.id })
+    }
+
+    @Test
+    fun `addStepToBranch returns false when branch id not found`() {
+        val script = Script.create("Script")
+
+        val result = script.addStepToBranch(BranchId(), actionStep())
 
         assertFalse(result)
     }
@@ -218,14 +228,13 @@ class ScriptTest {
     @Test
     fun `removeStep removes nested step`() {
         val nested = actionStep("nested")
-        val group = groupBlock(nested)
+        val group = groupStep(nested)
         val script = Script.restore(ScriptId(), "S", "", listOf(group), ScriptSettings())
 
         val result = script.removeStep(nested.id)
 
         assertTrue(result)
-        // After removeStep the GroupBlock is replaced with a copy (new id) – access by index
-        val updatedGroup = script.steps[0] as GroupBlock
+        val updatedGroup = script.steps[0] as GroupStep
         assertTrue(updatedGroup.steps.isEmpty())
     }
 
@@ -252,9 +261,9 @@ class ScriptTest {
     }
 
     @Test
-    fun `updateStep replaces nested step inside GroupBlock`() {
+    fun `updateStep replaces nested step inside GroupStep`() {
         val child = actionStep("child")
-        val group = groupBlock(child)
+        val group = groupStep(child)
         val script = Script.restore(ScriptId(), "S", "", listOf(group), ScriptSettings())
 
         val result = script.updateStep(child)
@@ -285,9 +294,9 @@ class ScriptTest {
     }
 
     @Test
-    fun `findStep returns nested step inside GroupBlock`() {
+    fun `findStep returns nested step inside GroupStep`() {
         val nested = actionStep("nested")
-        val group = groupBlock(nested)
+        val group = groupStep(nested)
         val script = Script.restore(ScriptId(), "S", "", listOf(group), ScriptSettings())
 
         val found = script.findStep(nested.id)

@@ -137,6 +137,11 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return result
     }
 
+    fun addStepToBranch(branchId: BranchId, step: Step): Boolean {
+        val result = script.addStepToBranch(branchId, step)
+        if (result) { syncStepsFromAggregate(); markDirty() }
+        return result
+    }
 
     fun removeStep(id: StepId): Boolean {
         val result = script.removeStep(id)
@@ -156,7 +161,17 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return result
     }
 
+    fun moveStepToBranch(stepId: StepId, branchId: BranchId): Boolean {
+        val step = script.findStep(stepId) ?: return false
+        if (!script.removeStep(stepId)) return false
+        val result = script.addStepToBranch(branchId, step)
+        if (result) { syncStepsFromAggregate(); markDirty() }
+        return result
+    }
+
     fun findStep(id: StepId): Step? = script.findStep(id)
+
+    fun findBranch(id: BranchId): Branch? = script.findBranch(id)
 
     // ── Logging ────────────────────────────────────────────────────────────────
 

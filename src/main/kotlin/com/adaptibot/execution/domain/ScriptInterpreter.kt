@@ -2,32 +2,23 @@ package com.adaptibot.execution.domain
 
 import com.adaptibot.execution.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.execution.domain.observer.ObserverRegistry
-import com.adaptibot.script.step.ActionStep
-import com.adaptibot.script.step.BlockStep
-import com.adaptibot.script.step.ConditionalStep
-import com.adaptibot.script.step.ObserverStep
 import com.adaptibot.script.Script
 import com.adaptibot.script.ScriptSettings
-import com.adaptibot.script.step.Step
+import com.adaptibot.script.step.*
 import org.slf4j.LoggerFactory
 
 internal class ScriptInterpreter(
     private val actionStepHandler: ActionStepHandler,
-    private val blockStepHandler: BlockStepHandler,
-    private val conditionalStepHandler: ConditionalStepHandler,
+    private val conditionEvaluator: ConditionEvaluator,
     private val observerRegistry: ObserverRegistry,
     private val scriptExecutionState: ScriptExecutionState,
     private val observerInterruptCoordinator: ObserverInterruptCoordinator
 ) {
     private val logger = LoggerFactory.getLogger(ScriptInterpreter::class.java)
-    init {
-        observerInterruptCoordinator.setExecuteSequenceCallback { steps ->
-            executeSteps(steps)
-        }
 
-        observerRegistry.setOnObserverTriggered { observer ->
-            observerInterruptCoordinator.queueObserver(observer)
-        }
+    init {
+        observerInterruptCoordinator.setExecuteSequenceCallback { steps -> executeSteps(steps) }
+        observerRegistry.setOnObserverTriggered { observer -> observerInterruptCoordinator.queueObserver(observer) }
     }
 
     fun interpret(script: Script) {
@@ -56,16 +47,17 @@ internal class ScriptInterpreter(
     }
 
     private fun executeStep(step: Step) {
-        if (scriptExecutionState.isRunning()) {
-            scriptExecutionState.recordActiveStep(step)
-            waitForDelay(step.delayBefore)
-
-            when (step) {
-                is ActionStep -> actionStepHandler.execute(step)
-                is BlockStep -> executeSteps(blockStepHandler.resolve(step))
-                is ConditionalStep -> executeSteps(conditionalStepHandler.resolve(step))
-                is ObserverStep -> observerRegistry.activateObserver(step)
-            }
+        if (!scriptExecutionState.isRunning()) return
+        scriptExecutionState.recordActiveStep(step)
+        waitForDelay(step.delayBefore)
+        when (step) {
+            is ActionStep -> actionStepHandler.execute(step)
+            is GroupStep -> executeSteps(step.steps)
+            is ConditionalStep -> executeSteps(if (conditionEvaluator.evaluate(step.condition)) step.trueBranch.steps else step.elseBranch.steps)
+            is ObserverStep -> observerRegistry.activateObserver(step)
+            // ── Loop steps – not yet implemented ──────────────────────────────
+            is WhileStep -> throw UnsupportedOperationException("WhileStep execution not yet implemented")
+            is ForStep -> throw UnsupportedOperationException("ForStep execution not yet implemented")
         }
     }
 
@@ -79,4 +71,3 @@ internal class ScriptInterpreter(
         }
     }
 }
-
