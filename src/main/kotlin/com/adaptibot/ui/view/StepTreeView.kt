@@ -9,7 +9,7 @@ import javafx.scene.control.*
 class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>() {
 
     private var onEditStep: ((Step) -> Unit)? = null
-    private var onAddStep: ((parentId: StepId?, branchId: BranchId?, afterStepId: StepId?, type: StepType) -> Unit)? = null
+    private var onAddStep: ((containerId: ContainerId?, afterStepId: StepId?, type: StepType) -> Unit)? = null
 
     init {
         styleClass.add("step-tree-view")
@@ -25,15 +25,15 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
         viewModel.activeStepIdProperty.addListener { _, _, _ -> refresh() }
 
         setCellFactory {
-            ScriptTreeCell(viewModel, { onEditStep?.invoke(it) }) { parentId, branchId, afterStepId, type ->
-                onAddStep?.invoke(parentId, branchId, afterStepId, type)
+            ScriptTreeCell(viewModel, { onEditStep?.invoke(it) }) { containerId, afterStepId, type ->
+                onAddStep?.invoke(containerId, afterStepId, type)
             }
         }
     }
 
     fun setOnEditStep(handler: (Step) -> Unit) { onEditStep = handler }
 
-    fun setOnAddStep(handler: (parentId: StepId?, branchId: BranchId?, afterStepId: StepId?, type: StepType) -> Unit) {
+    fun setOnAddStep(handler: (containerId: ContainerId?, afterStepId: StepId?, type: StepType) -> Unit) {
         onAddStep = handler
     }
 
@@ -47,8 +47,8 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
         for (item in items) {
             if (item.isExpanded) {
                 when (val n = item.value) {
-                    is TreeNode.StepNode   -> out.add(n.step.id.value)
-                    is TreeNode.BranchNode -> out.add(n.branch.id.value)
+                    is TreeNode.StepNode      -> out.add(n.step.id.value)
+                    is TreeNode.ContainerNode -> out.add(n.container.id.value)
                     null -> {}
                 }
             }
@@ -69,28 +69,28 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
 
         when (step) {
             is ConditionalStep -> {
-                item.children.add(buildBranchItem(step.trueBranch, step.id, isTrueBranch = true, expandedKeys))
-                item.children.add(buildBranchItem(step.elseBranch, step.id, isTrueBranch = false, expandedKeys))
+                item.children.add(buildContainerItem(step.trueContainer, step.id, "IF TRUE", expandedKeys))
+                item.children.add(buildContainerItem(step.elseContainer, step.id, "IF ELSE", expandedKeys))
             }
-            is GroupStep    -> step.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
-            is ObserverStep -> step.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
-            is WhileStep    -> step.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
-            is ForStep      -> step.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
+            is GroupStep    -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
+            is ObserverStep -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
+            is WhileStep    -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
+            is ForStep      -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
             is ActionStep   -> {}
         }
         return item
     }
 
-    private fun buildBranchItem(
-        branch: Branch,
+    private fun buildContainerItem(
+        container: StepContainer,
         parentStepId: StepId,
-        isTrueBranch: Boolean,
+        label: String,
         expandedKeys: Set<String>
     ): TreeItem<TreeNode> {
         val isNew = expandedKeys.isEmpty()
-        val item = TreeItem<TreeNode>(TreeNode.BranchNode(branch, parentStepId, isTrueBranch))
-        item.isExpanded = if (isNew) true else branch.id.value in expandedKeys
-        branch.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
+        val item = TreeItem<TreeNode>(TreeNode.ContainerNode(container, parentStepId, label))
+        item.isExpanded = if (isNew) true else container.id.value in expandedKeys
+        container.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
         return item
     }
 }
@@ -100,32 +100,33 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
 private class ScriptTreeCell(
     private val viewModel: ScriptViewModel,
     private val onEdit: (Step) -> Unit,
-    private val onAddStep: (parentId: StepId?, branchId: BranchId?, afterStepId: StepId?, type: StepType) -> Unit
+    private val onAddStep: (containerId: ContainerId?, afterStepId: StepId?, type: StepType) -> Unit
 ) : TreeCell<TreeNode>() {
 
     private val dragDropHandler = StepCellDragDropHandler(this, viewModel)
 
-    /** Add a step after the current step (not valid for BranchNode). */
+    /** Add a step after the current step (not valid for ContainerNode). */
     private val picker by lazy {
         StepTypePickerPopup { type ->
             val node = item as? TreeNode.StepNode ?: return@StepTypePickerPopup
-            onAddStep(parentStepId(), null, node.step.id, type)
+            onAddStep(parentContainerId(), node.step.id, type)
         }
     }
 
-    /** Add a step inside a container step (GroupStep, ObserverStep, loop steps). */
+    /** Add a step inside a single-container step (GroupStep, ObserverStep, loop steps). */
     private val pickerInside by lazy {
         StepTypePickerPopup { type ->
             val node = item as? TreeNode.StepNode ?: return@StepTypePickerPopup
-            onAddStep(node.step.id, null, null, type)
+            val containerId = node.step.containers().firstOrNull()?.id ?: return@StepTypePickerPopup
+            onAddStep(containerId, null, type)
         }
     }
 
-    /** Add a step inside a branch (BranchNode). */
-    private val pickerInsideBranch by lazy {
+    /** Add a step inside a ContainerNode (e.g. IF TRUE / IF ELSE). */
+    private val pickerInsideContainer by lazy {
         StepTypePickerPopup { type ->
-            val node = item as? TreeNode.BranchNode ?: return@StepTypePickerPopup
-            onAddStep(null, node.branch.id, null, type)
+            val node = item as? TreeNode.ContainerNode ?: return@StepTypePickerPopup
+            onAddStep(node.container.id, null, type)
         }
     }
 
@@ -145,23 +146,24 @@ private class ScriptTreeCell(
             return
         }
         when (node) {
-            is TreeNode.BranchNode -> {
-                graphic = StepCellGraphic.buildBranchHeader(
-                    branch      = node.branch,
-                    isTrueBranch = node.isTrueBranch,
-                    onAddInside  = { ax, ay -> pickerInsideBranch.show(scene.window, ax, ay) }
+            is TreeNode.ContainerNode -> {
+                graphic = StepCellGraphic.buildContainerHeader(
+                    container   = node.container,
+                    label       = node.label,
+                    onAddInside = { ax, ay -> pickerInsideContainer.show(scene.window, ax, ay) }
                 )
                 text = null
-                contextMenu = buildBranchContextMenu(node)
+                contextMenu = buildContainerContextMenu(node)
             }
             is TreeNode.StepNode -> {
                 val activeId = viewModel.activeStepIdProperty.get()
                 val isActive = activeId != null && node.step.id == activeId
+                val isSingleContainer = node.step.containers().size == 1
                 graphic = StepCellGraphic.build(
                     step        = node.step,
                     isActive    = isActive,
                     onAddAfter  = { ax, ay -> picker.show(scene.window, ax, ay) },
-                    onAddInside = { ax, ay -> pickerInside.show(scene.window, ax, ay) }
+                    onAddInside = if (isSingleContainer) ({ ax, ay -> pickerInside.show(scene.window, ax, ay) }) else null
                 )
                 text = null
                 contextMenu = buildStepContextMenu(node.step)
@@ -171,13 +173,12 @@ private class ScriptTreeCell(
 
     // ── Context menus ─────────────────────────────────────────────────────────
 
-    private fun buildBranchContextMenu(node: TreeNode.BranchNode): ContextMenu {
+    private fun buildContainerContextMenu(node: TreeNode.ContainerNode): ContextMenu {
         val menu = ContextMenu()
-        val label = if (node.isTrueBranch) "IF TRUE" else "IF ELSE"
-        menu.items += MenuItem("＋  Add step to $label branch").also { mi ->
+        menu.items += MenuItem("＋  Add step to ${node.label}").also { mi ->
             mi.setOnAction {
                 val b = graphic?.localToScreen(graphic!!.boundsInLocal)
-                pickerInsideBranch.show(scene.window, b?.minX ?: 0.0, b?.maxY?.plus(4) ?: 0.0)
+                pickerInsideContainer.show(scene.window, b?.minX ?: 0.0, b?.maxY?.plus(4) ?: 0.0)
             }
         }
         return menu
@@ -188,9 +189,8 @@ private class ScriptTreeCell(
         val editItem   = MenuItem("✏  Edit").also { it.setOnAction { onEdit(step) } }
         val deleteItem = MenuItem("🗑  Delete").also { it.setOnAction { viewModel.removeStep(step.id) } }
 
-        val isContainer = step is GroupStep || step is ObserverStep
-                || step is WhileStep || step is ForStep
-        if (isContainer) {
+        val isSingleContainer = step.containers().size == 1
+        if (isSingleContainer) {
             menu.items += MenuItem("＋  Add step inside").also { mi ->
                 mi.setOnAction {
                     val b = graphic?.localToScreen(graphic!!.boundsInLocal)
@@ -212,13 +212,22 @@ private class ScriptTreeCell(
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private fun parentStepId(): StepId? {
+    /**
+     * Walks up the tree to find the [ContainerId] of the nearest ancestor container.
+     * Returns null if the step is at root level.
+     */
+    private fun parentContainerId(): ContainerId? {
         var parent = treeItem?.parent
         while (parent != null) {
             when (val v = parent.value) {
-                is TreeNode.StepNode -> return v.step.id
-                null                 -> return null
-                else                 -> parent = parent.parent  // BranchNode – walk up
+                is TreeNode.ContainerNode -> return v.container.id
+                is TreeNode.StepNode -> {
+                    // Single-container step acts as an implicit container for its direct children
+                    val containers = v.step.containers()
+                    if (containers.size == 1) return containers.first().id
+                    return null
+                }
+                null -> return null
             }
         }
         return null

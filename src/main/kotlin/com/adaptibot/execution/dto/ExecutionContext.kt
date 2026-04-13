@@ -4,12 +4,13 @@ import com.adaptibot.script.Script
 import com.adaptibot.script.ScriptId
 import com.adaptibot.script.ScriptSettings
 import com.adaptibot.script.step.Step
+import com.adaptibot.script.step.StepContainer
 
 private val EMPTY_SCRIPT = Script.restore(
     id = ScriptId(""),
     name = "",
     description = "",
-    steps = emptyList(),
+    rootContainer = StepContainer(),
     settings = ScriptSettings()
 )
 

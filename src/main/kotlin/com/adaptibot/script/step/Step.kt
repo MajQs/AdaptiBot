@@ -6,13 +6,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class Step {
-    val id: StepId = StepId()
+    abstract val id: StepId
     abstract val label: String?
     abstract val delayBefore: Long
 }
 
 @Serializable
 data class ActionStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val delayBefore: Long = 1000,
     val action: Action
@@ -20,26 +21,29 @@ data class ActionStep(
 
 @Serializable
 data class GroupStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val delayBefore: Long = 0,
-    val steps: List<Step> = emptyList()
+    val container: StepContainer = StepContainer()
 ) : Step()
 
 @Serializable
 data class ObserverStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val delayBefore: Long = 0,
     val condition: Condition,
-    val steps: List<Step> = emptyList()
+    val container: StepContainer = StepContainer()
 ) : Step()
 
 @Serializable
 data class ConditionalStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val delayBefore: Long = 0,
     val condition: Condition,
-    val trueBranch: Branch = Branch(),
-    val elseBranch: Branch = Branch()
+    val trueContainer: StepContainer = StepContainer(),
+    val elseContainer: StepContainer = StepContainer()
 ) : Step()
 
 // ── Future loop steps ─────────────────────────────────────────────────────────
@@ -49,16 +53,35 @@ data class ConditionalStep(
 
 @Serializable
 data class WhileStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val delayBefore: Long = 0,
     val condition: Condition,
-    val steps: List<Step> = emptyList()
+    val container: StepContainer = StepContainer()
 ) : Step()
 
 @Serializable
 data class ForStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val delayBefore: Long = 0,
     val iterations: Int = 1,
-    val steps: List<Step> = emptyList()
+    val container: StepContainer = StepContainer()
 ) : Step()
+
+// ── Extension helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Returns all direct [StepContainer]s owned by this step.
+ * [ActionStep] has none; single-container steps return one; [ConditionalStep] returns two.
+ */
+fun Step.containers(): List<StepContainer> = when (this) {
+    is ActionStep      -> emptyList()
+    is GroupStep       -> listOf(container)
+    is ObserverStep    -> listOf(container)
+    is WhileStep       -> listOf(container)
+    is ForStep         -> listOf(container)
+    is ConditionalStep -> listOf(trueContainer, elseContainer)
+}
+
+

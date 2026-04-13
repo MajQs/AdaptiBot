@@ -1,6 +1,6 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.script.step.BranchId
+import com.adaptibot.script.step.ContainerId
 import com.adaptibot.script.step.Step
 import com.adaptibot.script.step.StepId
 import com.adaptibot.ui.dialog.StepType
@@ -15,11 +15,11 @@ class ScriptPanel(
     private val onEditStep: (Step) -> Unit,
     /**
      * Called when the user picks a type to add.
-     * [parentId]     – container to add into (null = root).
+     * [containerId]  – container to add into (null = root level).
      * [afterStepId]  – insert after this step (null = append at end).
      * [type]         – the chosen [StepType].
      */
-    private val onAddStep: (parentId: StepId?, branchId: BranchId?, afterStepId: StepId?, type: StepType) -> Unit
+    private val onAddStep: (containerId: ContainerId?, afterStepId: StepId?, type: StepType) -> Unit
 ) : BorderPane() {
 
     val treeView = StepTreeView(viewModel)
@@ -63,8 +63,7 @@ class ScriptPanel(
             styleClass.add("step-detail-text")
         }
 
-        // Inline picker rendered directly in the empty state
-        val picker = StepTypePickerPopup { type -> onAddStep(null, null, null, type) }
+        val picker = StepTypePickerPopup { type -> onAddStep(null, null, type) }
 
         val addFirstBtn = Button("＋  Add first step").apply {
             styleClass.add("toolbar-btn-primary")

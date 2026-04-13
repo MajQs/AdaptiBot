@@ -2,11 +2,11 @@ package com.adaptibot
 
 import com.adaptibot.script.value.Action
 import com.adaptibot.script.step.ActionStep
-import com.adaptibot.script.step.Branch
-import com.adaptibot.script.value.Condition
 import com.adaptibot.script.step.ConditionalStep
-import com.adaptibot.script.value.Coordinate
 import com.adaptibot.script.step.GroupStep
+import com.adaptibot.script.step.StepContainer
+import com.adaptibot.script.value.Condition
+import com.adaptibot.script.value.Coordinate
 import com.adaptibot.script.value.ImagePattern
 import com.adaptibot.script.value.KeyboardKey
 import com.adaptibot.script.value.Target
@@ -23,7 +23,7 @@ object TestUtils {
             id = ScriptId(),
             name = name,
             description = "Test script for development",
-            steps = createSampleSteps(),
+            rootContainer = StepContainer(steps = createSampleSteps().toMutableList()),
             settings = ScriptSettings(
                 defaultDelayBefore = 100,
                 defaultDelayAfter = 100,
@@ -37,15 +37,11 @@ object TestUtils {
         return listOf(
             ActionStep(
                 label = "Move to coordinates",
-                action = Action.Mouse.MoveTo(
-                    target = Target.AtCoordinate(coordinate = Coordinate(100, 200))
-                )
+                action = Action.Mouse.MoveTo(target = Target.AtCoordinate(coordinate = Coordinate(100, 200)))
             ),
             ActionStep(
                 label = "Click",
-                action = Action.Mouse.Click(
-                    target = Target.AtCoordinate(coordinate = Coordinate(100, 200))
-                )
+                action = Action.Mouse.Click(target = Target.AtCoordinate(coordinate = Coordinate(100, 200)))
             ),
             ActionStep(
                 label = "Wait 1 second",
@@ -63,30 +59,20 @@ object TestUtils {
             id = ScriptId(),
             name = "Conditional Test",
             description = "Script with conditional logic",
-            steps = listOf(
+            rootContainer = StepContainer(steps = mutableListOf(
                 ConditionalStep(
                     label = "Check if element exists",
                     condition = Condition.ElementExists(
                         matcher = VisualMatcher.ImagePresent(ImagePattern("", 0.8))
                     ),
-                    trueBranch = Branch(
-                        steps = listOf(
-                            ActionStep(
-                                action = Action.Mouse.Click(
-                                    target = Target.AtCoordinate(coordinate = Coordinate(50, 50))
-                                )
-                            )
-                        )
-                    ),
-                    elseBranch = Branch(
-                        steps = listOf(
-                            ActionStep(
-                                action = Action.System.Wait(500)
-                            )
-                        )
-                    )
+                    trueContainer = StepContainer(steps = mutableListOf(
+                        ActionStep(action = Action.Mouse.Click(target = Target.AtCoordinate(coordinate = Coordinate(50, 50))))
+                    )),
+                    elseContainer = StepContainer(steps = mutableListOf(
+                        ActionStep(action = Action.System.Wait(500))
+                    ))
                 )
-            ),
+            )),
             settings = ScriptSettings()
         )
     }
@@ -96,27 +82,17 @@ object TestUtils {
             id = ScriptId(),
             name = "Group Test",
             description = "Script with grouped actions",
-            steps = listOf(
+            rootContainer = StepContainer(steps = mutableListOf(
                 GroupStep(
                     label = "Login Group",
-                    steps = listOf(
-                        ActionStep(
-                            action = Action.Mouse.Click(
-                                target = Target.AtCoordinate(coordinate = Coordinate(300, 400))
-                            )
-                        ),
-                        ActionStep(
-                            action = Action.Keyboard.TypeText("username")
-                        ),
-                        ActionStep(
-                            action = Action.Keyboard.PressKeys(listOf(KeyboardKey.ENTER))
-                        ),
-                        ActionStep(
-                            action = Action.Keyboard.TypeText("password")
-                        )
-                    )
+                    container = StepContainer(steps = mutableListOf(
+                        ActionStep(action = Action.Mouse.Click(target = Target.AtCoordinate(coordinate = Coordinate(300, 400)))),
+                        ActionStep(action = Action.Keyboard.TypeText("username")),
+                        ActionStep(action = Action.Keyboard.PressKeys(listOf(KeyboardKey.ENTER))),
+                        ActionStep(action = Action.Keyboard.TypeText("password"))
+                    ))
                 )
-            ),
+            )),
             settings = ScriptSettings()
         )
     }

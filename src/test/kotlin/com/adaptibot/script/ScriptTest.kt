@@ -16,23 +16,30 @@ class ScriptTest {
 
     private fun groupStep(vararg children: Step) = GroupStep(
         label = "group",
-        steps = children.toList()
+        container = StepContainer(steps = children.toMutableList())
     )
 
-    private fun conditionalBlock(vararg ifSteps: Step, elseSteps: List<Step> = emptyList()) =
+    private fun conditionalStep(vararg trueSteps: Step, elseSteps: List<Step> = emptyList()) =
         ConditionalStep(
             label = "cond",
             condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.8))),
-            trueBranch = Branch(steps = ifSteps.toList()),
-            elseBranch = Branch(steps = elseSteps)
+            trueContainer = StepContainer(steps = trueSteps.toMutableList()),
+            elseContainer = StepContainer(steps = elseSteps.toMutableList())
         )
+
+    private fun scriptWith(vararg steps: Step) = Script.restore(
+        id = ScriptId(),
+        name = "S",
+        description = "",
+        rootContainer = StepContainer(steps = steps.toMutableList()),
+        settings = ScriptSettings()
+    )
 
     // ── create ────────────────────────────────────────────────────────────────
 
     @Test
     fun `create assigns name and starts with empty steps`() {
         val script = Script.create("My Script")
-
         assertEquals("My Script", script.name)
         assertEquals("", script.description)
         assertTrue(script.steps.isEmpty())
@@ -40,9 +47,7 @@ class ScriptTest {
 
     @Test
     fun `create throws when name is blank`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            Script.create("   ")
-        }
+        assertThrows(IllegalArgumentException::class.java) { Script.create("   ") }
     }
 
     @Test
@@ -50,8 +55,7 @@ class ScriptTest {
         val id = ScriptId()
         val step = actionStep()
         val settings = ScriptSettings(defaultDelayBefore = 200)
-
-        val script = Script.restore(id, "Restored", "desc", listOf(step), settings)
+        val script = Script.restore(id, "Restored", "desc", StepContainer(steps = mutableListOf(step)), settings)
 
         assertEquals(id, script.id)
         assertEquals("Restored", script.name)
@@ -65,19 +69,14 @@ class ScriptTest {
     @Test
     fun `rename changes script name`() {
         val script = Script.create("Old Name")
-
         script.rename("New Name")
-
         assertEquals("New Name", script.name)
     }
 
     @Test
     fun `rename throws when new name is blank`() {
         val script = Script.create("My Script")
-
-        assertThrows(IllegalArgumentException::class.java) {
-            script.rename("  ")
-        }
+        assertThrows(IllegalArgumentException::class.java) { script.rename("  ") }
     }
 
     // ── updateDescription ─────────────────────────────────────────────────────
@@ -85,18 +84,14 @@ class ScriptTest {
     @Test
     fun `updateDescription changes description`() {
         val script = Script.create("Script")
-
         script.updateDescription("New description")
-
         assertEquals("New description", script.description)
     }
 
     @Test
     fun `updateDescription allows empty string`() {
-        val script = Script.restore(ScriptId(), "S", "old desc", emptyList(), ScriptSettings())
-
+        val script = scriptWith()
         script.updateDescription("")
-
         assertEquals("", script.description)
     }
 
@@ -106,9 +101,7 @@ class ScriptTest {
     fun `addStep appends step to root list`() {
         val script = Script.create("Script")
         val step = actionStep("first")
-
         script.addStep(step)
-
         assertEquals(1, script.steps.size)
         assertEquals(step.id, script.steps[0].id)
     }
@@ -116,12 +109,8 @@ class ScriptTest {
     @Test
     fun `addStep appends multiple steps in order`() {
         val script = Script.create("Script")
-        val s1 = actionStep("a")
-        val s2 = actionStep("b")
-
-        script.addStep(s1)
-        script.addStep(s2)
-
+        val s1 = actionStep("a"); val s2 = actionStep("b")
+        script.addStep(s1); script.addStep(s2)
         assertEquals(listOf(s1.id, s2.id), script.steps.map { it.id })
     }
 
@@ -129,98 +118,65 @@ class ScriptTest {
 
     @Test
     fun `addStepAfter inserts step after target at root level`() {
-        val s1 = actionStep("first")
-        val s2 = actionStep("second")
-        val script = Script.restore(ScriptId(), "S", "", listOf(s1), ScriptSettings())
-
-        val result = script.addStepAfter(s1.id, s2)
-
-        assertTrue(result)
+        val s1 = actionStep("first"); val s2 = actionStep("second")
+        val script = scriptWith(s1)
+        assertTrue(script.addStepAfter(s1.id, s2))
         assertEquals(listOf(s1.id, s2.id), script.steps.map { it.id })
     }
 
     @Test
     fun `addStepAfter returns false when target id not found`() {
-        val script = Script.create("Script")
-
-        val result = script.addStepAfter(StepId(), actionStep())
-
-        assertFalse(result)
+        assertFalse(Script.create("Script").addStepAfter(StepId(), actionStep()))
     }
 
-    // ── addStepToParent ───────────────────────────────────────────────────────
+    // ── addStepToContainer ────────────────────────────────────────────────────
 
     @Test
-    fun `addStepToParent adds step inside a GroupStep`() {
+    fun `addStepToContainer adds step inside a GroupStep`() {
         val child = actionStep("child")
         val group = groupStep(child)
-        val script = Script.restore(ScriptId(), "S", "", listOf(group), ScriptSettings())
+        val script = scriptWith(group)
         val newStep = actionStep("new")
 
-        val result = script.addStepToParent(group.id, newStep)
-
-        assertTrue(result)
+        assertTrue(script.addStepToContainer(group.container.id, newStep))
         val updatedGroup = script.steps[0] as GroupStep
-        assertTrue(updatedGroup.steps.any { it.id == newStep.id })
+        assertTrue(updatedGroup.container.steps.any { it.id == newStep.id })
     }
 
     @Test
-    fun `addStepToParent returns false when parent id not found`() {
-        val script = Script.create("Script")
-
-        val result = script.addStepToParent(StepId(), actionStep())
-
-        assertFalse(result)
-    }
-
-    // ── addStepToBranch ───────────────────────────────────────────────────────
-
-    @Test
-    fun `addStepToBranch adds step to else branch of ConditionalStep`() {
-        val cond = conditionalBlock(actionStep("if-step"))
-        val script = Script.restore(ScriptId(), "S", "", listOf(cond), ScriptSettings())
+    fun `addStepToContainer adds step to elseContainer of ConditionalStep`() {
+        val cond = conditionalStep(actionStep("if-step"))
+        val script = scriptWith(cond)
         val elseStep = actionStep("else-step")
 
-        val result = script.addStepToBranch(cond.elseBranch.id, elseStep)
-
-        assertTrue(result)
+        assertTrue(script.addStepToContainer(cond.elseContainer.id, elseStep))
         val updated = script.steps[0] as ConditionalStep
-        assertTrue(updated.elseBranch.steps.any { it.id == elseStep.id })
+        assertTrue(updated.elseContainer.steps.any { it.id == elseStep.id })
     }
 
     @Test
-    fun `addStepToBranch adds step to true branch of ConditionalStep`() {
-        val cond = conditionalBlock()
-        val script = Script.restore(ScriptId(), "S", "", listOf(cond), ScriptSettings())
+    fun `addStepToContainer adds step to trueContainer of ConditionalStep`() {
+        val cond = conditionalStep()
+        val script = scriptWith(cond)
         val trueStep = actionStep("true-step")
 
-        val result = script.addStepToBranch(cond.trueBranch.id, trueStep)
-
-        assertTrue(result)
+        assertTrue(script.addStepToContainer(cond.trueContainer.id, trueStep))
         val updated = script.steps[0] as ConditionalStep
-        assertTrue(updated.trueBranch.steps.any { it.id == trueStep.id })
+        assertTrue(updated.trueContainer.steps.any { it.id == trueStep.id })
     }
 
     @Test
-    fun `addStepToBranch returns false when branch id not found`() {
-        val script = Script.create("Script")
-
-        val result = script.addStepToBranch(BranchId(), actionStep())
-
-        assertFalse(result)
+    fun `addStepToContainer returns false when container id not found`() {
+        assertFalse(Script.create("Script").addStepToContainer(ContainerId(), actionStep()))
     }
 
     // ── removeStep ────────────────────────────────────────────────────────────
 
     @Test
     fun `removeStep removes step from root list`() {
-        val s1 = actionStep("first")
-        val s2 = actionStep("second")
-        val script = Script.restore(ScriptId(), "S", "", listOf(s1, s2), ScriptSettings())
-
-        val result = script.removeStep(s1.id)
-
-        assertTrue(result)
+        val s1 = actionStep("first"); val s2 = actionStep("second")
+        val script = scriptWith(s1, s2)
+        assertTrue(script.removeStep(s1.id))
         assertEquals(1, script.steps.size)
         assertEquals(s2.id, script.steps[0].id)
     }
@@ -229,22 +185,15 @@ class ScriptTest {
     fun `removeStep removes nested step`() {
         val nested = actionStep("nested")
         val group = groupStep(nested)
-        val script = Script.restore(ScriptId(), "S", "", listOf(group), ScriptSettings())
-
-        val result = script.removeStep(nested.id)
-
-        assertTrue(result)
+        val script = scriptWith(group)
+        assertTrue(script.removeStep(nested.id))
         val updatedGroup = script.steps[0] as GroupStep
-        assertTrue(updatedGroup.steps.isEmpty())
+        assertTrue(updatedGroup.container.steps.isEmpty())
     }
 
     @Test
     fun `removeStep returns false when step not found`() {
-        val script = Script.create("Script")
-
-        val result = script.removeStep(StepId())
-
-        assertFalse(result)
+        assertFalse(Script.create("Script").removeStep(StepId()))
     }
 
     // ── updateStep ────────────────────────────────────────────────────────────
@@ -252,32 +201,21 @@ class ScriptTest {
     @Test
     fun `updateStep replaces step at root level`() {
         val original = ActionStep(label = "original", action = Action.System.Wait(100))
-        val script = Script.restore(ScriptId(), "S", "", listOf(original), ScriptSettings())
-
-        val result = script.updateStep(original)
-
-        assertTrue(result)
+        val script = scriptWith(original)
+        assertTrue(script.updateStep(original))
         assertEquals(original.id, script.steps[0].id)
     }
 
     @Test
     fun `updateStep replaces nested step inside GroupStep`() {
         val child = actionStep("child")
-        val group = groupStep(child)
-        val script = Script.restore(ScriptId(), "S", "", listOf(group), ScriptSettings())
-
-        val result = script.updateStep(child)
-
-        assertTrue(result)
+        val script = scriptWith(groupStep(child))
+        assertTrue(script.updateStep(child))
     }
 
     @Test
     fun `updateStep returns false when step id not found`() {
-        val script = Script.create("Script")
-
-        val result = script.updateStep(actionStep())
-
-        assertFalse(result)
+        assertFalse(Script.create("Script").updateStep(actionStep()))
     }
 
     // ── findStep ──────────────────────────────────────────────────────────────
@@ -285,60 +223,57 @@ class ScriptTest {
     @Test
     fun `findStep returns step from root list`() {
         val step = actionStep("find-me")
-        val script = Script.restore(ScriptId(), "S", "", listOf(step), ScriptSettings())
-
-        val found = script.findStep(step.id)
-
-        assertNotNull(found)
-        assertEquals(step.id, found!!.id)
+        val found = scriptWith(step).findStep(step.id)
+        assertNotNull(found); assertEquals(step.id, found!!.id)
     }
 
     @Test
     fun `findStep returns nested step inside GroupStep`() {
         val nested = actionStep("nested")
-        val group = groupStep(nested)
-        val script = Script.restore(ScriptId(), "S", "", listOf(group), ScriptSettings())
-
-        val found = script.findStep(nested.id)
-
-        assertNotNull(found)
-        assertEquals(nested.id, found!!.id)
+        val found = scriptWith(groupStep(nested)).findStep(nested.id)
+        assertNotNull(found); assertEquals(nested.id, found!!.id)
     }
 
     @Test
     fun `findStep returns null when step not found`() {
+        assertNull(Script.create("Script").findStep(StepId()))
+    }
+
+    // ── findContainer ─────────────────────────────────────────────────────────
+
+    @Test
+    fun `findContainer returns trueContainer of ConditionalStep`() {
+        val cond = conditionalStep(actionStep())
+        val found = scriptWith(cond).findContainer(cond.trueContainer.id)
+        assertNotNull(found); assertEquals(cond.trueContainer.id, found!!.id)
+    }
+
+    @Test
+    fun `findContainer returns rootContainer by its id`() {
         val script = Script.create("Script")
+        val found = script.findContainer(script.rootContainer.id)
+        assertNotNull(found); assertEquals(script.rootContainer.id, found!!.id)
+    }
 
-        val found = script.findStep(StepId())
-
-        assertNull(found)
+    @Test
+    fun `findContainer returns null when container id not found`() {
+        assertNull(Script.create("Script").findContainer(ContainerId()))
     }
 
     // ── moveStep ──────────────────────────────────────────────────────────────
 
     @Test
     fun `moveStep reorders steps at root level`() {
-        val s1 = actionStep("first")
-        val s2 = actionStep("second")
-        val s3 = actionStep("third")
-        val script = Script.restore(ScriptId(), "S", "", listOf(s1, s2, s3), ScriptSettings())
-
-        // Move s3 to index 0 at root
-        val result = script.moveStep(s3.id, null, 0)
-
-        assertTrue(result)
+        val s1 = actionStep("first"); val s2 = actionStep("second"); val s3 = actionStep("third")
+        val script = scriptWith(s1, s2, s3)
+        assertTrue(script.moveStep(s3.id, null, 0))
         assertEquals(s3.id, script.steps[0].id)
     }
 
     @Test
     fun `moveStep returns false when step id not found`() {
-        val script = Script.create("Script")
-
-        val result = script.moveStep(StepId(), null, 0)
-
-        assertFalse(result)
+        assertFalse(Script.create("Script").moveStep(StepId(), null, 0))
     }
-
 
     // ── steps snapshot immutability ───────────────────────────────────────────
 
@@ -346,10 +281,8 @@ class ScriptTest {
     fun `steps returns a snapshot - external modification does not affect aggregate`() {
         val script = Script.create("Script")
         script.addStep(actionStep())
-
         val snapshot = script.steps.toMutableList()
         snapshot.clear()
-
         assertEquals(1, script.steps.size)
     }
 }

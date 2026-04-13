@@ -24,15 +24,14 @@ object StepCellGraphic {
     /**
      * Builds the full cell graphic as a [VBox]:
      *  - the step content row
-     *  - optional "＋ true" / "＋ else" strips (ConditionalBlock only, slide in on hover)
-     *  - optional "＋ inside" strip (GroupBlock / ObserverStep only, slides in on hover)
+     *  - optional "＋ inside" strip (single-container steps: GroupStep, ObserverStep, loop steps)
      *  - "＋ after" strip (all steps, slides in on hover)
      *
      * Strips start collapsed (prefHeight = 0, isManaged = false) so they
      * take no space when hidden.  On hover they slide open smoothly.
      *
      * @param onAddAfter        called when the "after" insert strip is pressed
-     * @param onAddInside       called when the "inside" insert strip is pressed (GroupBlock/ObserverStep)
+     * @param onAddInside       called when the "inside" insert strip is pressed (single-container steps only)
      */
     fun build(
         step: Step,
@@ -40,8 +39,7 @@ object StepCellGraphic {
         onAddAfter:  ((anchorX: Double, anchorY: Double) -> Unit)? = null,
         onAddInside: ((anchorX: Double, anchorY: Double) -> Unit)? = null
     ): VBox {
-        val isContainer = step is GroupStep || step is ObserverStep
-                || step is WhileStep  || step is ForStep
+        val isSingleContainer = step.containers().size == 1
 
         // ── content row ───────────────────────────────────────────────────
         val badge = badge(step)
@@ -67,8 +65,8 @@ object StepCellGraphic {
         }
 
         // ── insert strips ─────────────────────────────────────────────────────
-        val insideStrip = if (isContainer) buildInsertStrip(label = "inside") else null
-        val afterStrip  = buildInsertStrip(label = if (isContainer) "after" else null)
+        val insideStrip = if (isSingleContainer && onAddInside != null) buildInsertStrip(label = "inside") else null
+        val afterStrip  = buildInsertStrip(label = if (isSingleContainer) "after" else null)
 
         // wire press callbacks
         afterStrip.setOnMousePressed { e ->
@@ -97,7 +95,6 @@ object StepCellGraphic {
                 if (insideStrip != null) add(insideStrip)
                 add(afterStrip)
             })
-            // Short delay so quick mouse pass-overs don't trigger the animation
             val allStrips = listOfNotNull(insideStrip, afterStrip).toTypedArray()
             val showDelay = PauseTransition(Duration.millis(350.0)).apply {
                 setOnFinished { showStrips(*allStrips) }
@@ -112,26 +109,27 @@ object StepCellGraphic {
         return wrapper
     }
 
-    // ── Branch header ─────────────────────────────────────────────────────────
+    // ── Container header ──────────────────────────────────────────────────────
 
     /**
-     * Renders a [Branch] (TRUE or ELSE) as a non-draggable section header.
-     * No drag handle, no "after" strip. Only interaction: "＋ inside".
+     * Renders a [StepContainer] header row (e.g. "IF TRUE" / "IF ELSE").
+     * Non-draggable, no "after" strip. Only interaction: "＋ inside".
      */
-    fun buildBranchHeader(
-        branch: Branch,
-        isTrueBranch: Boolean,
+    fun buildContainerHeader(
+        container: StepContainer,
+        label: String,
         onAddInside: ((anchorX: Double, anchorY: Double) -> Unit)?
     ): VBox {
-        val branchLabel = Label(if (isTrueBranch) "▸  IF TRUE" else "▸  IF ELSE").apply {
+        val isTrueBranch = label == "IF TRUE"
+        val headerLabel = Label("▸  $label").apply {
             styleClass.addAll(
                 "branch-header-label",
                 if (isTrueBranch) "branch-header-true" else "branch-header-else"
             )
         }
-        val countBadge = Label("${branch.steps.size}").apply { styleClass.add("branch-header-count") }
+        val countBadge = Label("${container.steps.size}").apply { styleClass.add("branch-header-count") }
         val spacer = Region().apply { HBox.setHgrow(this, Priority.ALWAYS) }
-        val headerRow = HBox(6.0, branchLabel, spacer, countBadge).apply {
+        val headerRow = HBox(6.0, headerLabel, spacer, countBadge).apply {
             alignment = Pos.CENTER_LEFT
             styleClass.add("branch-header-cell")
         }
@@ -173,7 +171,6 @@ object StepCellGraphic {
         }
         return StackPane(inner).apply {
             styleClass.add("insert-strip")
-            // prefHeight starts at 0; animated to STRIP_HEIGHT on show
             minHeight = 0.0
             maxHeight = STRIP_HEIGHT
             setOnMouseEntered { styleClass.add("insert-strip-hovered") }
@@ -243,11 +240,11 @@ object StepCellGraphic {
 
     private fun detail(step: Step): String = when (step) {
         is ActionStep      -> actionDetail(step.action)
-        is GroupStep       -> "${step.steps.size} step(s)"
-        is ConditionalStep -> "if: ${step.trueBranch.steps.size} / else: ${step.elseBranch.steps.size} step(s)"
-        is ObserverStep    -> "${step.steps.size} step(s) on trigger"
-        is WhileStep       -> "${step.steps.size} step(s)  [while condition]"
-        is ForStep         -> "${step.steps.size} step(s)  ×${step.iterations}"
+        is GroupStep       -> "${step.container.steps.size} step(s)"
+        is ConditionalStep -> "if: ${step.trueContainer.steps.size} / else: ${step.elseContainer.steps.size} step(s)"
+        is ObserverStep    -> "${step.container.steps.size} step(s) on trigger"
+        is WhileStep       -> "${step.container.steps.size} step(s)  [while condition]"
+        is ForStep         -> "${step.container.steps.size} step(s)  ×${step.iterations}"
     }
 
     private fun actionDetail(action: Action): String = when (action) {

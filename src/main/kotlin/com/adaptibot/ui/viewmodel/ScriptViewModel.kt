@@ -115,7 +115,7 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         addLog(LogMessage.info("⏹ Stop requested…"))
     }
 
-    // ── Step tree mutations – delegacja do agregatu ────────────────────────────
+    // ── Step tree mutations ────────────────────────────────────────────────────
 
     fun addStep(step: Step) {
         script.addStep(step)
@@ -131,14 +131,8 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return result
     }
 
-    fun addStepToParent(parentId: StepId, step: Step): Boolean {
-        val result = script.addStepToParent(parentId, step)
-        if (result) { syncStepsFromAggregate(); markDirty() }
-        return result
-    }
-
-    fun addStepToBranch(branchId: BranchId, step: Step): Boolean {
-        val result = script.addStepToBranch(branchId, step)
+    fun addStepToContainer(containerId: ContainerId, step: Step): Boolean {
+        val result = script.addStepToContainer(containerId, step)
         if (result) { syncStepsFromAggregate(); markDirty() }
         return result
     }
@@ -155,23 +149,23 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return result
     }
 
-    fun moveStep(stepId: StepId, targetParentId: StepId?, targetIndex: Int): Boolean {
-        val result = script.moveStep(stepId, targetParentId, targetIndex)
+    fun moveStep(stepId: StepId, targetContainerId: ContainerId?, targetIndex: Int): Boolean {
+        val result = script.moveStep(stepId, targetContainerId, targetIndex)
         if (result) { syncStepsFromAggregate(); markDirty() }
         return result
     }
 
-    fun moveStepToBranch(stepId: StepId, branchId: BranchId): Boolean {
+    fun moveStepToContainer(stepId: StepId, containerId: ContainerId): Boolean {
         val step = script.findStep(stepId) ?: return false
         if (!script.removeStep(stepId)) return false
-        val result = script.addStepToBranch(branchId, step)
+        val result = script.addStepToContainer(containerId, step)
         if (result) { syncStepsFromAggregate(); markDirty() }
         return result
     }
 
     fun findStep(id: StepId): Step? = script.findStep(id)
 
-    fun findBranch(id: BranchId): Branch? = script.findBranch(id)
+    fun findContainer(id: ContainerId): StepContainer? = script.findContainer(id)
 
     // ── Logging ────────────────────────────────────────────────────────────────
 
@@ -218,4 +212,3 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         isDirtyProperty.set(true)
     }
 }
-

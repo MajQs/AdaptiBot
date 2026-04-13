@@ -1,8 +1,8 @@
 package com.adaptibot.script
 
-import com.adaptibot.script.step.Branch
-import com.adaptibot.script.step.BranchId
+import com.adaptibot.script.step.ContainerId
 import com.adaptibot.script.step.Step
+import com.adaptibot.script.step.StepContainer
 import com.adaptibot.script.step.StepId
 import com.adaptibot.script.step.StepTreeEditor
 
@@ -10,7 +10,7 @@ class Script private constructor(
     val id: ScriptId,
     name: String,
     description: String,
-    steps: List<Step>,
+    val rootContainer: StepContainer,
     val settings: ScriptSettings
 ) {
     var name: String = name
@@ -19,8 +19,8 @@ class Script private constructor(
     var description: String = description
         private set
 
-    private val _steps: MutableList<Step> = steps.toMutableList()
-    val steps: List<Step> get() = _steps.toList()
+    /** Convenience view – the top-level steps of the root container. */
+    val steps: List<Step> get() = rootContainer.steps.toList()
 
     // ── Metadata ───────────────────────────────────────────────────────────────
 
@@ -36,33 +36,34 @@ class Script private constructor(
     // ── Step tree mutations ────────────────────────────────────────────────────
 
     fun addStep(step: Step) {
-        _steps.add(step)
+        rootContainer.steps.add(step)
     }
 
     fun addStepAfter(afterId: StepId, step: Step): Boolean =
-        StepTreeEditor.insertAfter(_steps, afterId, step)
+        StepTreeEditor.insertAfter(rootContainer, afterId, step)
 
-    fun addStepToParent(parentId: StepId, step: Step): Boolean =
-        StepTreeEditor.addToChildren(_steps, parentId, step)
-
-    fun addStepToBranch(branchId: BranchId, step: Step): Boolean =
-        StepTreeEditor.addToBranch(_steps, branchId, step)
+    /**
+     * Appends [step] to the [StepContainer] identified by [containerId].
+     * Pass [rootContainer].id to add at the top level.
+     */
+    fun addStepToContainer(containerId: ContainerId, step: Step): Boolean =
+        StepTreeEditor.addToContainer(rootContainer, containerId, step)
 
     fun removeStep(id: StepId): Boolean =
-        StepTreeEditor.remove(_steps, id)
+        StepTreeEditor.remove(rootContainer, id)
 
     fun updateStep(updated: Step): Boolean =
-        StepTreeEditor.replace(_steps, updated)
+        StepTreeEditor.replace(rootContainer, updated)
 
-    fun moveStep(stepId: StepId, targetParentId: StepId?, targetIndex: Int): Boolean {
-        val step = StepTreeEditor.find(_steps, stepId) ?: return false
-        if (!StepTreeEditor.remove(_steps, stepId)) return false
-        return StepTreeEditor.insertAt(_steps, step, targetParentId, targetIndex)
+    fun moveStep(stepId: StepId, targetContainerId: ContainerId?, targetIndex: Int): Boolean {
+        val step = StepTreeEditor.find(rootContainer, stepId) ?: return false
+        if (!StepTreeEditor.remove(rootContainer, stepId)) return false
+        return StepTreeEditor.insertAt(rootContainer, step, targetContainerId, targetIndex)
     }
 
-    fun findStep(id: StepId): Step? = StepTreeEditor.find(_steps, id)
+    fun findStep(id: StepId): Step? = StepTreeEditor.find(rootContainer, id)
 
-    fun findBranch(id: BranchId): Branch? = StepTreeEditor.findBranch(_steps, id)
+    fun findContainer(id: ContainerId): StepContainer? = StepTreeEditor.findContainer(rootContainer, id)
 
     companion object {
         fun create(
@@ -71,7 +72,7 @@ class Script private constructor(
             settings: ScriptSettings = ScriptSettings()
         ): Script {
             require(name.isNotBlank()) { "Script name must not be blank" }
-            return Script(ScriptId(), name, description, emptyList(), settings)
+            return Script(ScriptId(), name, description, StepContainer(), settings)
         }
 
         /** Used by serialization to restore a Script from persisted data. */
@@ -79,9 +80,9 @@ class Script private constructor(
             id: ScriptId,
             name: String,
             description: String,
-            steps: List<Step>,
+            rootContainer: StepContainer,
             settings: ScriptSettings
-        ): Script = Script(id, name, description, steps, settings)
+        ): Script = Script(id, name, description, rootContainer, settings)
     }
 }
 
@@ -92,4 +93,3 @@ data class ScriptSettings(
     val observerCheckDelay: Long = 1000,
     val defaultImageMatchThreshold: Double = 0.7
 )
-

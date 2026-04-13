@@ -1,9 +1,9 @@
 package com.adaptibot.ui.view
 
-import com.adaptibot.script.step.GroupStep
-import com.adaptibot.script.step.ObserverStep
+import com.adaptibot.script.step.ContainerId
 import com.adaptibot.script.step.Step
 import com.adaptibot.script.step.StepId
+import com.adaptibot.script.step.containers
 import com.adaptibot.ui.util.StepDragData
 import com.adaptibot.ui.viewmodel.ScriptViewModel
 import javafx.scene.control.TreeCell
@@ -12,7 +12,7 @@ import javafx.scene.input.*
 /**
  * Handles drag-and-drop reordering for a single [TreeCell<TreeNode>].
  *
- * - Drag source : only [TreeNode.StepNode] cells (BranchNode cannot be dragged).
+ * - Drag source : only [TreeNode.StepNode] cells (ContainerNode cannot be dragged).
  * - Drag target : accepts a step id and moves it to the target position.
  */
 class StepCellDragDropHandler(
@@ -23,8 +23,6 @@ class StepCellDragDropHandler(
     fun install() {
         cell.setOnDragDetected { e ->
             val node = cell.item as? TreeNode.StepNode ?: return@setOnDragDetected
-            // BranchNode items never reach here (they are not StepNode), but
-            // ConditionalStep itself should not be draggable into a branch position.
             val db = cell.startDragAndDrop(TransferMode.MOVE)
             val content = ClipboardContent()
             content[StepDragData.DATA_FORMAT] = node.step.id.value
@@ -55,22 +53,22 @@ class StepCellDragDropHandler(
                 val draggedId = StepId(db.getContent(StepDragData.DATA_FORMAT) as String)
 
                 when (val targetNode = cell.item) {
-                    is TreeNode.BranchNode -> {
-                        // Dropped onto a branch header → append to that branch
+                    is TreeNode.ContainerNode -> {
+                        // Dropped onto a container header → append to that container
                         if (draggedId != targetNode.parentStepId) {
-                            viewModel.moveStepToBranch(draggedId, targetNode.branch.id)
+                            viewModel.moveStepToContainer(draggedId, targetNode.container.id)
                             success = true
                         }
                     }
                     is TreeNode.StepNode -> {
                         val targetStep = targetNode.step
                         if (draggedId != targetStep.id) {
-                            val parentItem   = cell.treeItem?.parent
-                            val parentStepId = resolveParentStepId(parentItem)
-                            val siblings     = resolveSiblingList(parentItem, parentStepId)
-                            val targetIndex  = siblings.indexOfFirst { it.id == targetStep.id }
-                            val insertAt     = if (targetIndex < 0) 0 else targetIndex
-                            viewModel.moveStep(draggedId, parentStepId, insertAt)
+                            val parentItem      = cell.treeItem?.parent
+                            val targetContainerId = resolveParentContainerId(parentItem)
+                            val siblings        = resolveSiblingList(parentItem, targetContainerId)
+                            val targetIndex     = siblings.indexOfFirst { it.id == targetStep.id }
+                            val insertAt        = if (targetIndex < 0) 0 else targetIndex
+                            viewModel.moveStep(draggedId, targetContainerId, insertAt)
                             success = true
                         }
                     }
@@ -88,13 +86,19 @@ class StepCellDragDropHandler(
         }
     }
 
-    private fun resolveParentStepId(parentItem: javafx.scene.control.TreeItem<TreeNode>?): StepId? {
+    private fun resolveParentContainerId(
+        parentItem: javafx.scene.control.TreeItem<TreeNode>?
+    ): ContainerId? {
         var item = parentItem
         while (item != null) {
             when (val v = item.value) {
-                is TreeNode.StepNode -> return v.step.id
-                null                 -> return null
-                else                 -> item = item.parent  // BranchNode – keep walking up
+                is TreeNode.ContainerNode -> return v.container.id
+                is TreeNode.StepNode -> {
+                    val containers = v.step.containers()
+                    if (containers.size == 1) return containers.first().id
+                    return null
+                }
+                null -> return null
             }
         }
         return null
@@ -102,18 +106,14 @@ class StepCellDragDropHandler(
 
     private fun resolveSiblingList(
         parentItem: javafx.scene.control.TreeItem<TreeNode>?,
-        parentStepId: StepId?
+        parentContainerId: ContainerId?
     ): List<Step> {
-        // If the immediate parent is a BranchNode, use that branch's steps directly
+        // If the immediate parent is a ContainerNode, use that container's steps
         val immediateParent = parentItem?.value
-        if (immediateParent is TreeNode.BranchNode) {
-            return immediateParent.branch.steps
+        if (immediateParent is TreeNode.ContainerNode) {
+            return immediateParent.container.steps
         }
-        if (parentStepId == null) return viewModel.steps.toList()
-        return when (val p = viewModel.findStep(parentStepId)) {
-            is GroupStep    -> p.steps
-            is ObserverStep -> p.steps
-            else            -> emptyList()
-        }
+        if (parentContainerId == null) return viewModel.steps.toList()
+        return viewModel.findContainer(parentContainerId)?.steps ?: emptyList()
     }
 }

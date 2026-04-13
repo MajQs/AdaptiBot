@@ -52,8 +52,8 @@ internal class ScriptInterpreter(
         waitForDelay(step.delayBefore)
         when (step) {
             is ActionStep -> actionStepHandler.execute(step)
-            is GroupStep -> executeSteps(step.steps)
-            is ConditionalStep -> executeSteps(if (conditionEvaluator.evaluate(step.condition)) step.trueBranch.steps else step.elseBranch.steps)
+            is GroupStep -> executeSteps(step.container.steps)
+            is ConditionalStep -> executeSteps(if (conditionEvaluator.evaluate(step.condition)) step.trueContainer.steps else step.elseContainer.steps)
             is ObserverStep -> observerRegistry.activateObserver(step)
             // ── Loop steps – not yet implemented ──────────────────────────────
             is WhileStep -> throw UnsupportedOperationException("WhileStep execution not yet implemented")
