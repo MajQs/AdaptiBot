@@ -63,7 +63,7 @@ class ScriptPanel(
             styleClass.add("step-detail-text")
         }
 
-        val picker = StepTypePickerPopup { type -> onAddStep(null, null, type) }
+        val picker = StepTypePickerPopup { type -> onAddStep(viewModel.rootContainerId, null, type) }
 
         val addFirstBtn = Button("＋  Add first step").apply {
             styleClass.add("toolbar-btn-primary")

@@ -98,19 +98,20 @@ class ScriptTest {
     // ── addStep ───────────────────────────────────────────────────────────────
 
     @Test
-    fun `addStep appends step to root list`() {
+    fun `addStepToContainer with rootContainer id appends step to root list`() {
         val script = Script.create("Script")
         val step = actionStep("first")
-        script.addStep(step)
+        script.addStepToContainer(script.rootContainer.id, step)
         assertEquals(1, script.steps.size)
         assertEquals(step.id, script.steps[0].id)
     }
 
     @Test
-    fun `addStep appends multiple steps in order`() {
+    fun `addStepToContainer with rootContainer id appends multiple steps in order`() {
         val script = Script.create("Script")
         val s1 = actionStep("a"); val s2 = actionStep("b")
-        script.addStep(s1); script.addStep(s2)
+        script.addStepToContainer(script.rootContainer.id, s1)
+        script.addStepToContainer(script.rootContainer.id, s2)
         assertEquals(listOf(s1.id, s2.id), script.steps.map { it.id })
     }
 
@@ -280,7 +281,7 @@ class ScriptTest {
     @Test
     fun `steps returns a snapshot - external modification does not affect aggregate`() {
         val script = Script.create("Script")
-        script.addStep(actionStep())
+        script.addStepToContainer(script.rootContainer.id, actionStep())
         val snapshot = script.steps.toMutableList()
         snapshot.clear()
         assertEquals(1, script.steps.size)

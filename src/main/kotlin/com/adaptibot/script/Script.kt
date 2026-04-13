@@ -35,10 +35,6 @@ class Script private constructor(
 
     // ── Step tree mutations ────────────────────────────────────────────────────
 
-    fun addStep(step: Step) {
-        rootContainer.steps.add(step)
-    }
-
     fun addStepAfter(afterId: StepId, step: Step): Boolean =
         StepTreeEditor.insertAfter(rootContainer, afterId, step)
 
@@ -55,7 +51,12 @@ class Script private constructor(
     fun updateStep(updated: Step): Boolean =
         StepTreeEditor.replace(rootContainer, updated)
 
-    fun moveStep(stepId: StepId, targetContainerId: ContainerId?, targetIndex: Int): Boolean {
+    /**
+     * Moves [stepId] to [targetContainerId] at [targetIndex].
+     * Pass `null` for [targetContainerId] to move to the root container.
+     * Omit [targetIndex] (or pass [Int.MAX_VALUE]) to append at the end.
+     */
+    fun moveStep(stepId: StepId, targetContainerId: ContainerId?, targetIndex: Int = Int.MAX_VALUE): Boolean {
         val step = StepTreeEditor.find(rootContainer, stepId) ?: return false
         if (!StepTreeEditor.remove(rootContainer, stepId)) return false
         return StepTreeEditor.insertAt(rootContainer, step, targetContainerId, targetIndex)

@@ -117,15 +117,9 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
 
     // ── Step tree mutations ────────────────────────────────────────────────────
 
-    fun addStep(step: Step) {
-        script.addStep(step)
-        syncStepsFromAggregate()
-        markDirty()
-    }
-
     fun addStepAfter(afterStepId: StepId, step: Step): Boolean {
         val result = script.addStepAfter(afterStepId, step)
-        if (!result) script.addStep(step)
+        if (!result) script.addStepToContainer(script.rootContainer.id, step)
         syncStepsFromAggregate()
         markDirty()
         return result
@@ -149,16 +143,14 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return result
     }
 
-    fun moveStep(stepId: StepId, targetContainerId: ContainerId?, targetIndex: Int): Boolean {
+    fun moveStep(stepId: StepId, targetContainerId: ContainerId?, targetIndex: Int = Int.MAX_VALUE): Boolean {
         val result = script.moveStep(stepId, targetContainerId, targetIndex)
         if (result) { syncStepsFromAggregate(); markDirty() }
         return result
     }
 
     fun moveStepToContainer(stepId: StepId, containerId: ContainerId): Boolean {
-        val step = script.findStep(stepId) ?: return false
-        if (!script.removeStep(stepId)) return false
-        val result = script.addStepToContainer(containerId, step)
+        val result = script.moveStep(stepId, containerId)
         if (result) { syncStepsFromAggregate(); markDirty() }
         return result
     }
@@ -166,6 +158,9 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
     fun findStep(id: StepId): Step? = script.findStep(id)
 
     fun findContainer(id: ContainerId): StepContainer? = script.findContainer(id)
+
+    /** The [ContainerId] of the script's root container – use this to add steps at the top level. */
+    val rootContainerId: ContainerId get() = script.rootContainer.id
 
     // ── Logging ────────────────────────────────────────────────────────────────
 

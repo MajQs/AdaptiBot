@@ -137,7 +137,7 @@ class MainController : Initializable {
         when {
             containerId != null -> viewModel.addStepToContainer(containerId, newStep)
             afterStepId != null -> viewModel.addStepAfter(afterStepId, newStep)
-            else                -> viewModel.addStep(newStep)
+            else                -> viewModel.addStepToContainer(viewModel.rootContainerId, newStep)
         }
     }
 
