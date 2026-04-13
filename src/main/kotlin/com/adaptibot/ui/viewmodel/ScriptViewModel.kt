@@ -155,7 +155,6 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return result
     }
 
-    fun findStep(id: StepId): Step? = script.findStep(id)
 
     fun findContainer(id: ContainerId): StepContainer? = script.findContainer(id)
 

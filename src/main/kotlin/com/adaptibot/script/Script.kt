@@ -46,14 +46,13 @@ class Script private constructor(
 
     fun updateStep(updated: Step): Boolean =
         StepTreeEditor.replace(rootContainer, updated)
-    
+
     fun moveStep(stepId: StepId, targetContainerId: ContainerId, targetIndex: Int = Int.MAX_VALUE): Boolean {
         val step = StepTreeEditor.find(rootContainer, stepId) ?: return false
         if (!StepTreeEditor.remove(rootContainer, stepId)) return false
         return StepTreeEditor.insertAt(rootContainer, step, targetContainerId, targetIndex)
     }
 
-    fun findStep(id: StepId): Step? = StepTreeEditor.find(rootContainer, id)
 
     fun findContainer(id: ContainerId): StepContainer? = StepTreeEditor.findContainer(rootContainer, id)
 

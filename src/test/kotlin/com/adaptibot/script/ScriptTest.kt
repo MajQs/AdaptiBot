@@ -219,26 +219,6 @@ class ScriptTest {
         assertFalse(Script.create("Script").updateStep(actionStep()))
     }
 
-    // ── findStep ──────────────────────────────────────────────────────────────
-
-    @Test
-    fun `findStep returns step from root list`() {
-        val step = actionStep("find-me")
-        val found = scriptWith(step).findStep(step.id)
-        assertNotNull(found); assertEquals(step.id, found!!.id)
-    }
-
-    @Test
-    fun `findStep returns nested step inside GroupStep`() {
-        val nested = actionStep("nested")
-        val found = scriptWith(groupStep(nested)).findStep(nested.id)
-        assertNotNull(found); assertEquals(nested.id, found!!.id)
-    }
-
-    @Test
-    fun `findStep returns null when step not found`() {
-        assertNull(Script.create("Script").findStep(StepId()))
-    }
 
     // ── findContainer ─────────────────────────────────────────────────────────
 
