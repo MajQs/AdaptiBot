@@ -119,14 +119,14 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
 
     fun addStepAfter(afterStepId: StepId, step: Step): Boolean {
         val result = script.addStepAfter(afterStepId, step)
-        if (!result) script.addStepToContainer(script.rootContainer.id, step)
+        if (!result) script.addStep(script.rootContainer.id, step)
         syncStepsFromAggregate()
         markDirty()
         return result
     }
 
-    fun addStepToContainer(containerId: ContainerId, step: Step): Boolean {
-        val result = script.addStepToContainer(containerId, step)
+    fun addStep(containerId: ContainerId, step: Step, index: Int = Int.MAX_VALUE): Boolean {
+        val result = script.addStep(containerId, step, index)
         if (result) { syncStepsFromAggregate(); markDirty() }
         return result
     }

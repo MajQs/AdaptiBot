@@ -65,13 +65,6 @@ internal object StepTreeEditor {
         return false
     }
 
-    // ── Add to container ──────────────────────────────────────────────────────
-
-    fun addToContainer(root: StepContainer, containerId: ContainerId, step: Step): Boolean {
-        val target = findContainer(root, containerId) ?: return false
-        target.steps.add(step)
-        return true
-    }
 
     // ── Insert at position ────────────────────────────────────────────────────
 

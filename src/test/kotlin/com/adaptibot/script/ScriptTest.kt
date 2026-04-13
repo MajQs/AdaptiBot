@@ -98,20 +98,20 @@ class ScriptTest {
     // ── addStep ───────────────────────────────────────────────────────────────
 
     @Test
-    fun `addStepToContainer with rootContainer id appends step to root list`() {
+    fun `addStep with rootContainer id appends step to root list`() {
         val script = Script.create("Script")
         val step = actionStep("first")
-        script.addStepToContainer(script.rootContainer.id, step)
+        script.addStep(script.rootContainer.id, step)
         assertEquals(1, script.steps.size)
         assertEquals(step.id, script.steps[0].id)
     }
 
     @Test
-    fun `addStepToContainer with rootContainer id appends multiple steps in order`() {
+    fun `addStep with rootContainer id appends multiple steps in order`() {
         val script = Script.create("Script")
         val s1 = actionStep("a"); val s2 = actionStep("b")
-        script.addStepToContainer(script.rootContainer.id, s1)
-        script.addStepToContainer(script.rootContainer.id, s2)
+        script.addStep(script.rootContainer.id, s1)
+        script.addStep(script.rootContainer.id, s2)
         assertEquals(listOf(s1.id, s2.id), script.steps.map { it.id })
     }
 
@@ -130,45 +130,45 @@ class ScriptTest {
         assertFalse(Script.create("Script").addStepAfter(StepId(), actionStep()))
     }
 
-    // ── addStepToContainer ────────────────────────────────────────────────────
+    // ── addStep to container ──────────────────────────────────────────────────
 
     @Test
-    fun `addStepToContainer adds step inside a GroupStep`() {
+    fun `addStep adds step inside a GroupStep`() {
         val child = actionStep("child")
         val group = groupStep(child)
         val script = scriptWith(group)
         val newStep = actionStep("new")
 
-        assertTrue(script.addStepToContainer(group.container.id, newStep))
+        assertTrue(script.addStep(group.container.id, newStep))
         val updatedGroup = script.steps[0] as GroupStep
         assertTrue(updatedGroup.container.steps.any { it.id == newStep.id })
     }
 
     @Test
-    fun `addStepToContainer adds step to elseContainer of ConditionalStep`() {
+    fun `addStep adds step to elseContainer of ConditionalStep`() {
         val cond = conditionalStep(actionStep("if-step"))
         val script = scriptWith(cond)
         val elseStep = actionStep("else-step")
 
-        assertTrue(script.addStepToContainer(cond.elseContainer.id, elseStep))
+        assertTrue(script.addStep(cond.elseContainer.id, elseStep))
         val updated = script.steps[0] as ConditionalStep
         assertTrue(updated.elseContainer.steps.any { it.id == elseStep.id })
     }
 
     @Test
-    fun `addStepToContainer adds step to trueContainer of ConditionalStep`() {
+    fun `addStep adds step to trueContainer of ConditionalStep`() {
         val cond = conditionalStep()
         val script = scriptWith(cond)
         val trueStep = actionStep("true-step")
 
-        assertTrue(script.addStepToContainer(cond.trueContainer.id, trueStep))
+        assertTrue(script.addStep(cond.trueContainer.id, trueStep))
         val updated = script.steps[0] as ConditionalStep
         assertTrue(updated.trueContainer.steps.any { it.id == trueStep.id })
     }
 
     @Test
-    fun `addStepToContainer returns false when container id not found`() {
-        assertFalse(Script.create("Script").addStepToContainer(ContainerId(), actionStep()))
+    fun `addStep returns false when container id not found`() {
+        assertFalse(Script.create("Script").addStep(ContainerId(), actionStep()))
     }
 
     // ── removeStep ────────────────────────────────────────────────────────────
@@ -282,7 +282,7 @@ class ScriptTest {
     @Test
     fun `steps returns a snapshot - external modification does not affect aggregate`() {
         val script = Script.create("Script")
-        script.addStepToContainer(script.rootContainer.id, actionStep())
+        script.addStep(script.rootContainer.id, actionStep())
         val snapshot = script.steps.toMutableList()
         snapshot.clear()
         assertEquals(1, script.steps.size)
