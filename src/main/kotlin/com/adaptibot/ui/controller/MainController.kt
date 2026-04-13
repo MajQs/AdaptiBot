@@ -132,13 +132,10 @@ class MainController : Initializable {
 
     // ── Step add flow ──────────────────────────────────────────────────────────
 
-    private fun showAddStepFlow(containerId: ContainerId?, afterStepId: StepId?, type: com.adaptibot.ui.dialog.StepType) {
+    private fun showAddStepFlow(containerId: ContainerId, afterStepId: StepId?, type: com.adaptibot.ui.dialog.StepType) {
         val newStep = StepEditorDialogFactory.showNew(type, window()) ?: return
-        when {
-            containerId != null -> viewModel.addStepToContainer(containerId, newStep)
-            afterStepId != null -> viewModel.addStepAfter(afterStepId, newStep)
-            else                -> viewModel.addStepToContainer(viewModel.rootContainerId, newStep)
-        }
+        if (afterStepId != null) viewModel.addStepAfter(afterStepId, newStep)
+        else viewModel.addStepToContainer(containerId, newStep)
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────

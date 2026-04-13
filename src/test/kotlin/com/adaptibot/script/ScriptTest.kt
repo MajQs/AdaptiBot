@@ -267,13 +267,14 @@ class ScriptTest {
     fun `moveStep reorders steps at root level`() {
         val s1 = actionStep("first"); val s2 = actionStep("second"); val s3 = actionStep("third")
         val script = scriptWith(s1, s2, s3)
-        assertTrue(script.moveStep(s3.id, null, 0))
+        assertTrue(script.moveStep(s3.id, script.rootContainer.id, 0))
         assertEquals(s3.id, script.steps[0].id)
     }
 
     @Test
     fun `moveStep returns false when step id not found`() {
-        assertFalse(Script.create("Script").moveStep(StepId(), null, 0))
+        val script = Script.create("Script")
+        assertFalse(script.moveStep(StepId(), script.rootContainer.id, 0))
     }
 
     // ── steps snapshot immutability ───────────────────────────────────────────

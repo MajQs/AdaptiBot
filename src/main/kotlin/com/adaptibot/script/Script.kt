@@ -53,10 +53,10 @@ class Script private constructor(
 
     /**
      * Moves [stepId] to [targetContainerId] at [targetIndex].
-     * Pass `null` for [targetContainerId] to move to the root container.
+     * Pass [rootContainer].id to move to the top level.
      * Omit [targetIndex] (or pass [Int.MAX_VALUE]) to append at the end.
      */
-    fun moveStep(stepId: StepId, targetContainerId: ContainerId?, targetIndex: Int = Int.MAX_VALUE): Boolean {
+    fun moveStep(stepId: StepId, targetContainerId: ContainerId, targetIndex: Int = Int.MAX_VALUE): Boolean {
         val step = StepTreeEditor.find(rootContainer, stepId) ?: return false
         if (!StepTreeEditor.remove(rootContainer, stepId)) return false
         return StepTreeEditor.insertAt(rootContainer, step, targetContainerId, targetIndex)

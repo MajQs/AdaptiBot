@@ -143,7 +143,7 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return result
     }
 
-    fun moveStep(stepId: StepId, targetContainerId: ContainerId?, targetIndex: Int = Int.MAX_VALUE): Boolean {
+    fun moveStep(stepId: StepId, targetContainerId: ContainerId, targetIndex: Int = Int.MAX_VALUE): Boolean {
         val result = script.moveStep(stepId, targetContainerId, targetIndex)
         if (result) { syncStepsFromAggregate(); markDirty() }
         return result

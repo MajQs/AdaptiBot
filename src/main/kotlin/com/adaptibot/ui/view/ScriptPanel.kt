@@ -19,7 +19,7 @@ class ScriptPanel(
      * [afterStepId]  – insert after this step (null = append at end).
      * [type]         – the chosen [StepType].
      */
-    private val onAddStep: (containerId: ContainerId?, afterStepId: StepId?, type: StepType) -> Unit
+    private val onAddStep: (containerId: ContainerId, afterStepId: StepId?, type: StepType) -> Unit
 ) : BorderPane() {
 
     val treeView = StepTreeView(viewModel)

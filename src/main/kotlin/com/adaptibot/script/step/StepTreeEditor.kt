@@ -75,8 +75,8 @@ internal object StepTreeEditor {
 
     // ── Insert at position ────────────────────────────────────────────────────
 
-    fun insertAt(root: StepContainer, step: Step, containerId: ContainerId?, index: Int): Boolean {
-        val target = if (containerId == null) root else findContainer(root, containerId) ?: return false
+    fun insertAt(root: StepContainer, step: Step, containerId: ContainerId, index: Int): Boolean {
+        val target = findContainer(root, containerId) ?: return false
         target.steps.add(index.coerceIn(0, target.steps.size), step)
         return true
     }

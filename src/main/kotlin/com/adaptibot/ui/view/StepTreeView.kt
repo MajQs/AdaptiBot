@@ -9,7 +9,7 @@ import javafx.scene.control.*
 class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>() {
 
     private var onEditStep: ((Step) -> Unit)? = null
-    private var onAddStep: ((containerId: ContainerId?, afterStepId: StepId?, type: StepType) -> Unit)? = null
+    private var onAddStep: ((containerId: ContainerId, afterStepId: StepId?, type: StepType) -> Unit)? = null
 
     init {
         styleClass.add("step-tree-view")
@@ -33,7 +33,7 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
 
     fun setOnEditStep(handler: (Step) -> Unit) { onEditStep = handler }
 
-    fun setOnAddStep(handler: (containerId: ContainerId?, afterStepId: StepId?, type: StepType) -> Unit) {
+    fun setOnAddStep(handler: (containerId: ContainerId, afterStepId: StepId?, type: StepType) -> Unit) {
         onAddStep = handler
     }
 
@@ -100,7 +100,7 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
 private class ScriptTreeCell(
     private val viewModel: ScriptViewModel,
     private val onEdit: (Step) -> Unit,
-    private val onAddStep: (containerId: ContainerId?, afterStepId: StepId?, type: StepType) -> Unit
+    private val onAddStep: (containerId: ContainerId, afterStepId: StepId?, type: StepType) -> Unit
 ) : TreeCell<TreeNode>() {
 
     private val dragDropHandler = StepCellDragDropHandler(this, viewModel)
@@ -214,22 +214,21 @@ private class ScriptTreeCell(
 
     /**
      * Walks up the tree to find the [ContainerId] of the nearest ancestor container.
-     * Returns null if the step is at root level.
+     * Falls back to [rootContainerId] if the step is at root level.
      */
-    private fun parentContainerId(): ContainerId? {
+    private fun parentContainerId(): ContainerId {
         var parent = treeItem?.parent
         while (parent != null) {
             when (val v = parent.value) {
                 is TreeNode.ContainerNode -> return v.container.id
                 is TreeNode.StepNode -> {
-                    // Single-container step acts as an implicit container for its direct children
                     val containers = v.step.containers()
                     if (containers.size == 1) return containers.first().id
-                    return null
+                    return viewModel.rootContainerId
                 }
-                null -> return null
+                null -> return viewModel.rootContainerId
             }
         }
-        return null
+        return viewModel.rootContainerId
     }
 }
