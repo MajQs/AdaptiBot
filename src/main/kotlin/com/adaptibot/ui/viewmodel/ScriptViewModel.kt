@@ -156,8 +156,6 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
     }
 
 
-    fun findContainer(id: ContainerId): StepContainer? = script.findContainer(id)
-
     /** The [ContainerId] of the script's root container – use this to add steps at the top level. */
     val rootContainerId: ContainerId get() = script.rootContainer.id
 

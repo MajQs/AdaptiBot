@@ -220,27 +220,6 @@ class ScriptTest {
     }
 
 
-    // ── findContainer ─────────────────────────────────────────────────────────
-
-    @Test
-    fun `findContainer returns trueContainer of ConditionalStep`() {
-        val cond = conditionalStep(actionStep())
-        val found = scriptWith(cond).findContainer(cond.trueContainer.id)
-        assertNotNull(found); assertEquals(cond.trueContainer.id, found!!.id)
-    }
-
-    @Test
-    fun `findContainer returns rootContainer by its id`() {
-        val script = Script.create("Script")
-        val found = script.findContainer(script.rootContainer.id)
-        assertNotNull(found); assertEquals(script.rootContainer.id, found!!.id)
-    }
-
-    @Test
-    fun `findContainer returns null when container id not found`() {
-        assertNull(Script.create("Script").findContainer(ContainerId()))
-    }
-
     // ── moveStep ──────────────────────────────────────────────────────────────
 
     @Test

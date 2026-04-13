@@ -53,9 +53,6 @@ class Script private constructor(
         return StepTreeEditor.insertAt(rootContainer, step, targetContainerId, targetIndex)
     }
 
-
-    fun findContainer(id: ContainerId): StepContainer? = StepTreeEditor.findContainer(rootContainer, id)
-
     companion object {
         fun create(
             name: String,

@@ -65,7 +65,7 @@ class StepCellDragDropHandler(
                         if (draggedId != targetStep.id) {
                             val parentItem        = cell.treeItem?.parent
                             val targetContainerId = resolveParentContainerId(parentItem)
-                            val siblings          = resolveSiblingList(parentItem, targetContainerId)
+                            val siblings          = resolveSiblingList(parentItem)
                             val targetIndex       = siblings.indexOfFirst { it.id == targetStep.id }
                             val insertAt          = if (targetIndex < 0) 0 else targetIndex
                             viewModel.moveStep(draggedId, targetContainerId, insertAt)
@@ -105,13 +105,10 @@ class StepCellDragDropHandler(
     }
 
     private fun resolveSiblingList(
-        parentItem: javafx.scene.control.TreeItem<TreeNode>?,
-        parentContainerId: ContainerId
-    ): List<Step> {
-        val immediateParent = parentItem?.value
-        if (immediateParent is TreeNode.ContainerNode) {
-            return immediateParent.container.steps
-        }
-        return viewModel.findContainer(parentContainerId)?.steps ?: viewModel.steps.toList()
+        parentItem: javafx.scene.control.TreeItem<TreeNode>?
+    ): List<Step> = when (val v = parentItem?.value) {
+        is TreeNode.ContainerNode -> v.container.steps
+        is TreeNode.StepNode      -> parentItem!!.children.mapNotNull { (it.value as? TreeNode.StepNode)?.step }
+        null                      -> viewModel.steps
     }
 }
