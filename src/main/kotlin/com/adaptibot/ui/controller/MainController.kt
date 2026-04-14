@@ -133,7 +133,8 @@ class MainController : Initializable {
     // ── Step add flow ──────────────────────────────────────────────────────────
 
     private fun showAddStepFlow(containerId: ContainerId, afterStepId: StepId?, type: com.adaptibot.ui.dialog.StepType) {
-        val newStep = StepEditorDialogFactory.showNew(type, window()) ?: return
+        val defaultDelayBefore = viewModel.getScriptSettings().defaultDelayBefore
+        val newStep = StepEditorDialogFactory.showNew(type, window(), defaultDelayBefore) ?: return
         if (afterStepId != null) viewModel.addStepAfter(afterStepId, newStep)
         else viewModel.addStep(containerId, newStep)
     }

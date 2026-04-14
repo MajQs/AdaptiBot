@@ -22,13 +22,26 @@ class ActionFacade internal constructor(
 
     /**
      * Executes the given action by delegating it to the appropriate handler based on its type.
+     * Waits for [Action.delayBefore] milliseconds before executing the action.
      *
      * @param action Action to execute (mouse, keyboard, system). No matching handler = no effect.
      * @throws ActionExecutionException when the handler is unable to carry out the action at runtime.
      */
     fun execute(action: Action) {
+        waitForDelay(action.delayBefore)
         actionHandlerPerType.entries
             .firstOrNull { (key, _) -> key.isInstance(action) }
             ?.value?.handle(action)
     }
+
+    private fun waitForDelay(delayMs: Long) {
+        if (delayMs > 0) {
+            try {
+                Thread.sleep(delayMs)
+            } catch (_: InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
+        }
+    }
 }
+

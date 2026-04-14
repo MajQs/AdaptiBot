@@ -49,7 +49,6 @@ internal class ScriptInterpreter(
     private fun executeStep(step: Step) {
         if (!scriptExecutionState.isRunning()) return
         scriptExecutionState.recordActiveStep(step)
-        waitForDelay(step.delayBefore)
         when (step) {
             is ActionStep -> actionStepHandler.execute(step)
             is GroupStep -> executeSteps(step.container.steps)
@@ -58,16 +57,6 @@ internal class ScriptInterpreter(
             // ── Loop steps – not yet implemented ──────────────────────────────
             is WhileStep -> throw UnsupportedOperationException("WhileStep execution not yet implemented")
             is ForStep -> throw UnsupportedOperationException("ForStep execution not yet implemented")
-        }
-    }
-
-    private fun waitForDelay(delayMs: Long) {
-        if (delayMs > 0) {
-            try {
-                Thread.sleep(delayMs)
-            } catch (_: InterruptedException) {
-                Thread.currentThread().interrupt()
-            }
         }
     }
 }

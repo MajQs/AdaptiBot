@@ -8,14 +8,12 @@ import kotlinx.serialization.Serializable
 sealed class Step {
     abstract val id: StepId
     abstract val label: String?
-    abstract val delayBefore: Long
 }
 
 @Serializable
 data class ActionStep(
     override val id: StepId = StepId(),
     override val label: String? = null,
-    override val delayBefore: Long = 1000,
     val action: Action
 ) : Step()
 
@@ -23,7 +21,6 @@ data class ActionStep(
 data class GroupStep(
     override val id: StepId = StepId(),
     override val label: String? = null,
-    override val delayBefore: Long = 0,
     val container: StepContainer = StepContainer()
 ) : Step()
 
@@ -31,7 +28,6 @@ data class GroupStep(
 data class ObserverStep(
     override val id: StepId = StepId(),
     override val label: String? = null,
-    override val delayBefore: Long = 0,
     val condition: Condition,
     val container: StepContainer = StepContainer()
 ) : Step()
@@ -40,7 +36,6 @@ data class ObserverStep(
 data class ConditionalStep(
     override val id: StepId = StepId(),
     override val label: String? = null,
-    override val delayBefore: Long = 0,
     val condition: Condition,
     val trueContainer: StepContainer = StepContainer(),
     val elseContainer: StepContainer = StepContainer()
@@ -50,7 +45,6 @@ data class ConditionalStep(
 data class WhileStep(
     override val id: StepId = StepId(),
     override val label: String? = null,
-    override val delayBefore: Long = 0,
     val condition: Condition,
     val container: StepContainer = StepContainer()
 ) : Step()
@@ -59,7 +53,6 @@ data class WhileStep(
 data class ForStep(
     override val id: StepId = StepId(),
     override val label: String? = null,
-    override val delayBefore: Long = 0,
     val iterations: Int = 1,
     val container: StepContainer = StepContainer()
 ) : Step()

@@ -23,15 +23,15 @@ object StepEditorDialogFactory {
         is WhileStep, is ForStep -> null
     }
 
-    fun showNew(actionType: StepType, owner: Window?): Step? {
+    fun showNew(actionType: StepType, owner: Window?, defaultDelayBefore: Long = 0): Step? {
         return when (actionType) {
-            StepType.MOUSE_CLICK   -> ActionStepDialog(ActionStep(action = Action.Mouse.Click()), owner).showAndWait().orElse(null)
-            StepType.MOUSE_DRAG    -> ActionStepDialog(ActionStep(action = Action.Mouse.Drag(to = ScriptTarget.AtCoordinate(Coordinate(0, 0)))), owner).showAndWait().orElse(null)
-            StepType.MOUSE_MOVE    -> ActionStepDialog(ActionStep(action = Action.Mouse.MoveTo(ScriptTarget.AtCoordinate(Coordinate(0, 0)))), owner).showAndWait().orElse(null)
-            StepType.MOUSE_SCROLL  -> ActionStepDialog(ActionStep(action = Action.Mouse.Scroll(MouseScrollDirection.DOWN, 3)), owner).showAndWait().orElse(null)
-            StepType.KEYBOARD_TYPE -> ActionStepDialog(ActionStep(action = Action.Keyboard.TypeText("")), owner).showAndWait().orElse(null)
-            StepType.KEYBOARD_KEYS -> ActionStepDialog(ActionStep(action = Action.Keyboard.PressKeys(emptyList())), owner).showAndWait().orElse(null)
-            StepType.WAIT          -> ActionStepDialog(ActionStep(action = Action.System.Wait(500)), owner).showAndWait().orElse(null)
+            StepType.MOUSE_CLICK   -> ActionStepDialog(ActionStep(action = Action.Mouse.Click(delayBefore = defaultDelayBefore)), owner).showAndWait().orElse(null)
+            StepType.MOUSE_DRAG    -> ActionStepDialog(ActionStep(action = Action.Mouse.Drag(delayBefore = defaultDelayBefore, to = ScriptTarget.AtCoordinate(Coordinate(0, 0)))), owner).showAndWait().orElse(null)
+            StepType.MOUSE_MOVE    -> ActionStepDialog(ActionStep(action = Action.Mouse.MoveTo(ScriptTarget.AtCoordinate(Coordinate(0, 0)), delayBefore = defaultDelayBefore)), owner).showAndWait().orElse(null)
+            StepType.MOUSE_SCROLL  -> ActionStepDialog(ActionStep(action = Action.Mouse.Scroll(MouseScrollDirection.DOWN, 3, delayBefore = defaultDelayBefore)), owner).showAndWait().orElse(null)
+            StepType.KEYBOARD_TYPE -> ActionStepDialog(ActionStep(action = Action.Keyboard.TypeText("", delayBefore = defaultDelayBefore)), owner).showAndWait().orElse(null)
+            StepType.KEYBOARD_KEYS -> ActionStepDialog(ActionStep(action = Action.Keyboard.PressKeys(emptyList(), delayBefore = defaultDelayBefore)), owner).showAndWait().orElse(null)
+            StepType.WAIT          -> ActionStepDialog(ActionStep(action = Action.System.Wait(500, delayBefore = defaultDelayBefore)), owner).showAndWait().orElse(null)
             StepType.GROUP         -> GroupStepDialog(GroupStep(), owner).showAndWait().orElse(null)
             StepType.CONDITIONAL   -> ConditionalStepDialog(ConditionalStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
             StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
@@ -104,10 +104,6 @@ private class ActionStepDialog(
         val labelField = labelField().apply { text = original.label ?: "" }
         grid.add(formLabel("Label *"), 0, row); grid.add(labelField, 1, row++);
 
-        // DelayBefore
-        val delayField = longField().apply { text = original.delayBefore.toString() }
-        grid.add(formLabel("Delay before (ms)"), 0, row); grid.add(delayField, 1, row++);
-
         // Action-specific section
         grid.add(sectionTitle("ACTION"), 0, row, 2, 1); row++
 
@@ -126,7 +122,6 @@ private class ActionStepDialog(
             if (bt == ButtonType.OK) {
                 original.copy(
                     label = labelField.text.ifBlank { null }?.trim(),
-                    delayBefore = delayField.text.toLongOrNull() ?: 0L,
                     action = actionContent.getAction()
                 )
             } else null
@@ -165,9 +160,11 @@ private class MouseClickEditor(
         styleClass.add("form-combo"); items.setAll(MouseClickType.entries); value = orig.type
     }
     private val holdField = TextField(orig.holdDuration.toString()).apply { styleClass.add("form-field"); prefWidth = 100.0 }
+    private val delayField = longField().apply { text = orig.delayBefore.toString() }
 
     init {
         var r = startRow
+        grid.add(formLabel("Delay before (ms)"), 0, r); grid.add(delayField, 1, r++);
         grid.add(formLabel("Target"), 0, r); grid.add(targetEditor, 1, r++);
         grid.add(formLabel("Button"), 0, r); grid.add(buttonCombo, 1, r++);
         grid.add(formLabel("Click type"), 0, r); grid.add(typeCombo, 1, r++);
@@ -175,6 +172,7 @@ private class MouseClickEditor(
     }
 
     override fun getAction() = orig.copy(
+        delayBefore = delayField.text.toLongOrNull() ?: 0L,
         target = targetEditor.getTarget(),
         button = buttonCombo.value ?: MouseButton.LEFT,
         type = typeCombo.value ?: MouseClickType.SINGLE,
@@ -187,14 +185,17 @@ private class MouseDragEditor(
 ) : ActionEditor {
     private val fromEditor = MouseTargetEditor(orig.from)
     private val toEditor   = MouseTargetEditor(orig.to)
+    private val delayField = longField().apply { text = orig.delayBefore.toString() }
 
     init {
         var r = startRow
+        grid.add(formLabel("Delay before (ms)"), 0, r); grid.add(delayField, 1, r++);
         grid.add(formLabel("From"), 0, r); grid.add(fromEditor, 1, r++);
         grid.add(formLabel("To"), 0, r); grid.add(toEditor, 1, r);
     }
 
     override fun getAction() = orig.copy(
+        delayBefore = delayField.text.toLongOrNull() ?: 0L,
         from = fromEditor.getTarget(),
         to   = toEditor.getTarget() ?: ScriptTarget.AtCoordinate(Coordinate(0, 0))
     )
@@ -204,8 +205,13 @@ private class MouseMoveEditor(
     private val orig: Action.Mouse.MoveTo, startRow: Int, grid: GridPane
 ) : ActionEditor {
     private val editor = MouseTargetEditor(orig.target)
-    init { grid.add(formLabel("Target"), 0, startRow); grid.add(editor, 1, startRow) }
+    private val delayField = longField().apply { text = orig.delayBefore.toString() }
+    init {
+        grid.add(formLabel("Delay before (ms)"), 0, startRow); grid.add(delayField, 1, startRow)
+        grid.add(formLabel("Target"), 0, startRow + 1); grid.add(editor, 1, startRow + 1)
+    }
     override fun getAction() = orig.copy(
+        delayBefore = delayField.text.toLongOrNull() ?: 0L,
         target = editor.getTarget() ?: ScriptTarget.AtCoordinate(Coordinate(0, 0))
     )
 }
@@ -217,11 +223,14 @@ private class MouseScrollEditor(
         styleClass.add("form-combo"); items.setAll(MouseScrollDirection.entries); value = orig.direction
     }
     private val amountField = TextField(orig.amount.toString()).apply { styleClass.add("form-field"); prefWidth = 100.0 }
+    private val delayField = longField().apply { text = orig.delayBefore.toString() }
     init {
-        grid.add(formLabel("Direction"), 0, startRow); grid.add(dirCombo, 1, startRow)
-        grid.add(formLabel("Amount"), 0, startRow + 1); grid.add(amountField, 1, startRow + 1)
+        grid.add(formLabel("Delay before (ms)"), 0, startRow); grid.add(delayField, 1, startRow)
+        grid.add(formLabel("Direction"), 0, startRow + 1); grid.add(dirCombo, 1, startRow + 1)
+        grid.add(formLabel("Amount"), 0, startRow + 2); grid.add(amountField, 1, startRow + 2)
     }
     override fun getAction() = orig.copy(
+        delayBefore = delayField.text.toLongOrNull() ?: 0L,
         direction = dirCombo.value ?: MouseScrollDirection.DOWN,
         amount = amountField.text.toIntOrNull() ?: 1
     )
@@ -233,8 +242,15 @@ private class KeyboardTypeEditor(
     private val textArea = TextArea(orig.text).apply {
         styleClass.add("form-field"); prefRowCount = 4
     }
-    init { grid.add(formLabel("Text"), 0, startRow); grid.add(textArea, 1, startRow) }
-    override fun getAction() = orig.copy(text = textArea.text)
+    private val delayField = longField().apply { text = orig.delayBefore.toString() }
+    init {
+        grid.add(formLabel("Delay before (ms)"), 0, startRow); grid.add(delayField, 1, startRow)
+        grid.add(formLabel("Text"), 0, startRow + 1); grid.add(textArea, 1, startRow + 1)
+    }
+    override fun getAction() = orig.copy(
+        delayBefore = delayField.text.toLongOrNull() ?: 0L,
+        text = textArea.text
+    )
 }
 
 private class KeyboardKeysEditor(
@@ -246,15 +262,18 @@ private class KeyboardKeysEditor(
             styleClass.add("check-box")
         }
     }
+    private val delayField = longField().apply { text = orig.delayBefore.toString() }
     init {
         val wrapPane = FlowPane(4.0, 4.0).apply {
             prefWrapLength = 320.0
             children.addAll(checkBoxes)
         }
-        grid.add(formLabel("Keys"), 0, startRow)
-        grid.add(wrapPane, 1, startRow)
+        grid.add(formLabel("Delay before (ms)"), 0, startRow); grid.add(delayField, 1, startRow)
+        grid.add(formLabel("Keys"), 0, startRow + 1)
+        grid.add(wrapPane, 1, startRow + 1)
     }
     override fun getAction() = orig.copy(
+        delayBefore = delayField.text.toLongOrNull() ?: 0L,
         keys = checkBoxes.filter { it.isSelected }.map { KeyboardKey.valueOf(it.text) }
     )
 }
@@ -263,8 +282,15 @@ private class WaitEditor(
     private val orig: Action.System.Wait, startRow: Int, grid: GridPane
 ) : ActionEditor {
     private val msField = TextField(orig.milliseconds.toString()).apply { styleClass.add("form-field"); prefWidth = 130.0 }
-    init { grid.add(formLabel("Wait (ms)"), 0, startRow); grid.add(msField, 1, startRow) }
-    override fun getAction() = orig.copy(milliseconds = msField.text.toLongOrNull() ?: 500L)
+    private val delayField = longField().apply { text = orig.delayBefore.toString() }
+    init {
+        grid.add(formLabel("Delay before (ms)"), 0, startRow); grid.add(delayField, 1, startRow)
+        grid.add(formLabel("Wait (ms)"), 0, startRow + 1); grid.add(msField, 1, startRow + 1)
+    }
+    override fun getAction() = orig.copy(
+        delayBefore = delayField.text.toLongOrNull() ?: 0L,
+        milliseconds = msField.text.toLongOrNull() ?: 500L
+    )
 }
 
 // ── GroupStep Dialog ──────────────────────────────────────────────────────────
@@ -278,15 +304,12 @@ private class GroupStepDialog(private val original: GroupStep, owner: Window?) :
 
         val grid = formGrid()
         val labelField = labelField().apply { text = original.label ?: "" }
-        val delayField = longField().apply { text = original.delayBefore.toString() }
         grid.add(formLabel("Label *"), 0, 0); grid.add(labelField, 1, 0)
-        grid.add(formLabel("Delay before (ms)"), 0, 1); grid.add(delayField, 1, 1)
         dialogPane.content = grid
         dialogPane.buttonTypes.addAll(ButtonType.OK, ButtonType.CANCEL)
         setResultConverter { bt ->
             if (bt == ButtonType.OK) original.copy(
-                label = labelField.text.ifBlank { null }?.trim(),
-                delayBefore = delayField.text.toLongOrNull() ?: 0L
+                label = labelField.text.ifBlank { null }?.trim()
             ) else null
         }
     }
@@ -303,13 +326,11 @@ private class ConditionalStepDialog(private val original: ConditionalStep, owner
 
         val grid = formGrid()
         val labelField = labelField().apply { text = original.label ?: "" }
-        val delayField = longField().apply { text = original.delayBefore.toString() }
         grid.add(formLabel("Label *"), 0, 0); grid.add(labelField, 1, 0)
-        grid.add(formLabel("Delay before (ms)"), 0, 1); grid.add(delayField, 1, 1)
-        grid.add(sectionTitle("CONDITION"), 0, 2, 2, 1)
+        grid.add(sectionTitle("CONDITION"), 0, 1, 2, 1)
 
         val condEditor = ConditionEditor(original.condition)
-        grid.add(condEditor, 0, 3, 2, 1)
+        grid.add(condEditor, 0, 2, 2, 1)
 
         val scrollPane = ScrollPane(grid).apply {
             isFitToWidth = true
@@ -321,7 +342,6 @@ private class ConditionalStepDialog(private val original: ConditionalStep, owner
         setResultConverter { bt ->
             if (bt == ButtonType.OK) original.copy(
                 label = labelField.text.ifBlank { null }?.trim(),
-                delayBefore = delayField.text.toLongOrNull() ?: 0L,
                 condition = condEditor.getCondition()
             ) else null
         }
@@ -339,13 +359,11 @@ private class ObserverStepDialog(private val original: ObserverStep, owner: Wind
 
         val grid = formGrid()
         val labelField = labelField().apply { text = original.label ?: "" }
-        val delayField = longField().apply { text = original.delayBefore.toString() }
         grid.add(formLabel("Label *"), 0, 0); grid.add(labelField, 1, 0)
-        grid.add(formLabel("Delay before (ms)"), 0, 1); grid.add(delayField, 1, 1)
-        grid.add(sectionTitle("TRIGGER CONDITION"), 0, 2, 2, 1)
+        grid.add(sectionTitle("TRIGGER CONDITION"), 0, 1, 2, 1)
 
         val condEditor = ConditionEditor(original.condition)
-        grid.add(condEditor, 0, 3, 2, 1)
+        grid.add(condEditor, 0, 2, 2, 1)
 
         val scrollPane = ScrollPane(grid).apply {
             isFitToWidth = true; styleClass.add("scroll-pane"); prefHeight = 520.0
@@ -355,7 +373,6 @@ private class ObserverStepDialog(private val original: ObserverStep, owner: Wind
         setResultConverter { bt ->
             if (bt == ButtonType.OK) original.copy(
                 label = labelField.text.ifBlank { null }?.trim(),
-                delayBefore = delayField.text.toLongOrNull() ?: 0L,
                 condition = condEditor.getCondition()
             ) else null
         }

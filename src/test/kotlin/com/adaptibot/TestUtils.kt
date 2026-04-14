@@ -26,7 +26,6 @@ object TestUtils {
             rootContainer = StepContainer(steps = createSampleSteps()),
             settings = ScriptSettings(
                 defaultDelayBefore = 100,
-                defaultDelayAfter = 100,
                 observerCheckDelay = 500,
                 defaultImageMatchThreshold = 0.8
             )

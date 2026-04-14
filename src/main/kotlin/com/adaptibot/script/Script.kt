@@ -95,8 +95,7 @@ class Script private constructor(
 
 @kotlinx.serialization.Serializable
 data class ScriptSettings(
-    val defaultDelayBefore: Long = 0,
-    val defaultDelayAfter: Long = 0,
+    val defaultDelayBefore: Long = 1000L,
     val observerCheckDelay: Long = 1000,
     val defaultImageMatchThreshold: Double = 0.7
 )
