@@ -33,6 +33,6 @@ internal fun Script.toDocument(): ScriptDocument = ScriptDocument(
     id = id,
     name = name,
     description = description,
-    rootContainer = rootContainer,
+    rootContainer = getRootContainer(),
     settings = settings
 )

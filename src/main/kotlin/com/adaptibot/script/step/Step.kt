@@ -46,11 +46,6 @@ data class ConditionalStep(
     val elseContainer: StepContainer = StepContainer()
 ) : Step()
 
-// ── Future loop steps ─────────────────────────────────────────────────────────
-// Defined here so the sealed class hierarchy is exhaustive and the compiler
-// enforces handling in every `when` expression. Execution is not yet implemented
-// – ScriptInterpreter will throw UnsupportedOperationException for these types.
-
 @Serializable
 data class WhileStep(
     override val id: StepId = StepId(),
@@ -71,10 +66,6 @@ data class ForStep(
 
 // ── Extension helpers ─────────────────────────────────────────────────────────
 
-/**
- * Returns all direct [StepContainer]s owned by this step.
- * [ActionStep] has none; single-container steps return one; [ConditionalStep] returns two.
- */
 fun Step.containers(): List<StepContainer> = when (this) {
     is ActionStep      -> emptyList()
     is GroupStep       -> listOf(container)
@@ -82,6 +73,19 @@ fun Step.containers(): List<StepContainer> = when (this) {
     is WhileStep       -> listOf(container)
     is ForStep         -> listOf(container)
     is ConditionalStep -> listOf(trueContainer, elseContainer)
+}
+
+fun Step.withUpdatedContainer(old: StepContainer, new: StepContainer): Step? = when (this) {
+    is ActionStep      -> null
+    is GroupStep       -> if (container.id == old.id) copy(container = new) else null
+    is ObserverStep    -> if (container.id == old.id) copy(container = new) else null
+    is WhileStep       -> if (container.id == old.id) copy(container = new) else null
+    is ForStep         -> if (container.id == old.id) copy(container = new) else null
+    is ConditionalStep -> when {
+        trueContainer.id == old.id  -> copy(trueContainer = new)
+        elseContainer.id == old.id  -> copy(elseContainer = new)
+        else                        -> null
+    }
 }
 
 

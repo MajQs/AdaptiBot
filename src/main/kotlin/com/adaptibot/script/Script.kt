@@ -10,7 +10,7 @@ class Script private constructor(
     val id: ScriptId,
     name: String,
     description: String,
-    val rootContainer: StepContainer,
+    rootContainer: StepContainer,
     val settings: ScriptSettings
 ) {
     var name: String = name
@@ -19,8 +19,16 @@ class Script private constructor(
     var description: String = description
         private set
 
-    /** Convenience view – the top-level steps of the root container. */
-    val steps: List<Step> get() = rootContainer.steps.toList()
+    private var rootContainer: StepContainer = rootContainer
+
+    /** The [ContainerId] of the script's root container – use this to add steps at the top level. */
+    val rootContainerId: ContainerId get() = rootContainer.id
+
+    /** Flat list of top-level steps; use for iteration/execution. */
+    val steps: List<Step> get() = rootContainer.steps
+
+    /** Internal accessor for serialization layer. */
+    internal fun getRootContainer(): StepContainer = rootContainer
 
     // ── Metadata ───────────────────────────────────────────────────────────────
 
@@ -35,22 +43,36 @@ class Script private constructor(
 
     // ── Step tree mutations ────────────────────────────────────────────────────
 
-    fun addStepAfter(afterId: StepId, step: Step): Boolean =
-        StepTreeEditor.insertAfter(rootContainer, afterId, step)
+    fun addStepAfter(afterId: StepId, step: Step): Boolean {
+        val newRoot = StepTreeEditor.insertAfter(rootContainer, afterId, step) ?: return false
+        rootContainer = newRoot
+        return true
+    }
 
-    fun addStep(containerId: ContainerId, step: Step, index: Int = Int.MAX_VALUE): Boolean =
-        StepTreeEditor.insertAt(rootContainer, step, containerId, index)
+    fun addStep(containerId: ContainerId, step: Step, index: Int = Int.MAX_VALUE): Boolean {
+        val newRoot = StepTreeEditor.insertAt(rootContainer, step, containerId, index) ?: return false
+        rootContainer = newRoot
+        return true
+    }
 
-    fun removeStep(id: StepId): Boolean =
-        StepTreeEditor.remove(rootContainer, id)
+    fun removeStep(id: StepId): Boolean {
+        val newRoot = StepTreeEditor.remove(rootContainer, id) ?: return false
+        rootContainer = newRoot
+        return true
+    }
 
-    fun updateStep(updated: Step): Boolean =
-        StepTreeEditor.replace(rootContainer, updated)
+    fun updateStep(updated: Step): Boolean {
+        val newRoot = StepTreeEditor.replace(rootContainer, updated) ?: return false
+        rootContainer = newRoot
+        return true
+    }
 
     fun moveStep(stepId: StepId, targetContainerId: ContainerId, targetIndex: Int = Int.MAX_VALUE): Boolean {
         val step = StepTreeEditor.find(rootContainer, stepId) ?: return false
-        if (!StepTreeEditor.remove(rootContainer, stepId)) return false
-        return StepTreeEditor.insertAt(rootContainer, step, targetContainerId, targetIndex)
+        val afterRemove = StepTreeEditor.remove(rootContainer, stepId) ?: return false
+        val afterInsert = StepTreeEditor.insertAt(afterRemove, step, targetContainerId, targetIndex) ?: return false
+        rootContainer = afterInsert
+        return true
     }
 
     companion object {

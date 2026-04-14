@@ -16,22 +16,22 @@ class ScriptTest {
 
     private fun groupStep(vararg children: Step) = GroupStep(
         label = "group",
-        container = StepContainer(steps = children.toMutableList())
+        container = StepContainer(steps = children.toList())
     )
 
     private fun conditionalStep(vararg trueSteps: Step, elseSteps: List<Step> = emptyList()) =
         ConditionalStep(
             label = "cond",
             condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.8))),
-            trueContainer = StepContainer(steps = trueSteps.toMutableList()),
-            elseContainer = StepContainer(steps = elseSteps.toMutableList())
+            trueContainer = StepContainer(steps = trueSteps.toList()),
+            elseContainer = StepContainer(steps = elseSteps)
         )
 
     private fun scriptWith(vararg steps: Step) = Script.restore(
         id = ScriptId(),
         name = "S",
         description = "",
-        rootContainer = StepContainer(steps = steps.toMutableList()),
+        rootContainer = StepContainer(steps = steps.toList()),
         settings = ScriptSettings()
     )
 
@@ -55,7 +55,7 @@ class ScriptTest {
         val id = ScriptId()
         val step = actionStep()
         val settings = ScriptSettings(defaultDelayBefore = 200)
-        val script = Script.restore(id, "Restored", "desc", StepContainer(steps = mutableListOf(step)), settings)
+        val script = Script.restore(id, "Restored", "desc", StepContainer(steps = listOf(step)), settings)
 
         assertEquals(id, script.id)
         assertEquals("Restored", script.name)
@@ -101,7 +101,7 @@ class ScriptTest {
     fun `addStep with rootContainer id appends step to root list`() {
         val script = Script.create("Script")
         val step = actionStep("first")
-        script.addStep(script.rootContainer.id, step)
+        script.addStep(script.rootContainerId, step)
         assertEquals(1, script.steps.size)
         assertEquals(step.id, script.steps[0].id)
     }
@@ -110,8 +110,8 @@ class ScriptTest {
     fun `addStep with rootContainer id appends multiple steps in order`() {
         val script = Script.create("Script")
         val s1 = actionStep("a"); val s2 = actionStep("b")
-        script.addStep(script.rootContainer.id, s1)
-        script.addStep(script.rootContainer.id, s2)
+        script.addStep(script.rootContainerId, s1)
+        script.addStep(script.rootContainerId, s2)
         assertEquals(listOf(s1.id, s2.id), script.steps.map { it.id })
     }
 
@@ -226,24 +226,13 @@ class ScriptTest {
     fun `moveStep reorders steps at root level`() {
         val s1 = actionStep("first"); val s2 = actionStep("second"); val s3 = actionStep("third")
         val script = scriptWith(s1, s2, s3)
-        assertTrue(script.moveStep(s3.id, script.rootContainer.id, 0))
+        assertTrue(script.moveStep(s3.id, script.rootContainerId, 0))
         assertEquals(s3.id, script.steps[0].id)
     }
 
     @Test
     fun `moveStep returns false when step id not found`() {
         val script = Script.create("Script")
-        assertFalse(script.moveStep(StepId(), script.rootContainer.id, 0))
-    }
-
-    // ── steps snapshot immutability ───────────────────────────────────────────
-
-    @Test
-    fun `steps returns a snapshot - external modification does not affect aggregate`() {
-        val script = Script.create("Script")
-        script.addStep(script.rootContainer.id, actionStep())
-        val snapshot = script.steps.toMutableList()
-        snapshot.clear()
-        assertEquals(1, script.steps.size)
+        assertFalse(script.moveStep(StepId(), script.rootContainerId, 0))
     }
 }

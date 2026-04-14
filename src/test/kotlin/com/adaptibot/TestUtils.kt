@@ -23,7 +23,7 @@ object TestUtils {
             id = ScriptId(),
             name = name,
             description = "Test script for development",
-            rootContainer = StepContainer(steps = createSampleSteps().toMutableList()),
+            rootContainer = StepContainer(steps = createSampleSteps()),
             settings = ScriptSettings(
                 defaultDelayBefore = 100,
                 defaultDelayAfter = 100,
@@ -59,16 +59,16 @@ object TestUtils {
             id = ScriptId(),
             name = "Conditional Test",
             description = "Script with conditional logic",
-            rootContainer = StepContainer(steps = mutableListOf(
+            rootContainer = StepContainer(steps = listOf(
                 ConditionalStep(
                     label = "Check if element exists",
                     condition = Condition.ElementExists(
                         matcher = VisualMatcher.ImagePresent(ImagePattern("", 0.8))
                     ),
-                    trueContainer = StepContainer(steps = mutableListOf(
+                    trueContainer = StepContainer(steps = listOf(
                         ActionStep(action = Action.Mouse.Click(target = Target.AtCoordinate(coordinate = Coordinate(50, 50))))
                     )),
-                    elseContainer = StepContainer(steps = mutableListOf(
+                    elseContainer = StepContainer(steps = listOf(
                         ActionStep(action = Action.System.Wait(500))
                     ))
                 )
@@ -82,10 +82,10 @@ object TestUtils {
             id = ScriptId(),
             name = "Group Test",
             description = "Script with grouped actions",
-            rootContainer = StepContainer(steps = mutableListOf(
+            rootContainer = StepContainer(steps = listOf(
                 GroupStep(
                     label = "Login Group",
-                    container = StepContainer(steps = mutableListOf(
+                    container = StepContainer(steps = listOf(
                         ActionStep(action = Action.Mouse.Click(target = Target.AtCoordinate(coordinate = Coordinate(300, 400)))),
                         ActionStep(action = Action.Keyboard.TypeText("username")),
                         ActionStep(action = Action.Keyboard.PressKeys(listOf(KeyboardKey.ENTER))),

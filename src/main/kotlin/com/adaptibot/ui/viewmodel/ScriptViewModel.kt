@@ -4,7 +4,6 @@ import com.adaptibot.execution.ExecutionFacade
 import com.adaptibot.execution.dto.ExecutionStateDto
 import com.adaptibot.script.*
 import com.adaptibot.script.step.*
-import com.adaptibot.script.value.*
 import com.adaptibot.serialization.ScriptSerializer
 import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
@@ -119,7 +118,7 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
 
     fun addStepAfter(afterStepId: StepId, step: Step): Boolean {
         val result = script.addStepAfter(afterStepId, step)
-        if (!result) script.addStep(script.rootContainer.id, step)
+        if (!result) script.addStep(script.rootContainerId, step)
         syncStepsFromAggregate()
         markDirty()
         return result
@@ -157,7 +156,7 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
 
 
     /** The [ContainerId] of the script's root container – use this to add steps at the top level. */
-    val rootContainerId: ContainerId get() = script.rootContainer.id
+    val rootContainerId: ContainerId get() = script.rootContainerId
 
     // ── Logging ────────────────────────────────────────────────────────────────
 
