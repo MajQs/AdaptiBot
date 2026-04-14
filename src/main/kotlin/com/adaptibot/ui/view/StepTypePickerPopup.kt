@@ -51,7 +51,9 @@ class StepTypePickerPopup(
             typeRow(
                 typeBtn(StepType.GROUP,       "Group",  "📦"),
                 typeBtn(StepType.CONDITIONAL, "IF/ELSE","❓"),
-                typeBtn(StepType.OBSERVER,    "Observer","👁")
+                typeBtn(StepType.OBSERVER,    "Observer","👁"),
+                typeBtn(StepType.WHILE,       "While",  "🔁"),
+                typeBtn(StepType.FOR,         "For",    "🔢")
             )
         )
 

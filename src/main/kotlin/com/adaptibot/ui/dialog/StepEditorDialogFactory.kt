@@ -19,8 +19,8 @@ object StepEditorDialogFactory {
         is GroupStep       -> GroupStepDialog(step, owner).showAndWait().orElse(null)
         is ConditionalStep -> ConditionalStepDialog(step, owner).showAndWait().orElse(null)
         is ObserverStep    -> ObserverStepDialog(step, owner).showAndWait().orElse(null)
-        // Loop steps – dialogs not yet implemented
-        is WhileStep, is ForStep -> null
+        is WhileStep       -> WhileStepDialog(step, owner).showAndWait().orElse(null)
+        is ForStep         -> ForStepDialog(step, owner).showAndWait().orElse(null)
     }
 
     fun showNew(actionType: StepType, owner: Window?, defaultDelayBefore: Long = 0): Step? {
@@ -35,6 +35,8 @@ object StepEditorDialogFactory {
             StepType.GROUP         -> GroupStepDialog(GroupStep(), owner).showAndWait().orElse(null)
             StepType.CONDITIONAL   -> ConditionalStepDialog(ConditionalStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
             StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
+            StepType.WHILE         -> WhileStepDialog(WhileStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
+            StepType.FOR           -> ForStepDialog(ForStep(), owner).showAndWait().orElse(null)
         }
     }
 }
@@ -49,7 +51,9 @@ enum class StepType(val label: String) {
     WAIT("Wait"),
     GROUP("Group Block"),
     CONDITIONAL("Conditional Block"),
-    OBSERVER("Observer Step");
+    OBSERVER("Observer Step"),
+    WHILE("While Loop"),
+    FOR("For Loop");
 }
 
 // ── Base helper ──────────────────────────────────────────────────────────────
@@ -374,6 +378,69 @@ private class ObserverStepDialog(private val original: ObserverStep, owner: Wind
             if (bt == ButtonType.OK) original.copy(
                 label = labelField.text.ifBlank { null }?.trim(),
                 condition = condEditor.getCondition()
+            ) else null
+        }
+    }
+}
+
+// ── WhileStep Dialog ──────────────────────────────────────────────────────────
+
+private class WhileStepDialog(private val original: WhileStep, owner: Window?) : Dialog<WhileStep>() {
+    init {
+        title = "Edit While Loop"
+        owner?.let { initOwner(it) }
+        dialogPane.stylesheets.add(javaClass.getResource("/css/adaptibot.css")?.toExternalForm() ?: "")
+        dialogPane.style = "-fx-background-color: #1e1e2e;"
+
+        val grid = formGrid()
+        val labelField = labelField().apply { text = original.label ?: "" }
+        grid.add(formLabel("Label *"), 0, 0); grid.add(labelField, 1, 0)
+        grid.add(sectionTitle("LOOP CONDITION"), 0, 1, 2, 1)
+
+        val condEditor = ConditionEditor(original.condition)
+        grid.add(condEditor, 0, 2, 2, 1)
+
+        val scrollPane = ScrollPane(grid).apply {
+            isFitToWidth = true
+            styleClass.add("scroll-pane")
+            prefHeight = 520.0
+        }
+        dialogPane.content = scrollPane
+        dialogPane.buttonTypes.addAll(ButtonType.OK, ButtonType.CANCEL)
+        setResultConverter { bt ->
+            if (bt == ButtonType.OK) original.copy(
+                label = labelField.text.ifBlank { null }?.trim(),
+                condition = condEditor.getCondition()
+            ) else null
+        }
+    }
+}
+
+// ── ForStep Dialog ────────────────────────────────────────────────────────────
+
+private class ForStepDialog(private val original: ForStep, owner: Window?) : Dialog<ForStep>() {
+    init {
+        title = "Edit For Loop"
+        owner?.let { initOwner(it) }
+        dialogPane.stylesheets.add(javaClass.getResource("/css/adaptibot.css")?.toExternalForm() ?: "")
+        dialogPane.style = "-fx-background-color: #1e1e2e;"
+
+        val grid = formGrid()
+        val labelField = labelField().apply { text = original.label ?: "" }
+        val iterationsField = TextField(original.iterations.toString()).apply {
+            styleClass.add("form-field"); prefWidth = 100.0
+        }
+
+        grid.add(formLabel("Label *"), 0, 0); grid.add(labelField, 1, 0)
+        grid.add(sectionTitle("LOOP SETTINGS"), 0, 1, 2, 1)
+        grid.add(formLabel("Iterations"), 0, 2); grid.add(iterationsField, 1, 2)
+
+        dialogPane.content = grid
+        dialogPane.buttonTypes.addAll(ButtonType.OK, ButtonType.CANCEL)
+        setResultConverter { bt ->
+            if (bt == ButtonType.OK) original.copy(
+                label = labelField.text.ifBlank { null }?.trim(),
+                iterations = iterationsField.text.toIntOrNull()?.coerceAtLeast(1) ?: 1
             ) else null
         }
     }

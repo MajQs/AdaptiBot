@@ -26,7 +26,7 @@ class AddStepDialog(owner: Window?) : Dialog<StepType>() {
             "🖱  Mouse" to listOf(StepType.MOUSE_CLICK, StepType.MOUSE_DRAG, StepType.MOUSE_MOVE, StepType.MOUSE_SCROLL),
             "⌨  Keyboard" to listOf(StepType.KEYBOARD_TYPE, StepType.KEYBOARD_KEYS),
             "⏱  System" to listOf(StepType.WAIT),
-            "📦  Blocks" to listOf(StepType.GROUP, StepType.CONDITIONAL, StepType.OBSERVER)
+            "📦  Blocks" to listOf(StepType.GROUP, StepType.CONDITIONAL, StepType.OBSERVER, StepType.WHILE, StepType.FOR)
         )
 
         val toggleGroup = ToggleGroup()

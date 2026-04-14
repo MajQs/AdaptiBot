@@ -14,7 +14,6 @@ internal class ScriptInterpreter(
     private val scriptExecutionState: ScriptExecutionState,
     private val observerInterruptCoordinator: ObserverInterruptCoordinator
 ) {
-    private val logger = LoggerFactory.getLogger(ScriptInterpreter::class.java)
 
     init {
         observerInterruptCoordinator.setExecuteSequenceCallback { steps -> executeSteps(steps) }
@@ -53,10 +52,9 @@ internal class ScriptInterpreter(
             is ActionStep -> actionStepHandler.execute(step)
             is GroupStep -> executeSteps(step.container.steps)
             is ConditionalStep -> executeSteps(if (conditionEvaluator.evaluate(step.condition)) step.trueContainer.steps else step.elseContainer.steps)
+            is WhileStep -> while (conditionEvaluator.evaluate(step.condition)) { executeSteps(step.container.steps) }
+            is ForStep -> repeat(step.iterations) { executeSteps(step.container.steps) }
             is ObserverStep -> observerRegistry.activateObserver(step)
-            // ── Loop steps – not yet implemented ──────────────────────────────
-            is WhileStep -> throw UnsupportedOperationException("WhileStep execution not yet implemented")
-            is ForStep -> throw UnsupportedOperationException("ForStep execution not yet implemented")
         }
     }
 }
