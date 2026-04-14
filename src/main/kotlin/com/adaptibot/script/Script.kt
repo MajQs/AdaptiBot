@@ -21,13 +21,10 @@ class Script private constructor(
 
     private var rootContainer: StepContainer = rootContainer
 
-    /** The [ContainerId] of the script's root container – use this to add steps at the top level. */
     val rootContainerId: ContainerId get() = rootContainer.id
 
-    /** Flat list of top-level steps; use for iteration/execution. */
     val steps: List<Step> get() = rootContainer.steps
 
-    /** Internal accessor for serialization layer. */
     internal fun getRootContainer(): StepContainer = rootContainer
 
     // ── Metadata ───────────────────────────────────────────────────────────────
