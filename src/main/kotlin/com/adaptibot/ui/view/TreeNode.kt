@@ -14,11 +14,12 @@ import com.adaptibot.script.step.StepId
  *                   and steps without a secondary lookup.
  */
 sealed class TreeNode {
-    data class StepNode(val step: Step) : TreeNode()
+    data class StepNode(val step: Step, val parentDisabled: Boolean = false) : TreeNode()
 
     data class ContainerNode(
         val container: StepContainer,
         val parentStepId: StepId,
-        val label: String            // e.g. "IF TRUE", "IF ELSE"
+        val label: String,            // e.g. "IF TRUE", "IF ELSE"
+        val parentDisabled: Boolean = false
     ) : TreeNode()
 }

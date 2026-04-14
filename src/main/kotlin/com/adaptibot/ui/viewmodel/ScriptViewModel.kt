@@ -142,6 +142,19 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return result
     }
 
+    fun toggleStep(id: StepId): Boolean {
+        val step = script.findStep(id) ?: return false
+        val toggled: Step = when (step) {
+            is ActionStep      -> step.copy(enabled = !step.enabled)
+            is GroupStep       -> step.copy(enabled = !step.enabled)
+            is ObserverStep    -> step.copy(enabled = !step.enabled)
+            is ConditionalStep -> step.copy(enabled = !step.enabled)
+            is WhileStep       -> step.copy(enabled = !step.enabled)
+            is ForStep         -> step.copy(enabled = !step.enabled)
+        }
+        return updateStep(toggled)
+    }
+
     fun moveStep(stepId: StepId, targetContainerId: ContainerId, targetIndex: Int = Int.MAX_VALUE): Boolean {
         val result = script.moveStep(stepId, targetContainerId, targetIndex)
         if (result) { syncStepsFromAggregate(); markDirty() }

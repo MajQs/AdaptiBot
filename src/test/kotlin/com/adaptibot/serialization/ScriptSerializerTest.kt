@@ -20,5 +20,18 @@ class ScriptSerializerTest {
         assertEquals(originalScript.steps.size, loadedScript.steps.size)
     }
 
+    @Test
+    fun `step IDs are preserved after serialization round-trip`(@TempDir tempDir: Path) {
+        val originalScript = TestUtils.createTestScript("ID Round-trip Test")
+        val filePath = tempDir.resolve("id_test.json")
+
+        ScriptSerializer.saveToFile(originalScript, filePath)
+        val loadedScript = ScriptSerializer.loadFromFile(filePath)
+
+        val originalIds = originalScript.steps.map { it.id.value }
+        val loadedIds   = loadedScript.steps.map { it.id.value }
+        assertEquals(originalIds, loadedIds)
+    }
+
 }
 

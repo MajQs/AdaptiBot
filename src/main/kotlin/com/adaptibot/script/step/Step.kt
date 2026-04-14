@@ -6,36 +6,37 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class Step {
-    abstract val id: StepId
+    val id: StepId = StepId()
     abstract val label: String?
+    abstract val enabled: Boolean
 }
 
 @Serializable
 data class ActionStep(
-    override val id: StepId = StepId(),
     override val label: String? = null,
+    override val enabled: Boolean = true,
     val action: Action
 ) : Step()
 
 @Serializable
 data class GroupStep(
-    override val id: StepId = StepId(),
     override val label: String? = null,
+    override val enabled: Boolean = true,
     val container: StepContainer = StepContainer()
 ) : Step()
 
 @Serializable
 data class ObserverStep(
-    override val id: StepId = StepId(),
     override val label: String? = null,
+    override val enabled: Boolean = true,
     val condition: Condition,
     val container: StepContainer = StepContainer()
 ) : Step()
 
 @Serializable
 data class ConditionalStep(
-    override val id: StepId = StepId(),
     override val label: String? = null,
+    override val enabled: Boolean = true,
     val condition: Condition,
     val trueContainer: StepContainer = StepContainer(),
     val elseContainer: StepContainer = StepContainer()
@@ -43,16 +44,16 @@ data class ConditionalStep(
 
 @Serializable
 data class WhileStep(
-    override val id: StepId = StepId(),
     override val label: String? = null,
+    override val enabled: Boolean = true,
     val condition: Condition,
     val container: StepContainer = StepContainer()
 ) : Step()
 
 @Serializable
 data class ForStep(
-    override val id: StepId = StepId(),
     override val label: String? = null,
+    override val enabled: Boolean = true,
     val iterations: Int = 1,
     val container: StepContainer = StepContainer()
 ) : Step()
@@ -80,5 +81,3 @@ fun Step.withUpdatedContainer(old: StepContainer, new: StepContainer): Step? = w
         else                        -> null
     }
 }
-
-

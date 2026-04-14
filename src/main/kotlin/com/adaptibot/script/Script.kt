@@ -64,6 +64,8 @@ class Script private constructor(
         return true
     }
 
+    fun findStep(id: StepId): Step? = StepTreeEditor.find(rootContainer, id)
+
     fun moveStep(stepId: StepId, targetContainerId: ContainerId, targetIndex: Int = Int.MAX_VALUE): Boolean {
         val step = StepTreeEditor.find(rootContainer, stepId) ?: return false
         val afterRemove = StepTreeEditor.remove(rootContainer, stepId) ?: return false

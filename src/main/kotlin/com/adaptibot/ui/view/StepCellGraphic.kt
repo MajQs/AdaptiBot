@@ -36,6 +36,8 @@ object StepCellGraphic {
     fun build(
         step: Step,
         isActive: Boolean,
+        isEnabled: Boolean = true,
+        parentDisabled: Boolean = false,
         onAddAfter:  ((anchorX: Double, anchorY: Double) -> Unit)? = null,
         onAddInside: ((anchorX: Double, anchorY: Double) -> Unit)? = null
     ): VBox {
@@ -62,6 +64,7 @@ object StepCellGraphic {
             alignment = Pos.CENTER_LEFT
             styleClass.add("step-cell-box")
             if (isActive) styleClass.add("step-cell-active")
+            if (!isEnabled || parentDisabled) styleClass.add("step-cell-disabled")
         }
 
         // ── insert strips ─────────────────────────────────────────────────────
@@ -118,6 +121,7 @@ object StepCellGraphic {
     fun buildContainerHeader(
         container: StepContainer,
         label: String,
+        parentDisabled: Boolean = false,
         onAddInside: ((anchorX: Double, anchorY: Double) -> Unit)?
     ): VBox {
         val isTrueBranch = label == "IF TRUE"
@@ -132,6 +136,7 @@ object StepCellGraphic {
         val headerRow = HBox(6.0, headerLabel, spacer, countBadge).apply {
             alignment = Pos.CENTER_LEFT
             styleClass.add("branch-header-cell")
+            if (parentDisabled) styleClass.add("step-cell-disabled")
         }
 
         val insideStrip = buildInsertStrip(label = "inside")

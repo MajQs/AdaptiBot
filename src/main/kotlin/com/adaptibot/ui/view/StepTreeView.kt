@@ -56,9 +56,9 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
         }
     }
 
-    private fun buildItem(step: Step, expandedKeys: Set<String> = emptySet()): TreeItem<TreeNode> {
+    private fun buildItem(step: Step, expandedKeys: Set<String> = emptySet(), parentDisabled: Boolean = false): TreeItem<TreeNode> {
         val isNew = expandedKeys.isEmpty()
-        val item = TreeItem<TreeNode>(TreeNode.StepNode(step))
+        val item = TreeItem<TreeNode>(TreeNode.StepNode(step, parentDisabled))
         val stepKey = step.id.value
         item.isExpanded = when {
             isNew -> true
@@ -67,15 +67,16 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
             else -> false
         }
 
+        val childDisabled = parentDisabled || !step.enabled
         when (step) {
             is ConditionalStep -> {
-                item.children.add(buildContainerItem(step.trueContainer, step.id, "IF TRUE", expandedKeys))
-                item.children.add(buildContainerItem(step.elseContainer, step.id, "IF ELSE", expandedKeys))
+                item.children.add(buildContainerItem(step.trueContainer, step.id, "IF TRUE", expandedKeys, childDisabled))
+                item.children.add(buildContainerItem(step.elseContainer, step.id, "IF ELSE", expandedKeys, childDisabled))
             }
-            is GroupStep    -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
-            is ObserverStep -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
-            is WhileStep    -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
-            is ForStep      -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
+            is GroupStep    -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys, childDisabled)) }
+            is ObserverStep -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys, childDisabled)) }
+            is WhileStep    -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys, childDisabled)) }
+            is ForStep      -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys, childDisabled)) }
             is ActionStep   -> {}
         }
         return item
@@ -85,12 +86,13 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
         container: StepContainer,
         parentStepId: StepId,
         label: String,
-        expandedKeys: Set<String>
+        expandedKeys: Set<String>,
+        parentDisabled: Boolean = false
     ): TreeItem<TreeNode> {
         val isNew = expandedKeys.isEmpty()
-        val item = TreeItem<TreeNode>(TreeNode.ContainerNode(container, parentStepId, label))
+        val item = TreeItem<TreeNode>(TreeNode.ContainerNode(container, parentStepId, label, parentDisabled))
         item.isExpanded = if (isNew) true else container.id.value in expandedKeys
-        container.steps.forEach { item.children.add(buildItem(it, expandedKeys)) }
+        container.steps.forEach { item.children.add(buildItem(it, expandedKeys, parentDisabled)) }
         return item
     }
 }
@@ -136,6 +138,10 @@ private class ScriptTreeCell(
             val node = item
             if (e.clickCount == 2 && node is TreeNode.StepNode) onEdit(node.step)
         }
+        setOnContextMenuRequested { e ->
+            contextMenu?.show(this, e.screenX, e.screenY)
+            e.consume()
+        }
     }
 
     override fun updateItem(node: TreeNode?, empty: Boolean) {
@@ -148,9 +154,10 @@ private class ScriptTreeCell(
         when (node) {
             is TreeNode.ContainerNode -> {
                 graphic = StepCellGraphic.buildContainerHeader(
-                    container   = node.container,
-                    label       = node.label,
-                    onAddInside = { ax, ay -> pickerInsideContainer.show(scene.window, ax, ay) }
+                    container      = node.container,
+                    label          = node.label,
+                    parentDisabled = node.parentDisabled,
+                    onAddInside    = { ax, ay -> pickerInsideContainer.show(scene.window, ax, ay) }
                 )
                 text = null
                 contextMenu = buildContainerContextMenu(node)
@@ -160,10 +167,12 @@ private class ScriptTreeCell(
                 val isActive = activeId != null && node.step.id == activeId
                 val isSingleContainer = node.step.containers().size == 1
                 graphic = StepCellGraphic.build(
-                    step        = node.step,
-                    isActive    = isActive,
-                    onAddAfter  = { ax, ay -> picker.show(scene.window, ax, ay) },
-                    onAddInside = if (isSingleContainer) ({ ax, ay -> pickerInside.show(scene.window, ax, ay) }) else null
+                    step           = node.step,
+                    isActive       = isActive,
+                    isEnabled      = node.step.enabled,
+                    parentDisabled = node.parentDisabled,
+                    onAddAfter     = { ax, ay -> picker.show(scene.window, ax, ay) },
+                    onAddInside    = if (isSingleContainer) ({ ax, ay -> pickerInside.show(scene.window, ax, ay) }) else null
                 )
                 text = null
                 contextMenu = buildStepContextMenu(node.step)
@@ -206,7 +215,12 @@ private class ScriptTreeCell(
                 picker.show(scene.window, b?.minX ?: 0.0, b?.maxY?.plus(4) ?: 0.0)
             }
         }
-        menu.items.addAll(addAfterItem, SeparatorMenuItem(), editItem, SeparatorMenuItem(), deleteItem)
+        val toggleItem = if (step.enabled) {
+            MenuItem("⏸  Disable step").also { it.setOnAction { viewModel.toggleStep(step.id) } }
+        } else {
+            MenuItem("▶  Enable step").also { it.setOnAction { viewModel.toggleStep(step.id) } }
+        }
+        menu.items.addAll(addAfterItem, SeparatorMenuItem(), editItem, SeparatorMenuItem(), toggleItem, SeparatorMenuItem(), deleteItem)
         return menu
     }
 

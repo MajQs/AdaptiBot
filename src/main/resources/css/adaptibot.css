@@ -178,6 +178,15 @@
     -fx-border-style: dashed;
 }
 
+.step-cell-disabled {
+    -fx-opacity: 0.4;
+}
+
+.step-cell-disabled .step-label-text {
+    -fx-font-style: italic;
+    -fx-strikethrough: true;
+}
+
 /* Step type icons / badges */
 .step-badge {
     -fx-background-radius: 4;

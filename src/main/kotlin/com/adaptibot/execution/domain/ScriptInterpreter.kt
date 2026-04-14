@@ -46,7 +46,7 @@ internal class ScriptInterpreter(
     }
 
     private fun executeStep(step: Step) {
-        if (!scriptExecutionState.isRunning()) return
+        if (!scriptExecutionState.isRunning() || !step.enabled) return
         scriptExecutionState.recordActiveStep(step)
         when (step) {
             is ActionStep -> actionStepHandler.execute(step)
