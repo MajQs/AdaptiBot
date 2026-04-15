@@ -51,7 +51,7 @@ object StepCellGraphic {
         val detail = Label(detail(step)).apply {
             styleClass.add("step-detail-text")
         }
-        val textBox = VBox(2.0, labelText, detail).apply {
+        val textBox = VBox(0.0, labelText, detail).apply {
             alignment = Pos.CENTER_LEFT
         }
         val dragHandle = Label("⠿").apply {

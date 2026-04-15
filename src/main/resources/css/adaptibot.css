@@ -140,7 +140,7 @@
 .step-tree-view .tree-cell {
     -fx-background-color: transparent;
     -fx-text-fill: #cdd6f4;
-    -fx-padding: 2 4 2 4;
+    -fx-padding: 1 4 1 4;
 }
 
 .step-tree-view .tree-cell:selected {
@@ -156,7 +156,7 @@
 .step-cell-box {
     -fx-background-color: #24273a;
     -fx-background-radius: 6;
-    -fx-padding: 6 10 6 10;
+    -fx-padding: 3 10 3 10;
     -fx-spacing: 6;
     -fx-border-color: #313244;
     -fx-border-radius: 6;
@@ -208,7 +208,7 @@
 .branch-header-cell {
     -fx-background-color: #1e1e2e;
     -fx-background-radius: 4;
-    -fx-padding: 3 10 3 10;
+    -fx-padding: 2 10 2 10;
     -fx-spacing: 6;
     -fx-border-color: #313244;
     -fx-border-radius: 4;

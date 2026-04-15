@@ -6,13 +6,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class Step {
-    val id: StepId = StepId()
+    abstract val id: StepId
     abstract val label: String?
     abstract val enabled: Boolean
 }
 
 @Serializable
 data class ActionStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val enabled: Boolean = true,
     val action: Action
@@ -20,6 +21,7 @@ data class ActionStep(
 
 @Serializable
 data class GroupStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val enabled: Boolean = true,
     val container: StepContainer = StepContainer()
@@ -27,6 +29,7 @@ data class GroupStep(
 
 @Serializable
 data class ObserverStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val enabled: Boolean = true,
     val condition: Condition,
@@ -35,6 +38,7 @@ data class ObserverStep(
 
 @Serializable
 data class ConditionalStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val enabled: Boolean = true,
     val condition: Condition,
@@ -44,6 +48,7 @@ data class ConditionalStep(
 
 @Serializable
 data class WhileStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val enabled: Boolean = true,
     val condition: Condition,
@@ -52,6 +57,7 @@ data class WhileStep(
 
 @Serializable
 data class ForStep(
+    override val id: StepId = StepId(),
     override val label: String? = null,
     override val enabled: Boolean = true,
     val iterations: Int = 1,
