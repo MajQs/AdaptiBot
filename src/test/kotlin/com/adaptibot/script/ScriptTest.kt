@@ -22,7 +22,7 @@ class ScriptTest {
     private fun conditionalStep(vararg trueSteps: Step, elseSteps: List<Step> = emptyList()) =
         ConditionalStep(
             label = "cond",
-            condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.8))),
+            condition = Condition.ElementExists(Matcher.ImagePresent(ImagePattern("", 0.8))),
             trueContainer = StepContainer(steps = trueSteps.toList()),
             elseContainer = StepContainer(steps = elseSteps)
         )

@@ -10,5 +10,8 @@ sealed class Target {
 
     @Serializable
     data class AtImage(val pattern: ImagePattern) : Target()
+
+    @Serializable
+    data class AtText(val text: String) : Target()
 }
 

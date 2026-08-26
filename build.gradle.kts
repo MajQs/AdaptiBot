@@ -39,7 +39,10 @@ dependencies {
     
     // OpenCV for image recognition
     implementation("org.openpnp:opencv:4.7.0-0")
-    
+
+    // Tesseract OCR for text recognition
+    implementation("net.sourceforge.tess4j:tess4j:5.11.0")
+
     // Logging
     implementation("org.slf4j:slf4j-api:2.0.9")
     implementation("ch.qos.logback:logback-classic:1.4.14")
@@ -53,6 +56,10 @@ dependencies {
 
 application {
     mainClass.set("com.adaptibot.MainKt")
+}
+
+tasks.named<JavaExec>("run") {
+    workingDir = projectDir
 }
 
 tasks.withType<KotlinCompile> {

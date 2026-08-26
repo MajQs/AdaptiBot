@@ -14,7 +14,7 @@ import com.adaptibot.script.Script
 import com.adaptibot.script.ScriptId
 import com.adaptibot.script.ScriptSettings
 import com.adaptibot.script.step.Step
-import com.adaptibot.script.value.VisualMatcher
+import com.adaptibot.script.value.Matcher
 
 object TestUtils {
 
@@ -62,7 +62,7 @@ object TestUtils {
                 ConditionalStep(
                     label = "Check if element exists",
                     condition = Condition.ElementExists(
-                        matcher = VisualMatcher.ImagePresent(ImagePattern("", 0.8))
+                        matcher = Matcher.ImagePresent(ImagePattern("", 0.8))
                     ),
                     trueContainer = StepContainer(steps = listOf(
                         ActionStep(action = Action.Mouse.Click(target = Target.AtCoordinate(coordinate = Coordinate(50, 50))))

@@ -3,7 +3,7 @@ package com.adaptibot.ui.dialog
 import com.adaptibot.script.value.ColorTolerance
 import com.adaptibot.script.value.Coordinate
 import com.adaptibot.script.value.PixelColor
-import com.adaptibot.script.value.VisualMatcher
+import com.adaptibot.script.value.Matcher
 import com.adaptibot.ui.util.ColorPickerOverlay
 import javafx.geometry.Insets
 import javafx.geometry.Pos
@@ -15,7 +15,7 @@ import javafx.stage.Stage
 import javafx.stage.Window
 
 /**
- * Compound control for configuring a [VisualMatcher.ColorAt].
+ * Compound control for configuring a [Matcher.ColorAt].
  *
  * A single "🎯 Pick" button launches [ColorPickerOverlay] which – in one click –
  * captures the screen coordinates **and** the pixel colour at that point,
@@ -26,7 +26,7 @@ import javafx.stage.Window
  * - Manual edits to any spinner update the swatch immediately.
  */
 class ColorAtSection(
-    initial: VisualMatcher.ColorAt? = null
+    initial: Matcher.ColorAt? = null
 ) : VBox(10.0) {
 
     // ── Coordinate fields ──────────────────────────────────────────────────
@@ -109,13 +109,13 @@ class ColorAtSection(
     // ── Public API ─────────────────────────────────────────────────────────
 
     /**
-     * Returns a fully configured [VisualMatcher.ColorAt], or `null` when
+     * Returns a fully configured [Matcher.ColorAt], or `null` when
      * X or Y are missing / invalid (prevents saving an incomplete condition).
      */
-    fun getColorAt(): VisualMatcher.ColorAt? {
+    fun getColorAt(): Matcher.ColorAt? {
         val x   = xField.text.trim().toIntOrNull() ?: return null
         val y   = yField.text.trim().toIntOrNull() ?: return null
-        return VisualMatcher.ColorAt(
+        return Matcher.ColorAt(
             point     = Coordinate(x, y),
             expected  = PixelColor(
                 r = rSpinner.value,
@@ -127,8 +127,8 @@ class ColorAtSection(
         )
     }
 
-    /** Populates all fields from an existing [VisualMatcher.ColorAt]. */
-    fun setColorAt(value: VisualMatcher.ColorAt) {
+    /** Populates all fields from an existing [Matcher.ColorAt]. */
+    fun setColorAt(value: Matcher.ColorAt) {
         xField.text = value.point.x.toString()
         yField.text = value.point.y.toString()
         rSpinner.valueFactory.value = value.expected.r
@@ -194,4 +194,3 @@ class ColorAtSection(
             }
     }
 }
-

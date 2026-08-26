@@ -10,6 +10,12 @@ sealed class ActionExecutionException(message: String) : Exception(message) {
                 "Consider lowering the match threshold."
     )
 
+    class TextNotFound(
+        text: String
+    ) : ActionExecutionException(
+        "Text not found on screen: \"$text\". Make sure the text is visible"
+    )
+
     class CoordinateOutOfBounds(
         x: Int,
         y: Int,

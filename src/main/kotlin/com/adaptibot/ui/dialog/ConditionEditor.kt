@@ -2,7 +2,7 @@ package com.adaptibot.ui.dialog
 
 import com.adaptibot.script.value.Condition
 import com.adaptibot.script.value.ImagePattern
-import com.adaptibot.script.value.VisualMatcher
+import com.adaptibot.script.value.Matcher
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.control.*
@@ -19,7 +19,7 @@ class ConditionEditor(
     private val rootNodeWrapper = VBox()
 
     private var rootNode: ConditionNode = initial?.let { ConditionNode(it) }
-        ?: ConditionNode(Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7))))
+        ?: ConditionNode(Condition.ElementExists(Matcher.ImagePresent(ImagePattern("", 0.7))))
 
     init {
         isFitToWidth = true
@@ -50,7 +50,7 @@ private class ConditionNode(
     }
 
     private val childrenBox = VBox(4.0)
-    private val matcherEditor: VisualMatcherEditor
+    private val matcherEditor: MatcherEditor
 
     private var currentType: String
     private var condChildren: MutableList<ConditionNode> = mutableListOf()
@@ -59,7 +59,7 @@ private class ConditionNode(
         padding = Insets(4.0, 0.0, 4.0, 12.0)
         styleClass.add("condition-node")
 
-        matcherEditor = VisualMatcherEditor(
+        matcherEditor = MatcherEditor(
             initial = if (initial is Condition.ElementExists) initial.matcher else null
         )
 
@@ -83,14 +83,14 @@ private class ConditionNode(
     }
 
     private fun defaultCondition() =
-        Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))
+        Condition.ElementExists(Matcher.ImagePresent(ImagePattern("", 0.7)))
 
     fun getCondition(): Condition = when (typeCombo.value) {
         "AND" -> Condition.And(condChildren.map { it.getCondition() })
         "OR"  -> Condition.Or(condChildren.map { it.getCondition() })
         "NOT" -> Condition.Not(condChildren.firstOrNull()?.getCondition() ?: defaultCondition())
         else  -> Condition.ElementExists(
-            matcherEditor.getMatcher() ?: VisualMatcher.ImagePresent(ImagePattern("", 0.7))
+            matcherEditor.getMatcher() ?: Matcher.ImagePresent(ImagePattern("", 0.7))
         )
     }
 

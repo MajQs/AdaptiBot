@@ -33,9 +33,9 @@ object StepEditorDialogFactory {
             StepType.KEYBOARD_KEYS -> ActionStepDialog(ActionStep(action = Action.Keyboard.PressKeys(emptyList(), delayBefore = defaultDelayBefore)), owner).showAndWait().orElse(null)
             StepType.WAIT          -> ActionStepDialog(ActionStep(action = Action.System.Wait(500, delayBefore = defaultDelayBefore)), owner).showAndWait().orElse(null)
             StepType.GROUP         -> GroupStepDialog(GroupStep(), owner).showAndWait().orElse(null)
-            StepType.CONDITIONAL   -> ConditionalStepDialog(ConditionalStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
-            StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
-            StepType.WHILE         -> WhileStepDialog(WhileStep(condition = Condition.ElementExists(VisualMatcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
+            StepType.CONDITIONAL   -> ConditionalStepDialog(ConditionalStep(condition = Condition.ElementExists(Matcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
+            StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(condition = Condition.ElementExists(Matcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
+            StepType.WHILE         -> WhileStepDialog(WhileStep(condition = Condition.ElementExists(Matcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
             StepType.FOR           -> ForStepDialog(ForStep(), owner).showAndWait().orElse(null)
         }
     }

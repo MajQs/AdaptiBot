@@ -271,6 +271,7 @@ object StepCellGraphic {
     private fun targetShort(target: ScriptTarget?): String = when (target) {
         is ScriptTarget.AtCoordinate -> "(${target.coordinate.x}, ${target.coordinate.y})"
         is ScriptTarget.AtImage      -> "[image]"
+        is ScriptTarget.AtText       -> "[text: \"${target.text.take(20)}${if (target.text.length > 20) "…" else ""}\"]"
         null                         -> "?"
     }
 }

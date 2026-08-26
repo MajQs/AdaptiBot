@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class Condition {
     @Serializable
-    data class ElementExists(val matcher: VisualMatcher) : Condition()
+    data class ElementExists(val matcher: Matcher) : Condition()
 
     @Serializable
     data class And(val conditions: List<Condition>) : Condition()

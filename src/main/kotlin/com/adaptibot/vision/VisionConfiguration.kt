@@ -3,17 +3,21 @@ package com.adaptibot.vision
 import com.adaptibot.infrastructure.ScreenCapture
 import com.adaptibot.vision.domain.ImageFinder
 import com.adaptibot.vision.domain.ImageMatcher
-import com.adaptibot.vision.domain.PixelColorReader
+import com.adaptibot.vision.domain.TextFinder
+import com.adaptibot.vision.domain.TextRecognizer
 
 object VisionConfiguration {
 
     val visionFacade: VisionFacade by lazy {
         VisionFacade(
-            elementFinder = ImageFinder(
+            imageFinder = ImageFinder(
                 screenCapture = ScreenCapture,
                 imageMatcher = ImageMatcher()
             ),
-            pixelColorReader = PixelColorReader()
+            textFinder = TextFinder(
+                screenCapture = ScreenCapture,
+                textRecognizer = TextRecognizer()
+            )
         )
     }
 }
