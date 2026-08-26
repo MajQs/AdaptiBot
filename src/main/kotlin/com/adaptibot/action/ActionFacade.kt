@@ -1,5 +1,6 @@
 package com.adaptibot.action
 
+import com.adaptibot.action.adapter.InputStateTracker
 import com.adaptibot.action.domain.ActionHandler
 import com.adaptibot.common.InterruptibleSleep
 import com.adaptibot.script.value.Action
@@ -34,6 +35,13 @@ class ActionFacade internal constructor(
             .firstOrNull { (key, _) -> key.isInstance(action) }
             ?.value?.handle(action)
     }
+
+    /**
+     * Releases every keyboard key and mouse button still held down by previously executed actions.
+     * Meant to be called when a script session ends — especially after an abrupt stop — so the user
+     * is never left with a stuck modifier key or mouse button.
+     */
+    fun releaseAllInputs() = InputStateTracker.releaseAll()
 
     private fun waitForDelay(delayMs: Long) {
         InterruptibleSleep.sleep(delayMs)

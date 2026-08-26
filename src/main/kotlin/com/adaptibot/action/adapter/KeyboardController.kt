@@ -1,46 +1,34 @@
 package com.adaptibot.action.adapter
 
-import com.adaptibot.action.adapter.winapi.User32
 import com.adaptibot.action.adapter.winapi.VirtualKeyCodes
 import com.adaptibot.common.InterruptibleSleep
 import com.adaptibot.script.value.KeyboardKey
-import org.slf4j.LoggerFactory
 
 internal object KeyboardController {
 
-    private val logger = LoggerFactory.getLogger(KeyboardController::class.java)
-    private val user32 = User32.Companion.INSTANCE
-
-    private const val KEYEVENTF_KEYUP = 0x0002
-    private const val KEYEVENTF_UNICODE = 0x0004
+    private const val TYPE_CHARACTER_HOLD_MS = 10L
+    private const val TYPE_CHARACTER_GAP_MS = 20L
+    private const val KEY_PRESS_GAP_MS = 20L
+    private const val COMBINATION_HOLD_MS = 50L
 
     fun typeText(text: String) {
         text.forEach { char ->
-            typeCharacter(char)
-            InterruptibleSleep.sleep(20)
+            InputStateTracker.holdingCharacter(char) {
+                InterruptibleSleep.sleep(TYPE_CHARACTER_HOLD_MS)
+            }
+            InterruptibleSleep.sleep(TYPE_CHARACTER_GAP_MS)
         }
-    }
-
-    private fun typeCharacter(char: Char) {
-        val vkCode = char.code.toShort()
-        user32.keybd_event(0.toByte(), vkCode, KEYEVENTF_UNICODE, 0)
-        InterruptibleSleep.sleep(10)
-        user32.keybd_event(0.toByte(), vkCode, (KEYEVENTF_UNICODE or KEYEVENTF_KEYUP), 0)
     }
 
     fun pressKeys(keys: List<KeyboardKey>) {
-        val vkCodes = keys.map { VirtualKeyCodes.getKeyCode(it) }
+        val virtualKeyCodes = keys.map { VirtualKeyCodes.getKeyCode(it) }
 
-        vkCodes.forEach { vkCode ->
-            user32.keybd_event(vkCode.toByte(), 0, 0, 0)
-            InterruptibleSleep.sleep(20)
-        }
-
-        InterruptibleSleep.sleep(50)
-
-        vkCodes.reversed().forEach { vkCode ->
-            user32.keybd_event(vkCode.toByte(), 0, KEYEVENTF_KEYUP, 0)
-            InterruptibleSleep.sleep(20)
+        InputStateTracker.holdingKeys(
+            virtualKeyCodes = virtualKeyCodes,
+            afterEachPress = { InterruptibleSleep.sleep(KEY_PRESS_GAP_MS) }
+        ) {
+            InterruptibleSleep.sleep(COMBINATION_HOLD_MS)
         }
     }
 }
+

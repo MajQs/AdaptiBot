@@ -53,20 +53,20 @@ internal object MouseController {
             MouseButton.RIGHT  -> Pair(User32.MOUSEEVENTF_RIGHTDOWN,  User32.MOUSEEVENTF_RIGHTUP)
             MouseButton.MIDDLE -> Pair(User32.MOUSEEVENTF_MIDDLEDOWN, User32.MOUSEEVENTF_MIDDLEUP)
         }
-        user32.mouse_event(downFlag, 0, 0, 0, 0)
-        InterruptibleSleep.sleep(holdDuration)
-        user32.mouse_event(upFlag, 0, 0, 0, 0)
+        InputStateTracker.holdingMouseButton(downFlag, upFlag) {
+            InterruptibleSleep.sleep(holdDuration)
+        }
     }
 
     fun drag(from: Coordinate?, to: Coordinate) {
         if (from != null) {
             moveTo(from)
         }
-        user32.mouse_event(User32.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-        InterruptibleSleep.sleep(50)
-        moveTo(to)     // TODO implement smooth dragging with configurable speed
-        InterruptibleSleep.sleep(50)
-        user32.mouse_event(User32.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+        InputStateTracker.holdingMouseButton(User32.MOUSEEVENTF_LEFTDOWN, User32.MOUSEEVENTF_LEFTUP) {
+            InterruptibleSleep.sleep(50)
+            moveTo(to)     // TODO implement smooth dragging with configurable speed
+            InterruptibleSleep.sleep(50)
+        }
     }
 
     fun scroll(amount: Int, direction: MouseScrollDirection) {
