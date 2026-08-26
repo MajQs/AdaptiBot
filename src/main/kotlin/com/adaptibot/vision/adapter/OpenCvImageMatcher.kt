@@ -1,4 +1,4 @@
-package com.adaptibot.vision.domain
+package com.adaptibot.vision.adapter
 
 import com.adaptibot.script.value.Coordinate
 import com.adaptibot.vision.dto.MatchDataDto
@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 
-internal class ImageMatcher {
+internal class OpenCvImageMatcher {
 
-    private val logger = LoggerFactory.getLogger(ImageMatcher::class.java)
+    private val logger = LoggerFactory.getLogger(OpenCvImageMatcher::class.java)
 
     init {
         try {

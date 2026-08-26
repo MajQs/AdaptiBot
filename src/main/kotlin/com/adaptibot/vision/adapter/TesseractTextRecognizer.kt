@@ -1,16 +1,17 @@
-package com.adaptibot.vision.domain
+package com.adaptibot.vision.adapter
 
 import com.adaptibot.script.value.Coordinate
 import com.adaptibot.vision.dto.MatchDataDto
+import net.sourceforge.tess4j.ITessAPI
 import net.sourceforge.tess4j.Tesseract
 import net.sourceforge.tess4j.TesseractException
 import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
 import java.nio.file.Paths
 
-internal class TextRecognizer {
+internal class TesseractTextRecognizer {
 
-    private val logger = LoggerFactory.getLogger(TextRecognizer::class.java)
+    private val logger = LoggerFactory.getLogger(TesseractTextRecognizer::class.java)
 
     private val tesseract: Tesseract = Tesseract().apply {
         setDatapath(resolveTessdataPath())
@@ -24,7 +25,7 @@ internal class TextRecognizer {
 
     fun findText(screenshot: BufferedImage, text: String): MatchDataDto? {
         return try {
-            val words = tesseract.getWords(screenshot, net.sourceforge.tess4j.ITessAPI.TessPageIteratorLevel.RIL_WORD)
+            val words = tesseract.getWords(screenshot, ITessAPI.TessPageIteratorLevel.RIL_WORD)
 
             val needle = text.trim().lowercase()
 
@@ -55,10 +56,4 @@ internal class TextRecognizer {
             null
         }
     }
-
-    /**
-     * Returns `true` if [text] appears anywhere on [screenshot].
-     */
-    fun isTextPresent(screenshot: BufferedImage, text: String): Boolean =
-        findText(screenshot, text) != null
 }

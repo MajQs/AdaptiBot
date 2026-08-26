@@ -2,9 +2,9 @@ package com.adaptibot.vision
 
 import com.adaptibot.infrastructure.ScreenCapture
 import com.adaptibot.vision.domain.ImageFinder
-import com.adaptibot.vision.domain.ImageMatcher
+import com.adaptibot.vision.adapter.OpenCvImageMatcher
 import com.adaptibot.vision.domain.TextFinder
-import com.adaptibot.vision.domain.TextRecognizer
+import com.adaptibot.vision.adapter.TesseractTextRecognizer
 
 object VisionConfiguration {
 
@@ -12,11 +12,11 @@ object VisionConfiguration {
         VisionFacade(
             imageFinder = ImageFinder(
                 screenCapture = ScreenCapture,
-                imageMatcher = ImageMatcher()
+                imageMatcher = OpenCvImageMatcher()
             ),
             textFinder = TextFinder(
                 screenCapture = ScreenCapture,
-                textRecognizer = TextRecognizer()
+                textRecognizer = TesseractTextRecognizer()
             )
         )
     }
