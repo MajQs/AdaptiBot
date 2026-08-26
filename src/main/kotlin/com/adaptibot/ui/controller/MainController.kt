@@ -1,6 +1,8 @@
 package com.adaptibot.ui.controller
 
 import com.adaptibot.execution.ExecutionConfiguration
+import com.adaptibot.hotkey.HotkeyConfiguration
+import com.adaptibot.hotkey.HotkeyFacade
 import com.adaptibot.script.step.ContainerId
 import com.adaptibot.script.step.StepId
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
@@ -8,6 +10,7 @@ import com.adaptibot.ui.dialog.*
 import com.adaptibot.ui.view.*
 import com.adaptibot.ui.viewmodel.LogMessage
 import com.adaptibot.ui.viewmodel.ScriptViewModel
+import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.fxml.Initializable
 import javafx.scene.control.SplitPane
@@ -25,6 +28,8 @@ class MainController : Initializable {
 
     private lateinit var viewModel: ScriptViewModel
 
+    private var hotkeyFacade: HotkeyFacade? = null
+
     override fun initialize(location: URL?, resources: ResourceBundle?) {
         // Build ViewModel with event publisher
         val eventPublisher = UiExecutionEventPublisher(null) // placeholder, set below
@@ -32,6 +37,8 @@ class MainController : Initializable {
         viewModel = ScriptViewModel(facade)
         // Wire publisher back to viewModel
         eventPublisher.attachViewModel(viewModel)
+
+        registerStopHotkey()
 
         // Build UI
         val toolbar = ToolbarView(
@@ -77,6 +84,11 @@ class MainController : Initializable {
         }
 
         viewModel.addLog(LogMessage.info("AdaptiBot ready."))
+    }
+
+    fun shutdown() {
+        hotkeyFacade?.close()
+        hotkeyFacade = null
     }
 
     // ── File operations ────────────────────────────────────────────────────────
@@ -155,5 +167,24 @@ class MainController : Initializable {
         alert.dialogPane.stylesheets.add(javaClass.getResource("/css/adaptibot.css")?.toExternalForm() ?: "")
         alert.showAndWait()
     }
-}
 
+    private fun registerStopHotkey() {
+        val hotkeys = HotkeyConfiguration.getFacade()
+        hotkeyFacade = hotkeys
+
+        val registered = hotkeys.registerStopHotkey {
+            Platform.runLater { viewModel.stopExecutionByHotkey(hotkeys.stopHotkeyName) }
+        }
+
+        if (registered) {
+            viewModel.addLog(LogMessage.info("Emergency stop shortcut: ${hotkeys.stopHotkeyName}"))
+        } else {
+            viewModel.addLog(
+                LogMessage.error(
+                    "Shortcut ${hotkeys.stopHotkeyName} is taken by another application — " +
+                        "stopping is only possible from the toolbar"
+                )
+            )
+        }
+    }
+}

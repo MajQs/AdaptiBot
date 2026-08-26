@@ -114,6 +114,12 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         addLog(LogMessage.info("⏹ Stop requested…"))
     }
 
+    fun stopExecutionByHotkey(shortcut: String) {
+        if (!isRunningProperty.get()) return
+        executionFacade.stopScript()
+        addLog(LogMessage.info("⏹ Stop requested via $shortcut"))
+    }
+
     // ── Step tree mutations ────────────────────────────────────────────────────
 
     fun addStepAfter(afterStepId: StepId, step: Step): Boolean {
