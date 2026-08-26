@@ -25,9 +25,14 @@ internal class ScriptExecutionState(
         return currentContext
     }
 
-    fun stop() {
+    fun stop(): Boolean {
+        if (currentContext.state != ExecutionStateDto.RUNNING) {
+            logger.debug("Stop requested but no session is running")
+            return false
+        }
         eventPublisher.logExecutionStop()
         currentContext = currentContext.copy(state = ExecutionStateDto.STOPPED)
+        return true
     }
 
     fun completeExecution() {

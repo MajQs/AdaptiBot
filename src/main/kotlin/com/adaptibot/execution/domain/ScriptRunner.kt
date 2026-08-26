@@ -17,6 +17,7 @@ internal class ScriptRunner(
             .runLoop()
     }
 
+    @Synchronized
     fun stop() {
         scriptExecutionState.stop()
 
