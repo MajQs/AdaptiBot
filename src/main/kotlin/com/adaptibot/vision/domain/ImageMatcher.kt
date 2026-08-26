@@ -1,6 +1,7 @@
 package com.adaptibot.vision.domain
 
 import com.adaptibot.script.value.Coordinate
+import com.adaptibot.vision.dto.MatchDataDto
 import nu.pattern.OpenCV
 import org.opencv.core.Core
 import org.opencv.core.CvType
@@ -27,7 +28,7 @@ internal class ImageMatcher {
     fun findBestMatch(
         screenshot: BufferedImage,
         template: BufferedImage
-    ): MatchResult? {
+    ): MatchDataDto? {
         try {
             val screenshotMat = bufferedImageToMat(screenshot)
             val templateMat = bufferedImageToMat(template)
@@ -60,14 +61,9 @@ internal class ImageMatcher {
 
             logger.debug("Best image match: confidence=$matchValue, position=($centerX, $centerY)")
 
-            return MatchResult(
+            return MatchDataDto(
                 coordinate = Coordinate(centerX, centerY),
-                confidence = matchValue,
-                topLeft = Coordinate(topLeft.x.toInt(), topLeft.y.toInt()),
-                bottomRight = Coordinate(
-                    (topLeft.x + templateCols).toInt(),
-                    (topLeft.y + templateRows).toInt()
-                )
+                confidence = matchValue
             )
         } catch (e: Exception) {
             logger.error("Error during image matching", e)
@@ -93,12 +89,5 @@ internal class ImageMatcher {
         return mat
     }
 }
-
-data class MatchResult(
-    val coordinate: Coordinate,
-    val confidence: Double,
-    val topLeft: Coordinate,
-    val bottomRight: Coordinate,
-)
 
 class ImageMatcherException(message: String, cause: Throwable? = null) : Exception(message, cause)

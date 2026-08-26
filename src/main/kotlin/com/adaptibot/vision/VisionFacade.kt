@@ -2,7 +2,7 @@ package com.adaptibot.vision
 
 import com.adaptibot.vision.domain.ImageFinder
 import com.adaptibot.vision.domain.TextFinder
-import com.adaptibot.vision.dto.MatchData
+import com.adaptibot.vision.dto.MatchDataDto
 
 /**
  * The module is responsible for **reading the visual state of the screen**:
@@ -18,12 +18,10 @@ class VisionFacade internal constructor(
 
     /**
      * Searches the current screenshot for the given [query].
-     * @return [MatchData] with the match coordinates and confidence score, or `null` if not found.
+     * @return [MatchDataDto] with the match coordinates and confidence score, or `null` if not found.
      */
-    fun find(query: VisionQuery): MatchData? = when (query) {
+    fun find(query: VisionQuery): MatchDataDto? = when (query) {
         is VisionQuery.ByImage -> imageFinder.find(query.pattern)
-            ?.let { MatchData(coordinate = it.coordinate, confidence = it.confidence) }
         is VisionQuery.ByText  -> textFinder.find(query.text)
-            ?.let { MatchData(coordinate = it.coordinate, confidence = it.confidence) }
     }
 }
