@@ -64,6 +64,22 @@ cd AdaptiBot
 | `./gradlew test` | Execute unit tests |
 | `./gradlew build` | Compile, test and package the application |
 
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Shift+F12` | **Emergency stop** of the running script — works system-wide |
+
+While a script is running the application controls the mouse, so the toolbar **Stop** button is
+usually out of reach. The shortcut is registered system-wide (WinAPI `RegisterHotKey`, no
+administrator rights required) and aborts the script immediately: pending waits are interrupted and
+any keys or mouse buttons still held down are released.
+
+Limitations: the shortcut does not reach windows running with a higher integrity level
+(applications started as administrator) and some full-screen games with anti-cheat protection.
+If another application already reserved `Ctrl+Shift+F12`, AdaptiBot logs a warning at startup and
+keeps working — stopping is then only possible from the toolbar.
+
 ## Project Scope
 
 The application delivers the following capabilities:

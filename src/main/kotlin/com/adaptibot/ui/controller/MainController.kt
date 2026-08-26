@@ -38,7 +38,7 @@ class MainController : Initializable {
         // Wire publisher back to viewModel
         eventPublisher.attachViewModel(viewModel)
 
-        registerStopHotkey()
+        val stopHotkeyName = registerStopHotkey()
 
         // Build UI
         val toolbar = ToolbarView(
@@ -46,7 +46,8 @@ class MainController : Initializable {
             onNew = ::onNew,
             onOpen = ::onOpen,
             onSave = ::onSave,
-            onSettings = ::onSettings
+            onSettings = ::onSettings,
+            stopHotkeyName = stopHotkeyName
         )
 
         val scriptPanel = ScriptPanel(
@@ -168,7 +169,7 @@ class MainController : Initializable {
         alert.showAndWait()
     }
 
-    private fun registerStopHotkey() {
+    private fun registerStopHotkey(): String? {
         val hotkeys = HotkeyConfiguration.getFacade()
         hotkeyFacade = hotkeys
 
@@ -176,15 +177,17 @@ class MainController : Initializable {
             Platform.runLater { viewModel.stopExecutionByHotkey(hotkeys.stopHotkeyName) }
         }
 
-        if (registered) {
-            viewModel.addLog(LogMessage.info("Emergency stop shortcut: ${hotkeys.stopHotkeyName}"))
-        } else {
+        if (!registered) {
             viewModel.addLog(
                 LogMessage.error(
                     "Shortcut ${hotkeys.stopHotkeyName} is taken by another application — " +
                         "stopping is only possible from the toolbar"
                 )
             )
+            return null
         }
+
+        viewModel.addLog(LogMessage.info("Emergency stop shortcut: ${hotkeys.stopHotkeyName}"))
+        return hotkeys.stopHotkeyName
     }
 }

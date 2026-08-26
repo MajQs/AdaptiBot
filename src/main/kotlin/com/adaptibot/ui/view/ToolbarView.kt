@@ -12,7 +12,8 @@ class ToolbarView(
     private val onNew: () -> Unit,
     private val onOpen: () -> Unit,
     private val onSave: () -> Unit,
-    private val onSettings: () -> Unit
+    private val onSettings: () -> Unit,
+    private val stopHotkeyName: String? = null
 ) : HBox() {
 
     val runButton = Button("▶  Run")
@@ -59,6 +60,12 @@ class ToolbarView(
             styleClass.add("toolbar-btn-danger")
             disableProperty().bind(Bindings.not(viewModel.isRunningProperty))
             setOnAction { viewModel.stopExecution() }
+            stopHotkeyName?.let { shortcut ->
+                graphic = Label(shortcut).apply { styleClass.add("hotkey-hint") }
+                contentDisplay = ContentDisplay.BOTTOM
+                graphicTextGap = 0.0
+                tooltip = Tooltip("Stop the script  ($shortcut)")
+            }
         }
 
         val sep3 = buildSeparator()
