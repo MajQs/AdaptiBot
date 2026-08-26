@@ -1,6 +1,7 @@
 package com.adaptibot.vision.adapter
 
 import com.adaptibot.script.value.Coordinate
+import com.adaptibot.vision.domain.ImageMatcher
 import com.adaptibot.vision.dto.MatchDataDto
 import nu.pattern.OpenCV
 import org.opencv.core.Core
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 
-internal class OpenCvImageMatcher {
+internal class OpenCvImageMatcher : ImageMatcher {
 
     private val logger = LoggerFactory.getLogger(OpenCvImageMatcher::class.java)
 
@@ -25,7 +26,7 @@ internal class OpenCvImageMatcher {
         }
     }
 
-    fun findBestMatch(
+    override fun match(
         screenshot: BufferedImage,
         template: BufferedImage
     ): MatchDataDto? {

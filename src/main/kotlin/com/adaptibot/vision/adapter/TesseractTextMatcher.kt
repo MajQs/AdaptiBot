@@ -1,6 +1,7 @@
 package com.adaptibot.vision.adapter
 
 import com.adaptibot.script.value.Coordinate
+import com.adaptibot.vision.domain.TextMatcher
 import com.adaptibot.vision.dto.MatchDataDto
 import net.sourceforge.tess4j.ITessAPI
 import net.sourceforge.tess4j.Tesseract
@@ -9,9 +10,9 @@ import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
 import java.nio.file.Paths
 
-internal class TesseractTextRecognizer {
+internal class TesseractTextMatcher : TextMatcher {
 
-    private val logger = LoggerFactory.getLogger(TesseractTextRecognizer::class.java)
+    private val logger = LoggerFactory.getLogger(TesseractTextMatcher::class.java)
 
     private val tesseract: Tesseract = Tesseract().apply {
         setDatapath(resolveTessdataPath())
@@ -23,7 +24,7 @@ internal class TesseractTextRecognizer {
     private fun resolveTessdataPath(): String =
         Paths.get("tessdata").toAbsolutePath().toString()
 
-    fun findText(screenshot: BufferedImage, text: String): MatchDataDto? {
+    override fun match(screenshot: BufferedImage, text: String): MatchDataDto? {
         return try {
             val words = tesseract.getWords(screenshot, ITessAPI.TessPageIteratorLevel.RIL_WORD)
 

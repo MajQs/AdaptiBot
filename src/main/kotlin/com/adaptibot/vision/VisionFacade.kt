@@ -1,7 +1,6 @@
 package com.adaptibot.vision
 
-import com.adaptibot.vision.domain.ImageFinder
-import com.adaptibot.vision.domain.TextFinder
+import com.adaptibot.vision.domain.VisionFinder
 import com.adaptibot.vision.dto.MatchDataDto
 
 /**
@@ -12,16 +11,12 @@ import com.adaptibot.vision.dto.MatchDataDto
  * @see VisionConfiguration
  */
 class VisionFacade internal constructor(
-    private val imageFinder: ImageFinder,
-    private val textFinder: TextFinder,
+    private val visionFinder: VisionFinder,
 ) {
 
     /**
      * Searches the current screenshot for the given [query].
      * @return [MatchDataDto] with the match coordinates and confidence score, or `null` if not found.
      */
-    fun find(query: VisionQuery): MatchDataDto? = when (query) {
-        is VisionQuery.ByImage -> imageFinder.find(query.pattern)
-        is VisionQuery.ByText  -> textFinder.find(query.text)
-    }
+    fun find(query: VisionQuery): MatchDataDto? = visionFinder.find(query)
 }
