@@ -18,6 +18,11 @@ internal class ActionStepHandler(
         try {
             actionFacade.execute(step.action)
             eventPublisher.logStepSuccess(stepName, startTime.duration())
+        } catch (e: InterruptedException) {
+            // Stop requested — do not swallow, let the interpreter unwind immediately
+            Thread.currentThread().interrupt()
+            logger.debug("Step interrupted: {}", stepName)
+            throw e
         } catch (e: ActionExecutionException) {
             eventPublisher.logStepFailure(stepName, startTime.duration(), e.message ?: "Action execution failed")
         } catch (e: Exception) {
@@ -25,6 +30,9 @@ internal class ActionStepHandler(
             eventPublisher.logStepFailure(stepName, startTime.duration(), e.message ?: "Unexpected error")
         }
     }
+
+    /** Releases keys and mouse buttons still held down after an aborted action. */
+    fun releaseHeldInputs() = actionFacade.releaseAllInputs()
 
     private fun extractStepName(step: ActionStep): String =
         step.label ?: step.action::class.simpleName ?: "Action"

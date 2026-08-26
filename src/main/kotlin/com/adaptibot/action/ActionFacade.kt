@@ -1,6 +1,7 @@
 package com.adaptibot.action
 
 import com.adaptibot.action.domain.ActionHandler
+import com.adaptibot.common.InterruptibleSleep
 import com.adaptibot.script.value.Action
 
 /**
@@ -35,13 +36,7 @@ class ActionFacade internal constructor(
     }
 
     private fun waitForDelay(delayMs: Long) {
-        if (delayMs > 0) {
-            try {
-                Thread.sleep(delayMs)
-            } catch (_: InterruptedException) {
-                Thread.currentThread().interrupt()
-            }
-        }
+        InterruptibleSleep.sleep(delayMs)
     }
 }
 

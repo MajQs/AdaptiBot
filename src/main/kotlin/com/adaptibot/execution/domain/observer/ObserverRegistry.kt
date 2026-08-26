@@ -1,6 +1,7 @@
 package com.adaptibot.execution.domain.observer
 
 import com.adaptibot.script.step.ObserverStep
+import com.adaptibot.common.InterruptibleSleep
 import com.adaptibot.execution.domain.ConditionEvaluator
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
@@ -61,9 +62,14 @@ internal class ObserverRegistry(
     }
 
     private fun runObserverLoop() {
-        while (isRunning.get() && !Thread.currentThread().isInterrupted) {
-            checkObservers()
-            Thread.sleep(checkDelayMs)
+        try {
+            while (isRunning.get() && !Thread.currentThread().isInterrupted) {
+                checkObservers()
+                InterruptibleSleep.sleep(checkDelayMs)
+            }
+        } catch (_: InterruptedException) {
+            Thread.currentThread().interrupt()
+            logger.debug("Observer loop interrupted")
         }
     }
 
@@ -89,4 +95,3 @@ internal class ObserverRegistry(
         }
     }
 }
-

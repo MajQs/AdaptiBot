@@ -1,12 +1,13 @@
 package com.adaptibot.action.domain
 
+import com.adaptibot.common.InterruptibleSleep
 import com.adaptibot.script.value.Action.System
 
 internal class SystemActionHandler : ActionHandler<System> {
     override fun handle(action: System) {
         return when (action) {
             is System.Wait -> {
-                Thread.sleep(action.milliseconds)
+                InterruptibleSleep.sleep(action.milliseconds)
             }
 
             is System.LaunchApplication -> {
