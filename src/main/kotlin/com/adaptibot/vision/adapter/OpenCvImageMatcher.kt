@@ -3,6 +3,8 @@ package com.adaptibot.vision.adapter
 import com.adaptibot.script.value.Coordinate
 import com.adaptibot.vision.domain.ImageMatcher
 import com.adaptibot.vision.dto.MatchDataDto
+import com.adaptibot.vision.metrics.VisionMetrics
+import com.adaptibot.vision.metrics.VisionMetrics.Phase
 import nu.pattern.OpenCV
 import org.opencv.core.Core
 import org.opencv.core.CvType
@@ -31,8 +33,8 @@ internal class OpenCvImageMatcher : ImageMatcher {
         template: BufferedImage
     ): MatchDataDto? {
         try {
-            val screenshotMat = bufferedImageToMat(screenshot)
-            val templateMat = bufferedImageToMat(template)
+            val screenshotMat = VisionMetrics.measure(Phase.TO_MAT) { bufferedImageToMat(screenshot) }
+            val templateMat = VisionMetrics.measure(Phase.TO_MAT) { bufferedImageToMat(template) }
 
             val templateCols = templateMat.cols()
             val templateRows = templateMat.rows()
@@ -48,9 +50,11 @@ internal class OpenCvImageMatcher : ImageMatcher {
             }
 
             val result = Mat(resultRows, resultCols, CvType.CV_32FC1)
-            Imgproc.matchTemplate(screenshotMat, templateMat, result, Imgproc.TM_CCOEFF_NORMED)
+            VisionMetrics.measure(Phase.MATCH_TEMPLATE) {
+                Imgproc.matchTemplate(screenshotMat, templateMat, result, Imgproc.TM_CCOEFF_NORMED)
+            }
 
-            val mmr = Core.minMaxLoc(result)
+            val mmr = VisionMetrics.measure(Phase.MIN_MAX_LOC) { Core.minMaxLoc(result) }
             val matchValue = mmr.maxVal
             val topLeft = mmr.maxLoc
             val centerX = (topLeft.x + templateCols / 2).toInt()
