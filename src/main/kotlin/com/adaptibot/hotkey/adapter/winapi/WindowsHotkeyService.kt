@@ -1,7 +1,6 @@
 package com.adaptibot.hotkey.adapter.winapi
 
 import com.adaptibot.hotkey.domain.GlobalHotkeyService
-import com.adaptibot.hotkey.domain.HotkeyNativeApi
 import com.adaptibot.hotkey.model.HotkeyCombination
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
@@ -10,7 +9,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 internal class WindowsHotkeyService(
-    private val nativeApi: HotkeyNativeApi,
+    private val nativeApi: WinApiHotkeyNativeApi,
     private val loopTimeoutMs: Long = 2_000
 ) : GlobalHotkeyService {
 
