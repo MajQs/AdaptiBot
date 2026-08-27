@@ -19,4 +19,7 @@ class VisionFacade internal constructor(
      * @return [MatchDataDto] with the match coordinates and confidence score, or `null` if not found.
      */
     fun find(query: VisionQuery): MatchDataDto? = visionFinder.find(query)
+
+    /** Drops locations remembered for elements declared as `Fixed`. */
+    fun forgetPinnedLocations() = visionFinder.forgetPinnedLocations()
 }

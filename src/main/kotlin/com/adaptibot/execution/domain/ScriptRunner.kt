@@ -3,6 +3,7 @@ package com.adaptibot.execution.domain
 import com.adaptibot.script.Script
 import com.adaptibot.execution.dto.ExecutionContext
 import com.adaptibot.execution.dto.ExecutionStateDto
+import com.adaptibot.vision.VisionConfiguration
 import com.adaptibot.vision.metrics.VisionMetrics
 
 internal class ScriptRunner(
@@ -15,6 +16,7 @@ internal class ScriptRunner(
 
     fun execute(script: Script) {
         VisionMetrics.reset()
+        VisionConfiguration.visionFacade.forgetPinnedLocations()
         scriptExecutionState.create(script)
             .runLoop()
     }
