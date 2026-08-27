@@ -9,7 +9,10 @@ sealed class Target {
     data class AtCoordinate(val coordinate: Coordinate) : Target()
 
     @Serializable
-    data class AtImage(val pattern: ImagePattern) : Target()
+    data class AtImage(
+        val pattern: ImagePattern,
+        val location: ElementLocation = ElementLocation.Anywhere
+    ) : Target()
 
     @Serializable
     data class AtText(val text: String) : Target()

@@ -20,7 +20,7 @@ internal class ConditionEvaluator(
 
     private fun evaluateMatcher(matcher: Matcher): Boolean = when (matcher) {
         is Matcher.ImagePresent -> {
-            val match = visionFacade.find(VisionQuery.ByImage(matcher.pattern))
+            val match = visionFacade.find(VisionQuery.ByImage(matcher.pattern, matcher.location))
             match != null && match.confidence >= matcher.pattern.matchThreshold
         }
         is Matcher.ColorAt -> {

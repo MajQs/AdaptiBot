@@ -3,11 +3,11 @@ package com.adaptibot.action.domain
 import com.adaptibot.action.ActionExecutionException.CoordinateOutOfBounds
 import com.adaptibot.action.ActionExecutionException.ImageNotFound
 import com.adaptibot.action.ActionExecutionException.TextNotFound
+import com.adaptibot.infrastructure.ScreenCapture
 import com.adaptibot.script.value.Coordinate
 import com.adaptibot.script.value.Target
 import com.adaptibot.vision.VisionFacade
 import com.adaptibot.vision.VisionQuery
-import java.awt.Toolkit
 
 internal class TargetCoordinateResolver(
     private val visionFacade: VisionFacade
@@ -20,16 +20,16 @@ internal class TargetCoordinateResolver(
     }
 
     private fun atCoordinate(target: Target.AtCoordinate): Coordinate {
-        val screenSize = Toolkit.getDefaultToolkit().screenSize
+        val bounds = ScreenCapture.virtualBounds()
         val c = target.coordinate
-        if (c.x < 0 || c.y < 0 || c.x > screenSize.width || c.y > screenSize.height) {
-            throw CoordinateOutOfBounds(c.x, c.y, screenSize.width, screenSize.height)
+        if (!bounds.contains(c)) {
+            throw CoordinateOutOfBounds(c.x, c.y, bounds)
         }
         return c
     }
 
     private fun atImage(target: Target.AtImage): Coordinate {
-        val match = visionFacade.find(VisionQuery.ByImage(target.pattern))
+        val match = visionFacade.find(VisionQuery.ByImage(target.pattern, target.location))
         if (match == null || match.confidence < target.pattern.matchThreshold) {
             throw ImageNotFound(match?.confidence ?: 0.0, target.pattern.matchThreshold)
         }

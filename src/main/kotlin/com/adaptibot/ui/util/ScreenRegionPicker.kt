@@ -25,7 +25,7 @@ import java.awt.image.BufferedImage
 object ScreenRegionPicker {
 
     fun pick(onCapture: (base64: String) -> Unit, onCancel: () -> Unit) {
-        val screen = Screen.getPrimary().bounds
+        val screen = virtualBounds()
         val stage = Stage(StageStyle.TRANSPARENT)
         stage.isAlwaysOnTop = true
 
@@ -58,12 +58,12 @@ object ScreenRegionPicker {
 
         scene.setOnMousePressed { e ->
             startX = e.screenX; startY = e.screenY
-            selRect.x = startX; selRect.y = startY
+            selRect.x = startX - screen.minX; selRect.y = startY - screen.minY
             selRect.width = 0.0; selRect.height = 0.0
         }
         scene.setOnMouseDragged { e ->
-            val x = minOf(startX, e.screenX)
-            val y = minOf(startY, e.screenY)
+            val x = minOf(startX, e.screenX) - screen.minX
+            val y = minOf(startY, e.screenY) - screen.minY
             val w = Math.abs(e.screenX - startX)
             val h = Math.abs(e.screenY - startY)
             selRect.x = x; selRect.y = y
@@ -99,6 +99,19 @@ object ScreenRegionPicker {
         stage.x = screen.minX; stage.y = screen.minY
         stage.show()
         stage.requestFocus()
+    }
+
+    /** Union of every connected screen, so the overlay covers all monitors. */
+    private fun virtualBounds(): Rectangle2D {
+        val screens = Screen.getScreens().map { it.bounds }
+        if (screens.isEmpty()) return Screen.getPrimary().bounds
+
+        val minX = screens.minOf { it.minX }
+        val minY = screens.minOf { it.minY }
+        val maxX = screens.maxOf { it.maxX }
+        val maxY = screens.maxOf { it.maxY }
+
+        return Rectangle2D(minX, minY, maxX - minX, maxY - minY)
     }
 }
 

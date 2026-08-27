@@ -1,5 +1,7 @@
 package com.adaptibot.action
 
+import com.adaptibot.script.value.ScreenRect
+
 sealed class ActionExecutionException(message: String) : Exception(message) {
 
     class ImageNotFound(
@@ -19,10 +21,9 @@ sealed class ActionExecutionException(message: String) : Exception(message) {
     class CoordinateOutOfBounds(
         x: Int,
         y: Int,
-        screenWidth: Int,
-        screenHeight: Int
+        bounds: ScreenRect
     ) : ActionExecutionException(
-        "Coordinate ($x, $y) is outside screen bounds (${screenWidth}x${screenHeight})"
+        "Coordinate ($x, $y) is outside the virtual desktop bounds ($bounds)"
     )
 
     class EmptyKeyList : ActionExecutionException(

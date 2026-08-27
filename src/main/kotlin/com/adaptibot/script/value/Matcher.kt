@@ -6,7 +6,10 @@ import kotlinx.serialization.Serializable
 sealed class Matcher {
 
     @Serializable
-    data class ImagePresent(val pattern: ImagePattern) : Matcher()
+    data class ImagePresent(
+        val pattern: ImagePattern,
+        val location: ElementLocation = ElementLocation.Anywhere
+    ) : Matcher()
 
     @Serializable
     data class ColorAt(
