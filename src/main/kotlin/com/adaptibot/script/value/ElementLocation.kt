@@ -13,9 +13,9 @@ sealed class ElementLocation {
     @Serializable
     data object Anywhere : ElementLocation()
 
-    /** Moves, but only within [bounds]. */
+    /** Can appear only inside [bounds]. */
     @Serializable
-    data class MovesWithin(val bounds: ScreenRect) : ElementLocation()
+    data class WithinArea(val bounds: ScreenRect) : ElementLocation()
 
     /** Always in the same place: first hit is remembered, later lookups only inspect that spot. */
     @Serializable

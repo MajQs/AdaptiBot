@@ -16,7 +16,7 @@ internal class SearchAreaResolver(
         return when (val location = query.location) {
             is ElementLocation.Anywhere -> virtualBounds
 
-            is ElementLocation.MovesWithin -> location.bounds.intersect(virtualBounds)
+            is ElementLocation.WithinArea -> location.bounds.intersect(virtualBounds)
 
             is ElementLocation.Fixed -> PatternLocationCache.get(query.cacheKey(), virtualBounds)
                 ?.let { it.expand(pinMarginFor(query, it)) }

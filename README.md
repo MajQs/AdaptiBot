@@ -90,8 +90,8 @@ The application delivers the following capabilities:
 - **Keyboard actions** – type text, press key combinations.
 - **System actions** – wait (configurable delay), launch application, close application.
 - **Dual element targeting** – by screen coordinates or by image pattern (template matching).
-- **Element location declaration** – for every image pattern and every text lookup the user states how the
-  element behaves: *can appear anywhere on screen*, *moves within a selected area*, or *is always in the
+- **Element location declaration** – for every image pattern and every text lookup the user states where the
+  element can show up: *can appear anywhere on screen*, *only within a selected area*, or *always in the
   same place*. The engine derives the searched screen region from that declaration, which is what makes
   lookups fast (a pinned element is found in ~11 ms instead of ~460 ms).
 - **Multi-monitor support** – all coordinates and screen captures span the whole virtual desktop.

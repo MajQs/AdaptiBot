@@ -26,7 +26,7 @@ class ElementLocationEditor(
     private val anywhereRadio = RadioButton("Can appear anywhere on screen").apply {
         toggleGroup = group; styleClass.add("form-label")
     }
-    private val movesWithinRadio = RadioButton("Moves, but only within a selected area").apply {
+    private val withinAreaRadio = RadioButton("Can appear only within a selected area").apply {
         toggleGroup = group; styleClass.add("form-label")
     }
     private val fixedRadio = RadioButton("Always in the same place").apply {
@@ -45,7 +45,7 @@ class ElementLocationEditor(
         children.addAll(
             Label("Where is this element?").apply { styleClass.add("form-label") },
             anywhereRadio,
-            movesWithinRadio,
+            withinAreaRadio,
             areaRow,
             fixedRadio
         )
@@ -56,8 +56,8 @@ class ElementLocationEditor(
         when (initial) {
             is ElementLocation.Anywhere -> anywhereRadio.isSelected = true
             is ElementLocation.Fixed -> fixedRadio.isSelected = true
-            is ElementLocation.MovesWithin -> {
-                movesWithinRadio.isSelected = true
+            is ElementLocation.WithinArea -> {
+                withinAreaRadio.isSelected = true
                 selectedArea = initial.bounds
                 areaLabel.text = initial.bounds.toString()
             }
@@ -68,14 +68,14 @@ class ElementLocationEditor(
 
     /** Returns the declared location, or `null` when an area was promised but never selected. */
     fun getLocation(): ElementLocation? = when {
-        movesWithinRadio.isSelected -> selectedArea?.let { ElementLocation.MovesWithin(it) }
+        withinAreaRadio.isSelected -> selectedArea?.let { ElementLocation.WithinArea(it) }
         fixedRadio.isSelected -> ElementLocation.Fixed
         else -> ElementLocation.Anywhere
     }
 
     private fun refreshAreaRow() {
-        areaRow.isVisible = movesWithinRadio.isSelected
-        areaRow.isManaged = movesWithinRadio.isSelected
+        areaRow.isVisible = withinAreaRadio.isSelected
+        areaRow.isManaged = withinAreaRadio.isSelected
     }
 
     private fun launchAreaPicker() {
