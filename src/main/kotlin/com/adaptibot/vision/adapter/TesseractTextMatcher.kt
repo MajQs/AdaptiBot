@@ -52,7 +52,6 @@ internal class TesseractTextMatcher : TextMatcher {
                     "Text not found in {}x{} crop (scales={}, modes={}): \"{}\"",
                     screenshot.width, screenshot.height, attempts.scales, attempts.pageSegModes, text
                 )
-                OcrDebugDump.save(logger, screenshot, "miss-${screenshot.width}x${screenshot.height}")
                 return null
             }
 
