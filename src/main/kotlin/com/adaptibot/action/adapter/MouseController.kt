@@ -7,6 +7,7 @@ import com.adaptibot.script.value.Coordinate
 import com.adaptibot.script.value.MouseButton
 import com.adaptibot.script.value.MouseScrollDirection
 import org.slf4j.LoggerFactory
+import kotlin.math.pow
 
 internal object MouseController {
 
@@ -58,14 +59,34 @@ internal object MouseController {
         }
     }
 
-    fun drag(from: Coordinate?, to: Coordinate) {
-        if (from != null) {
-            moveTo(from)
+    fun drag(from: Coordinate?, to: Coordinate, durationMs: Long = 500, fps: Int = 60) {
+        val fromCor = from ?: run {
+            val point = User32.POINT()
+             user32.GetCursorPos(point)
+            Coordinate(point.x, point.y)
         }
+
+        moveTo(fromCor)
+
+        val steps = (durationMs * fps / 1000).toInt().coerceAtLeast(1)
+        val stepDelay = durationMs / steps
+
         InputStateTracker.holdingMouseButton(User32.MOUSEEVENTF_LEFTDOWN, User32.MOUSEEVENTF_LEFTUP) {
-            InterruptibleSleep.sleep(50)
-            moveTo(to)     // TODO implement smooth dragging with configurable speed
-            InterruptibleSleep.sleep(50)
+            for (i in 0..steps) {
+                val t = i.toFloat() / steps
+                // Ease-InOut-Cubic
+                val easedT = if (t < 0.5f) {
+                    4 * t * t * t
+                } else {
+                    1 - (-2 * t + 2).toDouble().pow(3.0).toFloat() / 2
+                }
+
+                val currentX = (fromCor.x + (to.x - fromCor.x) * easedT).toInt()
+                val currentY = (fromCor.y + (to.y - fromCor.y) * easedT).toInt()
+
+                moveTo(Coordinate(currentX, currentY))
+                InterruptibleSleep.sleep(stepDelay)
+            }
         }
     }
 
