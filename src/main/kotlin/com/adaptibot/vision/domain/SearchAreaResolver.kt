@@ -19,14 +19,21 @@ internal class SearchAreaResolver(
             is ElementLocation.MovesWithin -> location.bounds.intersect(virtualBounds)
 
             is ElementLocation.Fixed -> PatternLocationCache.get(query.cacheKey(), virtualBounds)
-                ?.expand(PIN_MARGIN_PX)
+                ?.let { it.expand(pinMarginFor(query, it)) }
                 ?.intersect(virtualBounds)
                 ?: virtualBounds
         }
     }
 
+    /** OCR needs whitespace around a word, so a tight crop finds nothing - text gets a far larger margin. */
+    private fun pinMarginFor(query: VisionQuery, pinned: ScreenRect): Int = when (query) {
+        is VisionQuery.ByImage -> PIN_MARGIN_PX
+        is VisionQuery.ByText -> maxOf(TEXT_PIN_MIN_MARGIN_PX, pinned.height * 2)
+    }
+
     companion object {
         const val PIN_MARGIN_PX = 8
+        const val TEXT_PIN_MIN_MARGIN_PX = 40
     }
 }
 

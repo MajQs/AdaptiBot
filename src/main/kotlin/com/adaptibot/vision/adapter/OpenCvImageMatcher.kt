@@ -68,7 +68,9 @@ internal class OpenCvImageMatcher : ImageMatcher {
 
             return MatchDataDto(
                 coordinate = Coordinate(centerX, centerY),
-                confidence = matchValue
+                confidence = matchValue,
+                width = templateCols,
+                height = templateRows
             )
         } catch (e: Exception) {
             logger.error("Error during image matching", e)

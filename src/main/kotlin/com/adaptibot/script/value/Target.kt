@@ -15,6 +15,9 @@ sealed class Target {
     ) : Target()
 
     @Serializable
-    data class AtText(val text: String) : Target()
+    data class AtText(
+        val text: String,
+        val location: ElementLocation = ElementLocation.Anywhere
+    ) : Target()
 }
 

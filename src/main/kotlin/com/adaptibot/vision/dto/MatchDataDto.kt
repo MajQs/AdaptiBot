@@ -4,6 +4,8 @@ import com.adaptibot.script.value.Coordinate
 
 data class MatchDataDto(
     val coordinate: Coordinate,
-    val confidence: Double
+    val confidence: Double,
+    val width: Int,
+    val height: Int
 )
 

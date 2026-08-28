@@ -59,6 +59,9 @@ class MatcherEditor(
 
     // ── TextPresent section ────────────────────────────────────────────────
     private val textField = TextField().apply { styleClass.add("form-field"); promptText = "Text to find on screen" }
+    private val textLocationEditor = ElementLocationEditor(
+        (initial as? Matcher.TextPresent)?.location ?: ElementLocation.Anywhere
+    )
     private val textPresentSection: VBox
 
     init {
@@ -80,7 +83,7 @@ class MatcherEditor(
         val textRow = HBox(8.0,
             Label("Text:").apply { styleClass.add("form-label") }, textField
         ).apply { alignment = Pos.CENTER_LEFT }
-        textPresentSection = VBox(8.0, textRow)
+        textPresentSection = VBox(8.0, textRow, Separator(), textLocationEditor)
 
         // Radio row
         val radioRow = HBox(16.0, imagePresentBtn, colorAtBtn, textPresentBtn).apply { alignment = Pos.CENTER_LEFT }
@@ -125,7 +128,8 @@ class MatcherEditor(
             }
             textPresentBtn.isSelected -> {
                 val text = textField.text.trim().takeIf { it.isNotEmpty() } ?: return null
-                Matcher.TextPresent(text)
+                val location = textLocationEditor.getLocation() ?: return null
+                Matcher.TextPresent(text, location)
             }
             else -> colorAtSection.getColorAt()
         }

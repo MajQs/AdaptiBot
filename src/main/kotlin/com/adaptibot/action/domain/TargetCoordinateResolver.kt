@@ -37,7 +37,7 @@ internal class TargetCoordinateResolver(
     }
 
     private fun atText(target: Target.AtText): Coordinate {
-        val match = visionFacade.find(VisionQuery.ByText(target.text))
+        val match = visionFacade.find(VisionQuery.ByText(target.text, target.location))
             ?: throw TextNotFound(target.text)
         return match.coordinate
     }

@@ -19,6 +19,9 @@ sealed class Matcher {
     ) : Matcher()
 
     @Serializable
-    data class TextPresent(val text: String) : Matcher()
+    data class TextPresent(
+        val text: String,
+        val location: ElementLocation = ElementLocation.Anywhere
+    ) : Matcher()
 }
 

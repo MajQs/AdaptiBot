@@ -29,7 +29,7 @@ internal class ConditionEvaluator(
             actual.matches(matcher.expected, matcher.tolerance)
         }
         is Matcher.TextPresent -> {
-            visionFacade.find(VisionQuery.ByText(matcher.text)) != null
+            visionFacade.find(VisionQuery.ByText(matcher.text, matcher.location)) != null
         }
     }
 }

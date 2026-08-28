@@ -51,6 +51,9 @@ class MouseTargetEditor(
 
     // Text section
     private val textField = TextField().apply { styleClass.add("form-field"); promptText = "Text to find on screen" }
+    private val textLocationEditor = ElementLocationEditor(
+        (initial as? ScriptTarget.AtText)?.location ?: ElementLocation.Anywhere
+    )
 
     private val coordPane = buildCoordPane()
     private val imagePane = buildImagePane()
@@ -103,7 +106,8 @@ class MouseTargetEditor(
             }
             textRadio.isSelected -> {
                 val text = textField.text.trim().takeIf { it.isNotEmpty() } ?: return null
-                ScriptTarget.AtText(text)
+                val location = textLocationEditor.getLocation() ?: return null
+                ScriptTarget.AtText(text, location)
             }
             else -> null
         }
@@ -141,7 +145,7 @@ class MouseTargetEditor(
         val row = HBox(8.0,
             Label("Text:").apply { styleClass.add("form-label") }, textField
         ).apply { alignment = Pos.CENTER_LEFT }
-        return VBox(6.0, row)
+        return VBox(6.0, row, Separator(), textLocationEditor)
     }
 
     private fun hideAllWindows(): List<Stage> =

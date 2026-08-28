@@ -10,7 +10,6 @@ import com.adaptibot.vision.dto.MatchDataDto
 import com.adaptibot.vision.metrics.VisionMetrics
 import com.adaptibot.vision.metrics.VisionMetrics.Phase
 import org.slf4j.LoggerFactory
-import java.awt.image.BufferedImage
 
 internal class VisionFinder(
     private val screenCapture: ScreenCapture,
@@ -31,11 +30,9 @@ internal class VisionFinder(
 
         val screenshot = VisionMetrics.measure(Phase.CAPTURE) { screenCapture.capture(region) }
 
-        var template: BufferedImage? = null
-
         val localMatch = when (query) {
             is VisionQuery.ByImage -> {
-                template = VisionMetrics.measure(Phase.TEMPLATE_DECODE) {
+                val template = VisionMetrics.measure(Phase.TEMPLATE_DECODE) {
                     TemplateCache.decode(query.pattern.base64Data)
                 }
 
@@ -57,9 +54,7 @@ internal class VisionFinder(
 
         val match = localMatch?.toAbsolute(region)
 
-        if (match != null && query is VisionQuery.ByImage && template != null) {
-            rememberIfFixed(query, match, template)
-        }
+        if (match != null) rememberIfFixed(query, match)
 
         logger.debug(
             "Vision query {} over {} -> {}",
@@ -73,17 +68,17 @@ internal class VisionFinder(
 
     fun forgetPinnedLocations() = PatternLocationCache.clear()
 
-    private fun rememberIfFixed(query: VisionQuery.ByImage, match: MatchDataDto, template: BufferedImage) {
+    private fun rememberIfFixed(query: VisionQuery, match: MatchDataDto) {
         if (query.location !is ElementLocation.Fixed) return
-        if (match.confidence < query.pattern.matchThreshold) return
+        if (query is VisionQuery.ByImage && match.confidence < query.pattern.matchThreshold) return
 
         PatternLocationCache.remember(
             key = query.cacheKey(),
             region = ScreenRect(
-                x = match.coordinate.x - template.width / 2,
-                y = match.coordinate.y - template.height / 2,
-                width = template.width,
-                height = template.height
+                x = match.coordinate.x - match.width / 2,
+                y = match.coordinate.y - match.height / 2,
+                width = match.width,
+                height = match.height
             )
         )
     }
@@ -91,3 +86,4 @@ internal class VisionFinder(
     private fun MatchDataDto.toAbsolute(region: ScreenRect): MatchDataDto =
         copy(coordinate = Coordinate(coordinate.x + region.x, coordinate.y + region.y))
 }
+
