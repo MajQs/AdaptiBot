@@ -1,7 +1,7 @@
 package com.adaptibot.action.adapter
 
 import com.adaptibot.action.adapter.winapi.VirtualKeyCodes
-import com.adaptibot.common.InterruptibleSleep
+import com.adaptibot.infrastructure.InterruptibleSleep
 import com.adaptibot.script.value.KeyboardKey
 
 internal object KeyboardController {

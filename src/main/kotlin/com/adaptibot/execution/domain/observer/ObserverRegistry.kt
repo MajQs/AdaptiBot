@@ -1,7 +1,7 @@
 package com.adaptibot.execution.domain.observer
 
 import com.adaptibot.script.step.ObserverStep
-import com.adaptibot.common.InterruptibleSleep
+import com.adaptibot.infrastructure.InterruptibleSleep
 import com.adaptibot.execution.domain.ConditionEvaluator
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean

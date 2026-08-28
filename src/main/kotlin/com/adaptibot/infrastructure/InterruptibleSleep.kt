@@ -1,4 +1,4 @@
-package com.adaptibot.common
+package com.adaptibot.infrastructure
 
 object InterruptibleSleep {
 
@@ -24,4 +24,3 @@ object InterruptibleSleep {
         if (Thread.currentThread().isInterrupted) throw InterruptedException("Sleep interrupted")
     }
 }
-

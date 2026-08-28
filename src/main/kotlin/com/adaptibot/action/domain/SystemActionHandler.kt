@@ -1,6 +1,6 @@
 package com.adaptibot.action.domain
 
-import com.adaptibot.common.InterruptibleSleep
+import com.adaptibot.infrastructure.InterruptibleSleep
 import com.adaptibot.script.value.Action.System
 
 internal class SystemActionHandler : ActionHandler<System> {

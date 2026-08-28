@@ -1,7 +1,7 @@
 package com.adaptibot.action.adapter
 
 import com.adaptibot.action.adapter.winapi.User32
-import com.adaptibot.common.InterruptibleSleep
+import com.adaptibot.infrastructure.InterruptibleSleep
 import com.adaptibot.script.value.MouseClickType
 import com.adaptibot.script.value.Coordinate
 import com.adaptibot.script.value.MouseButton

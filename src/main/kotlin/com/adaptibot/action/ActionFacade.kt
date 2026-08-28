@@ -2,7 +2,7 @@ package com.adaptibot.action
 
 import com.adaptibot.action.adapter.InputStateTracker
 import com.adaptibot.action.domain.ActionHandler
-import com.adaptibot.common.InterruptibleSleep
+import com.adaptibot.infrastructure.InterruptibleSleep
 import com.adaptibot.script.value.Action
 
 /**
