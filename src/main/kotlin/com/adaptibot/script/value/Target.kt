@@ -11,7 +11,7 @@ sealed class Target {
     @Serializable
     data class AtImage(
         val pattern: ImagePattern,
-        val location: ElementLocation = ElementLocation.Fixed
+        val location: ElementLocation = ElementLocation.Anywhere
     ) : Target()
 
     @Serializable

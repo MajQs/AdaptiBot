@@ -1,6 +1,7 @@
 package com.adaptibot.ui.dialog
 
 import com.adaptibot.script.value.Coordinate
+import com.adaptibot.script.value.ElementLocation
 import com.adaptibot.script.value.ImagePattern
 import com.adaptibot.script.value.Target as ScriptTarget
 import com.adaptibot.serialization.ImageEncoder
@@ -44,6 +45,9 @@ class MouseTargetEditor(
     }
     private val captureBtn   = Button("📷 Capture Region").apply { styleClass.add("toolbar-btn") }
     private val noImageLabel = Label("No image selected").apply { styleClass.add("step-detail-text") }
+    private val locationEditor = ElementLocationEditor(
+        (initial as? ScriptTarget.AtImage)?.location ?: ElementLocation.Anywhere
+    )
 
     // Text section
     private val textField = TextField().apply { styleClass.add("form-field"); promptText = "Text to find on screen" }
@@ -94,7 +98,8 @@ class MouseTargetEditor(
             }
             imageRadio.isSelected -> {
                 val b64 = capturedBase64 ?: return null
-                ScriptTarget.AtImage(ImagePattern(b64, thresholdSpinner.value))
+                val location = locationEditor.getLocation() ?: return null
+                ScriptTarget.AtImage(ImagePattern(b64, thresholdSpinner.value), location)
             }
             textRadio.isSelected -> {
                 val text = textField.text.trim().takeIf { it.isNotEmpty() } ?: return null
@@ -129,7 +134,7 @@ class MouseTargetEditor(
         val thresholdRow  = HBox(8.0,
             Label("Match threshold:").apply { styleClass.add("form-label") }, thresholdSpinner
         ).apply { alignment = Pos.CENTER_LEFT }
-        return VBox(6.0, previewBox, thresholdRow, captureBtn)
+        return VBox(6.0, previewBox, thresholdRow, captureBtn, Separator(), locationEditor)
     }
 
     private fun buildTextPane(): VBox {

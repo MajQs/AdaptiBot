@@ -1,9 +1,9 @@
 package com.adaptibot.ui.util
 
 import com.adaptibot.infrastructure.ScreenCapture
+import com.adaptibot.script.value.ScreenRect
 import com.adaptibot.serialization.ImageEncoder
 import javafx.application.Platform
-import javafx.embed.swing.SwingFXUtils
 import javafx.geometry.Rectangle2D
 import javafx.scene.Cursor
 import javafx.scene.Scene
@@ -18,13 +18,36 @@ import javafx.stage.StageStyle
 import java.awt.image.BufferedImage
 
 /**
- * Full-screen transparent overlay that lets the user drag-select a region.
- * On release, captures that region and returns base64-encoded PNG via [onCapture].
+ * Full-screen transparent overlay spanning every monitor that lets the user drag-select a region.
  * Pressing ESC cancels.
  */
 object ScreenRegionPicker {
 
+    /** Selects a region and returns it as a base64-encoded PNG screenshot. */
     fun pick(onCapture: (base64: String) -> Unit, onCancel: () -> Unit) {
+        pickRegion(
+            hint = "Drag to select region  •  ESC to cancel",
+            onSelect = { region ->
+                Thread {
+                    try {
+                        val img: BufferedImage = ScreenCapture.capture(region)
+                        val b64 = ImageEncoder.encodeToBase64(img)
+                        Platform.runLater { onCapture(b64) }
+                    } catch (ex: Exception) {
+                        Platform.runLater { onCancel() }
+                    }
+                }.also { it.isDaemon = true; it.start() }
+            },
+            onCancel = onCancel
+        )
+    }
+
+    /** Selects a region and returns its absolute virtual-desktop bounds. */
+    fun pickRegion(
+        hint: String = "Drag to select the area  •  ESC to cancel",
+        onSelect: (ScreenRect) -> Unit,
+        onCancel: () -> Unit
+    ) {
         val screen = virtualBounds()
         val stage = Stage(StageStyle.TRANSPARENT)
         stage.isAlwaysOnTop = true
@@ -40,7 +63,7 @@ object ScreenRegionPicker {
             strokeWidth = 2.0
         }
 
-        val hintText = javafx.scene.text.Text("Drag to select region  •  ESC to cancel").apply {
+        val hintText = javafx.scene.text.Text(hint).apply {
             fill = Color.WHITE
             style = "-fx-font-size: 14px;"
             x = screen.width / 2 - 180
@@ -62,12 +85,10 @@ object ScreenRegionPicker {
             selRect.width = 0.0; selRect.height = 0.0
         }
         scene.setOnMouseDragged { e ->
-            val x = minOf(startX, e.screenX) - screen.minX
-            val y = minOf(startY, e.screenY) - screen.minY
-            val w = Math.abs(e.screenX - startX)
-            val h = Math.abs(e.screenY - startY)
-            selRect.x = x; selRect.y = y
-            selRect.width = w; selRect.height = h
+            selRect.x = minOf(startX, e.screenX) - screen.minX
+            selRect.y = minOf(startY, e.screenY) - screen.minY
+            selRect.width = Math.abs(e.screenX - startX)
+            selRect.height = Math.abs(e.screenY - startY)
         }
         scene.setOnMouseReleased { e ->
             val x = minOf(startX, e.screenX).toInt()
@@ -75,19 +96,7 @@ object ScreenRegionPicker {
             val w = Math.abs(e.screenX - startX).toInt()
             val h = Math.abs(e.screenY - startY).toInt()
             stage.hide()
-            if (w > 4 && h > 4) {
-                Thread {
-                    try {
-                        val img: BufferedImage = ScreenCapture.captureRegion(x, y, w, h)
-                        val b64 = ImageEncoder.encodeToBase64(img)
-                        Platform.runLater { onCapture(b64) }
-                    } catch (ex: Exception) {
-                        Platform.runLater { onCancel() }
-                    }
-                }.also { it.isDaemon = true; it.start() }
-            } else {
-                onCancel()
-            }
+            if (w > 4 && h > 4) onSelect(ScreenRect(x, y, w, h)) else onCancel()
         }
         scene.setOnKeyPressed { e ->
             if (e.code == KeyCode.ESCAPE) {

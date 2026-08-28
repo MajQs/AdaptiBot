@@ -1,5 +1,6 @@
 package com.adaptibot.ui.dialog
 
+import com.adaptibot.script.value.ElementLocation
 import com.adaptibot.script.value.ImagePattern
 import com.adaptibot.script.value.Matcher
 import com.adaptibot.serialization.ImageEncoder
@@ -48,6 +49,9 @@ class MatcherEditor(
     }
     private val captureBtn    = Button("📷 Capture Region").apply { styleClass.add("toolbar-btn") }
     private val noImageLabel  = Label("No image selected").apply { styleClass.add("step-detail-text") }
+    private val locationEditor = ElementLocationEditor(
+        (initial as? Matcher.ImagePresent)?.location ?: ElementLocation.Anywhere
+    )
     private val imagePresentSection: VBox
 
     // ── ColorAt section ────────────────────────────────────────────────────
@@ -65,7 +69,7 @@ class MatcherEditor(
         val thresholdRow = HBox(8.0,
             Label("Match threshold:").apply { styleClass.add("form-label") }, thresholdSpinner
         ).apply { alignment = Pos.CENTER_LEFT }
-        imagePresentSection = VBox(8.0, previewBox, thresholdRow, captureBtn)
+        imagePresentSection = VBox(8.0, previewBox, thresholdRow, captureBtn, Separator(), locationEditor)
 
         // Build ColorAt section based on initial value (if any)
         colorAtSection = ColorAtSection(
@@ -116,7 +120,8 @@ class MatcherEditor(
         return when {
             imagePresentBtn.isSelected -> {
                 val b64 = capturedBase64 ?: return null
-                Matcher.ImagePresent(ImagePattern(b64, thresholdSpinner.value))
+                val location = locationEditor.getLocation() ?: return null
+                Matcher.ImagePresent(ImagePattern(b64, thresholdSpinner.value), location)
             }
             textPresentBtn.isSelected -> {
                 val text = textField.text.trim().takeIf { it.isNotEmpty() } ?: return null
