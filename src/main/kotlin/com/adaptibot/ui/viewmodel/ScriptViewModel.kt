@@ -148,6 +148,13 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         return result
     }
 
+    /** Deep-copies a step and inserts the clone directly after the original. */
+    fun duplicateStep(id: StepId): Step? {
+        val clone = script.duplicateStep(id)
+        if (clone != null) { syncStepsFromAggregate(); markDirty() }
+        return clone
+    }
+
     fun toggleStep(id: StepId): Boolean {
         val step = script.findStep(id) ?: return false
         val toggled: Step = when (step) {

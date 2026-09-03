@@ -3,6 +3,7 @@ package com.adaptibot.script
 import com.adaptibot.script.step.ContainerId
 import com.adaptibot.script.step.Step
 import com.adaptibot.script.step.StepContainer
+import com.adaptibot.script.step.StepDuplicator
 import com.adaptibot.script.step.StepId
 import com.adaptibot.script.step.StepTreeEditor
 
@@ -65,6 +66,14 @@ class Script private constructor(
     }
 
     fun findStep(id: StepId): Step? = StepTreeEditor.find(rootContainer, id)
+
+    fun duplicateStep(id: StepId): Step? {
+        val original = StepTreeEditor.find(rootContainer, id) ?: return null
+        val clone = StepDuplicator.duplicate(original)
+        val newRoot = StepTreeEditor.insertAfter(rootContainer, id, clone) ?: return null
+        rootContainer = newRoot
+        return clone
+    }
 
     fun moveStep(stepId: StepId, targetContainerId: ContainerId, targetIndex: Int = Int.MAX_VALUE): Boolean {
         val step = StepTreeEditor.find(rootContainer, stepId) ?: return false

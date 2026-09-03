@@ -235,4 +235,49 @@ class ScriptTest {
         val script = Script.create("Script")
         assertFalse(script.moveStep(StepId(), script.rootContainerId, 0))
     }
+
+    // ── duplicateStep ─────────────────────────────────────────────────────────
+
+    @Test
+    fun `duplicateStep inserts the clone directly after the original`() {
+        val s1 = actionStep("first"); val s2 = actionStep("second")
+        val script = scriptWith(s1, s2)
+
+        val clone = script.duplicateStep(s1.id)
+
+        assertNotNull(clone)
+        assertEquals(3, script.steps.size)
+        assertEquals(listOf(s1.id, clone!!.id, s2.id), script.steps.map { it.id })
+        assertNotEquals(s1.id, clone.id)
+    }
+
+    @Test
+    fun `duplicateStep returns null when step id not found`() {
+        assertNull(Script.create("Script").duplicateStep(StepId()))
+    }
+
+    @Test
+    fun `duplicateStep of a nested step stays in the same container`() {
+        val child = actionStep("child")
+        val group = groupStep(child)
+        val script = scriptWith(group)
+
+        val clone = script.duplicateStep(child.id)
+
+        assertNotNull(clone)
+        val container = (script.steps.first() as GroupStep).container
+        assertEquals(listOf(child.id, clone!!.id), container.steps.map { it.id })
+    }
+
+    @Test
+    fun `duplicateStep of a container step regenerates nested ids`() {
+        val child = actionStep("child")
+        val script = scriptWith(groupStep(child))
+
+        val clone = script.duplicateStep(script.steps.first().id) as GroupStep
+
+        assertNotEquals(child.id, clone.container.steps.first().id)
+        assertNotEquals((script.steps.first() as GroupStep).container.id, clone.container.id)
+        assertNotNull(script.findStep(clone.container.steps.first().id))
+    }
 }

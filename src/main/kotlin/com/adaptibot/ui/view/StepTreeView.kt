@@ -5,6 +5,8 @@ import com.adaptibot.ui.dialog.StepType
 import com.adaptibot.ui.viewmodel.ScriptViewModel
 import javafx.collections.ListChangeListener
 import javafx.scene.control.*
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 
 class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>() {
 
@@ -196,6 +198,7 @@ private class ScriptTreeCell(
     private fun buildStepContextMenu(step: Step): ContextMenu {
         val menu = ContextMenu()
         val editItem   = MenuItem("✏  Edit").also { it.setOnAction { onEdit(step) } }
+        val duplicateItem = MenuItem("⧉  Duplicate").also { it.setOnAction { viewModel.duplicateStep(step.id) } }
         val deleteItem = MenuItem("🗑  Delete").also { it.setOnAction { viewModel.removeStep(step.id) } }
 
         val isSingleContainer = step.containers().size == 1
@@ -220,7 +223,7 @@ private class ScriptTreeCell(
         } else {
             MenuItem("▶  Enable step").also { it.setOnAction { viewModel.toggleStep(step.id) } }
         }
-        menu.items.addAll(addAfterItem, SeparatorMenuItem(), editItem, SeparatorMenuItem(), toggleItem, SeparatorMenuItem(), deleteItem)
+        menu.items.addAll(addAfterItem, SeparatorMenuItem(), editItem, duplicateItem, SeparatorMenuItem(), toggleItem, SeparatorMenuItem(), deleteItem)
         return menu
     }
 
