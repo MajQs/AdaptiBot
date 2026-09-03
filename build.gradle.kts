@@ -114,6 +114,26 @@ runtime {
     }
 }
 
+tasks.named("jpackageImage") {
+    doFirst {
+        val imageDir = layout.buildDirectory.dir("jpackage").get().asFile
+        repeat(5) { attempt ->
+            if (!imageDir.exists()) return@doFirst
+            imageDir.deleteRecursively()
+            if (imageDir.exists()) {
+                logger.lifecycle("Waiting for '${imageDir}' to be released (attempt ${attempt + 1})...")
+                Thread.sleep(500)
+            }
+        }
+        if (imageDir.exists()) {
+            throw GradleException(
+                "Cannot delete '$imageDir'. Close AdaptiBot.exe and any Explorer window " +
+                    "pointing at that folder, then run the build again."
+            )
+        }
+    }
+}
+
 val copyPortableResources by tasks.registering(Copy::class) {
     dependsOn(tasks.named("jpackageImage"))
     val imageDir = layout.buildDirectory.dir("jpackage/AdaptiBot")
