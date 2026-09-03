@@ -1,6 +1,7 @@
 package com.adaptibot.vision.adapter
 
 import com.adaptibot.script.value.Coordinate
+import com.adaptibot.infrastructure.AppPaths
 import com.adaptibot.vision.domain.TextMatcher
 import com.adaptibot.vision.dto.MatchDataDto
 import net.sourceforge.tess4j.ITessAPI
@@ -10,7 +11,6 @@ import net.sourceforge.tess4j.Word
 import org.slf4j.LoggerFactory
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
-import java.nio.file.Paths
 
 internal class TesseractTextMatcher : TextMatcher {
 
@@ -24,7 +24,7 @@ internal class TesseractTextMatcher : TextMatcher {
     }
 
     private fun resolveTessdataPath(): String =
-        Paths.get("tessdata").toAbsolutePath().toString()
+        AppPaths.tessdata().toString()
 
     @Synchronized
     override fun match(screenshot: BufferedImage, text: String): MatchDataDto? {

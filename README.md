@@ -56,6 +56,32 @@ cd AdaptiBot
 ./gradlew run
 ```
 
+### Portable Windows Package (for end users)
+
+```bash
+# builds build/portable/AdaptiBot-<version>-portable-win.zip
+./gradlew portableZip
+```
+
+The ZIP contains a self-contained application (bundled Java runtime – **no JDK/JRE needed** on the
+target machine):
+
+```
+AdaptiBot/
+├── AdaptiBot.exe      <- double-click to run
+├── app/               <- application and library jars
+├── runtime/           <- bundled Java 21 runtime
+├── tessdata/          <- OCR language data (eng, pol)
+├── examples/          <- example scripts
+└── logs/              <- created on first run (adaptibot.log)
+```
+
+Instructions for the recipient:
+
+1. Unzip the archive anywhere (e.g. `C:\AdaptiBot`) – keep the whole folder together.
+2. Double-click `AdaptiBot.exe`.
+3. If Windows SmartScreen appears (unsigned app), choose **More info → Run anyway**.
+
 ## Available Scripts
 
 | Command | Description |
@@ -63,6 +89,7 @@ cd AdaptiBot
 | `./gradlew run` | Run the application locally |
 | `./gradlew test` | Execute unit tests |
 | `./gradlew build` | Compile, test and package the application |
+| `./gradlew portableZip` | Build the portable Windows package (unzip & run) |
 
 ## Keyboard Shortcuts
 
