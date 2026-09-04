@@ -25,6 +25,8 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
 
         viewModel.steps.addListener(ListChangeListener { rebuildTree() })
         viewModel.activeStepIdProperty.addListener { _, _, _ -> refresh() }
+        viewModel.armedObserverIdsProperty.addListener { _, _, _ -> refresh() }
+        viewModel.handlingObserverIdProperty.addListener { _, _, _ -> refresh() }
 
         setCellFactory {
             ScriptTreeCell(viewModel, { onEditStep?.invoke(it) }) { containerId, afterStepId, type ->
@@ -168,11 +170,15 @@ private class ScriptTreeCell(
                 val activeId = viewModel.activeStepIdProperty.get()
                 val isActive = activeId != null && node.step.id == activeId
                 val isSingleContainer = node.step.containers().size == 1
+                val isObserver = node.step is ObserverStep
+                val stepKey = node.step.id.value
                 graphic = StepCellGraphic.build(
                     step           = node.step,
                     isActive       = isActive,
                     isEnabled      = node.step.enabled,
                     parentDisabled = node.parentDisabled,
+                    isWatching     = isObserver && stepKey in viewModel.armedObserverIdsProperty.get(),
+                    isHandling     = isObserver && stepKey == viewModel.handlingObserverIdProperty.get(),
                     onAddAfter     = { ax, ay -> picker.show(scene.window, ax, ay) },
                     onAddInside    = if (isSingleContainer) ({ ax, ay -> pickerInside.show(scene.window, ax, ay) }) else null
                 )

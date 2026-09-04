@@ -50,7 +50,17 @@ class ScriptPanel(
     private fun buildHeader(): HBox {
         val title = Label("SCRIPT STEPS").apply { styleClass.add("panel-title") }
         val spacer = Region().apply { HBox.setHgrow(this, Priority.ALWAYS) }
-        return HBox(8.0, title, spacer).apply {
+
+        // Observers keep watching independently of the step being executed, so their state gets a
+        // permanent place in the header rather than a transient log line.
+        val observerStatus = Label().apply {
+            styleClass.add("observer-status-strip")
+            textProperty().bind(viewModel.observerStatusTextProperty)
+            visibleProperty().bind(viewModel.observerStatusTextProperty.isNotEmpty)
+            managedProperty().bind(visibleProperty())
+        }
+
+        return HBox(8.0, title, spacer, observerStatus).apply {
             styleClass.add("panel-header")
             alignment = Pos.CENTER_LEFT
         }

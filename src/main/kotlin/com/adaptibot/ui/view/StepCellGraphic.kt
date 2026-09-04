@@ -38,6 +38,8 @@ object StepCellGraphic {
         isActive: Boolean,
         isEnabled: Boolean = true,
         parentDisabled: Boolean = false,
+        isWatching: Boolean = false,
+        isHandling: Boolean = false,
         onAddAfter:  ((anchorX: Double, anchorY: Double) -> Unit)? = null,
         onAddInside: ((anchorX: Double, anchorY: Double) -> Unit)? = null
     ): VBox {
@@ -60,9 +62,18 @@ object StepCellGraphic {
         }
         val spacer = Region().apply { HBox.setHgrow(this, Priority.ALWAYS) }
 
+        // Runtime state of an observer: "watching" while it is armed, "handling" while its own
+        // steps are running (it cannot trigger itself in the meantime).
+        val stateBadge = when {
+            isHandling -> stateBadge("▶ handling", "observer-state-handling")
+            isWatching -> stateBadge("👁 watching", "observer-state-watching")
+            else -> null
+        }
+
         val contentRow = HBox(4.0, dragHandle, badge, textBox, spacer).apply {
             alignment = Pos.CENTER_LEFT
             styleClass.add("step-cell-box")
+            if (stateBadge != null) children.add(stateBadge)
             if (isActive) styleClass.add("step-cell-active")
             if (!isEnabled || parentDisabled) styleClass.add("step-cell-disabled")
         }
@@ -221,6 +232,10 @@ object StepCellGraphic {
         is WhileStep       -> Label("WHILE").apply { styleClass.addAll("step-badge", "step-badge-loop") }
         is ForStep         -> Label("FOR").apply { styleClass.addAll("step-badge", "step-badge-loop") }
     }
+
+    /** Small badge showing the runtime state of an observer (watching / handling). */
+    private fun stateBadge(text: String, stateClass: String): Label =
+        Label(text).apply { styleClass.addAll("step-badge", "observer-state-badge", stateClass) }
 
     private fun actionBadgeText(action: Action): String = when (action) {
         is Action.Mouse.Click              -> "CLICK"

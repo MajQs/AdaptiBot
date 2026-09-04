@@ -4,12 +4,16 @@ import com.adaptibot.script.step.ObserverStep
 import com.adaptibot.infrastructure.InterruptibleSleep
 import com.adaptibot.infrastructure.SharedScreenFrame
 import com.adaptibot.execution.domain.ConditionEvaluator
+import com.adaptibot.execution.domain.ExecutionEventPublisher
+import com.adaptibot.execution.dto.ObservedStepDto
+import com.adaptibot.execution.dto.ObserverStatusDto
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal class ObserverRegistry(
     private val conditionEvaluator: ConditionEvaluator,
-    @Volatile var checkDelayMs: Long = 1000
+    @Volatile var checkDelayMs: Long = 1000,
+    private val eventPublisher: ExecutionEventPublisher? = null
 ) {
 
     private val logger = LoggerFactory.getLogger(ObserverRegistry::class.java)
@@ -95,7 +99,24 @@ internal class ObserverRegistry(
         } else {
             observersScopeStack.flatMap { scope -> scope.filterNot { it in handlingObservers } }
         }
+        publishStatus()
     }
+
+    /** Reports which observers are watching and which one is handling, for the UI. */
+    private fun publishStatus() {
+        val publisher = eventPublisher ?: return
+        publisher.observerStatusChanged(
+            ObserverStatusDto(
+                armed = activeObservers.map { it.toDto() },
+                handling = handlingObservers.lastOrNull()?.toDto()
+            )
+        )
+    }
+
+    private fun ObserverStep.toDto() = ObservedStepDto(
+        stepId = id.value,
+        label = label?.takeIf { it.isNotBlank() } ?: "Observer"
+    )
 
     fun setOnObserverTriggered(callback: (ObserverStep) -> Unit) {
         onObserverTriggered = callback
@@ -107,6 +128,7 @@ internal class ObserverRegistry(
         handlingObservers.clear()
         activeObservers = emptyList()
         triggerPending.set(false)
+        eventPublisher?.observerStatusChanged(ObserverStatusDto.NONE)
         stopObserverThread()
     }
 

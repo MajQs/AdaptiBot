@@ -1,6 +1,7 @@
 package com.adaptibot.ui.adapter
 
 import com.adaptibot.execution.domain.ExecutionEventPublisher
+import com.adaptibot.execution.dto.ObserverStatusDto
 import com.adaptibot.ui.viewmodel.ScriptViewModel
 
 /**
@@ -20,5 +21,8 @@ class UiExecutionEventPublisher(@Volatile private var viewModel: ScriptViewModel
 
     override fun logStepFailure(stepName: String, durationMs: Long, error: String) =
         viewModel?.onStepFailed(stepName, durationMs, error) ?: Unit
+
+    override fun observerStatusChanged(status: ObserverStatusDto) =
+        viewModel?.onObserverStatusChanged(status) ?: Unit
 }
 

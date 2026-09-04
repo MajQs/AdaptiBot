@@ -243,10 +243,10 @@ must be suspended for that whole window.
 | 2 | `handlingObservers` set excluded from the snapshot (self-lock) | S | high | Low | ✅ done |
 | 3 | Suspend checking while a trigger is pending (match → handler start) | S | high | Low | ✅ done |
 | 4 | Long-lived observer thread; idle loop instead of `interrupt()` on empty stack | S | medium | Low | ✅ done |
-| 5 | Deterministic list-order match (first armed observer in tree order wins) | S | medium | Low | next |
-| 6 | Share one screen capture per tick across all observer conditions | M | high | Medium | |
-| 7 | UI: `armed` / `handling` badges, runtime status strip | M | UX | Low | |
-| 8 | Save-time validation warning for self-retriggering handlers | S | UX | Low | |
+| 5 | Deterministic list-order match (first armed observer in tree order wins) | S | medium | Low | ✅ done (inherent in the snapshot order) |
+| 6 | Share captures within one observer pass / compound condition | M | high | Low | ✅ done |
+| 7 | UI: `watching` / `handling` badges, runtime status strip | M | UX | Low | ✅ done |
+| 8 | Save-time validation warning for self-retriggering handlers | S | UX | Low | ✅ done |
 
 Suggested order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8.
 Items 1–5 are pure bug fixes / semantics enforcement and need no new user-facing configuration —

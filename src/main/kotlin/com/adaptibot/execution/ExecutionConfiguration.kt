@@ -10,7 +10,7 @@ object ExecutionConfiguration {
     fun getFacade(eventPublisher: ExecutionEventPublisher): ExecutionFacade {
         val conditionEvaluator = ConditionEvaluator(VisionConfiguration.visionFacade)
         val scriptExecutionState = ScriptExecutionState(eventPublisher)
-        val observerRegistry = ObserverRegistry(conditionEvaluator, 1000)
+        val observerRegistry = ObserverRegistry(conditionEvaluator, 1000, eventPublisher)
 
         return ExecutionFacade(
             scriptRunner = ScriptRunner(

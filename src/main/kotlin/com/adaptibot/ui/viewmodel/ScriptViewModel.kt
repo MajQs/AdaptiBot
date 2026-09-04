@@ -2,6 +2,7 @@ package com.adaptibot.ui.viewmodel
 
 import com.adaptibot.execution.ExecutionFacade
 import com.adaptibot.execution.dto.ExecutionStateDto
+import com.adaptibot.execution.dto.ObserverStatusDto
 import com.adaptibot.script.*
 import com.adaptibot.script.step.*
 import com.adaptibot.serialization.ScriptSerializer
@@ -24,6 +25,14 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
     val isRunningProperty = SimpleBooleanProperty(false)
     val logMessages: ObservableList<LogMessage> = FXCollections.observableArrayList()
     val activeStepIdProperty = SimpleObjectProperty<StepId?>(null)
+
+    /** Ids of observers currently watching, and of the one whose steps are running. */
+    val armedObserverIdsProperty = SimpleObjectProperty<Set<String>>(emptySet())
+    val handlingObserverIdProperty = SimpleObjectProperty<String?>(null)
+
+    /** One-line summary shown while a script is running, empty when no observer is active. */
+    val observerStatusTextProperty = SimpleStringProperty("")
+
     val isDirtyProperty = SimpleBooleanProperty(false)
     var currentFilePath: Path? = null
 
@@ -50,6 +59,7 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         currentFilePath = path
         isDirtyProperty.set(false)
         addLog(LogMessage.info("Script saved to ${path.fileName}"))
+        ScriptValidator.warnings(script).forEach { addLog(LogMessage.warning("⚠ $it")) }
     }
 
     fun loadScript(path: Path) {
@@ -216,6 +226,29 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
             isRunningProperty.set(false)
             activeStepIdProperty.set(null)
             addLog(LogMessage.info("⏹ Finished"))
+        }
+    }
+
+    /**
+     * Observers are evaluated on a background thread, so the state is republished on the FX thread.
+     * The summary makes it obvious which observers watch the screen at any moment - an observer
+     * declared at the top of a looped script is effectively always on, and the user should see that.
+     */
+    fun onObserverStatusChanged(status: ObserverStatusDto) {
+        Platform.runLater {
+            armedObserverIdsProperty.set(status.armed.map { it.stepId }.toSet())
+            handlingObserverIdProperty.set(status.handling?.stepId)
+
+            val watching = status.armed.joinToString(", ") { it.label }
+            observerStatusTextProperty.set(
+                buildString {
+                    if (watching.isNotEmpty()) append("👁 Watching: $watching")
+                    status.handling?.let {
+                        if (isNotEmpty()) append("   ·   ")
+                        append("▶ Handling: ${it.label}")
+                    }
+                }
+            )
         }
     }
 

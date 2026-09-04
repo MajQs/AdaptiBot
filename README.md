@@ -124,11 +124,18 @@ The application delivers the following capabilities:
 - **Multi-monitor support** – all coordinates and screen captures span the whole virtual desktop.
 - **Conditional logic** (`ConditionalBlock`) with IF/ELSE branches and compound conditions using AND/OR/NOT operators.
 - **Visual conditions** – detect UI elements by image presence or by pixel color at a coordinate (with configurable tolerance).
-- **Observer mechanism** (`ObserverStep`) running in a dedicated background thread with scope-based lifecycle management; triggers a sequence of steps when its condition becomes true.
+- **Observer mechanism** (`ObserverStep`) running in a dedicated background thread with scope-based lifecycle management; triggers a sequence of steps when its condition becomes true. The rules are:
+  an observer starts watching when the flow reaches it and stops when the block that armed it ends (so an
+  observer at the top of a looped script is effectively always on); it is **not** checked while its own
+  steps are running, so it can never re-trigger itself; all other observers keep watching, but only one
+  handler runs at a time and it always waits for the current step to finish; when several observers match
+  at once, the one higher in the tree wins. While a script runs, the script panel shows a
+  **👁 Watching / ▶ Handling** strip and the matching observer rows are badged, so it is always visible
+  which observers are live.
+- **In-app execution log** – timestamped INFO / SUCCESS / WARNING / ERROR entries with an auto-scroll log panel and a clear button. Saving a script also reports warnings, e.g. an observer whose steps cannot make the watched element disappear (it would trigger on every check).
 - **Continuous loop execution** – a script runs in an infinite loop until manually stopped.
 - **Configurable script settings** – default delays before/after steps, observer check interval and image match threshold.
 - **File I/O** – save and load scripts as JSON files (`kotlinx.serialization` with `kind` discriminator).
-- **In-app execution log** – timestamped INFO / SUCCESS / ERROR entries with an auto-scroll log panel and a clear button.
 - **Dirty-state tracking** – unsaved-change detection with a confirmation dialog when creating a new script.
 
 Items not yet implemented (marked TODO in source): launching and terminating external processes.

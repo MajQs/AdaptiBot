@@ -209,6 +209,19 @@
 .step-badge-observer { -fx-background-color: #313244; -fx-text-fill: #cba6f7; }
 .step-badge-loop     { -fx-background-color: #313244; -fx-text-fill: #89dceb; }
 
+/* Runtime state of an observer, shown only while a script is running */
+.observer-state-badge { -fx-font-weight: normal; }
+.observer-state-watching { -fx-background-color: #313244; -fx-text-fill: #a6e3a1; }
+.observer-state-handling { -fx-background-color: #a6e3a1; -fx-text-fill: #1e1e2e; }
+
+.observer-status-strip {
+    -fx-text-fill: #a6e3a1;
+    -fx-font-size: 11px;
+    -fx-padding: 2 8 2 8;
+    -fx-background-color: #24273a;
+    -fx-background-radius: 4;
+}
+
 /* ── Branch headers (IfBlock / ElseBlock) ───────────────────────────────── */
 /* These are non-draggable section headers inside a ConditionalBlock.        */
 /* No drag handle, no "add after" strip, no edit/delete actions.             */
@@ -280,6 +293,7 @@
 .log-text-info    { -fx-text-fill: #cdd6f4; }
 .log-text-success { -fx-text-fill: #a6e3a1; }
 .log-text-error   { -fx-text-fill: #f38ba8; }
+.log-text-warning { -fx-text-fill: #f9e2af; }
 
 /* ── Dialogs ────────────────────────────────────────────────────────────── */
 

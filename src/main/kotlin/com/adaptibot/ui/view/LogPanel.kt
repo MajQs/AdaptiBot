@@ -61,6 +61,7 @@ private class LogCell : ListCell<LogMessage>() {
             val textClass = when (item.level) {
                 LogLevel.INFO    -> "log-text-info"
                 LogLevel.SUCCESS -> "log-text-success"
+                LogLevel.WARNING -> "log-text-warning"
                 LogLevel.ERROR   -> "log-text-error"
             }
             val msgLabel = Label(item.text).apply {
