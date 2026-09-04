@@ -49,17 +49,20 @@ internal class ObserverRegistry(
         logger.debug("Activated observer: ${observer.id.value} in scope depth ${observersScopeStack.size}")
         publishSnapshot()
 
-        // Lazy start: ensure observer thread is running
+        // Lazy start: the thread lives for the whole script run and only idles when nothing is armed.
         ensureObserverThreadRunning()
     }
 
+    /**
+     * Leaving a scope disarms its observers but never stops the observer thread — with an empty
+     * snapshot the loop has nothing to evaluate and just sleeps, which avoids interrupting and
+     * recreating the thread on every iteration of the main script loop.
+     */
     fun exitScope() {
         observersScopeStack.removeLastOrNull()
         publishSnapshot()
-        if (observersScopeStack.isEmpty()) {
-            stopObserverThread()
-        }
     }
+
     /**
      * Marks the start of [observer]'s handler. From now on the observer is not checked, which
      * prevents it from re-triggering itself while its own steps are running.

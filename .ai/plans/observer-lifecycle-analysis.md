@@ -102,9 +102,11 @@ window where a root observer is off). The cost is purely mechanical.
 
 Fix (invisible to the user):
 
-1. Keep **one** observer thread for the whole script run. `exitScope()` on an empty stack must only
-   empty the snapshot; the loop parks until something is armed again. Stop the thread only in
-   `clearAll()`.
+1. Keep **one** observer thread for the whole script run. `exitScope()` must only republish an empty
+   snapshot; the loop then has nothing to evaluate and simply sleeps its normal interval. No
+   parking primitive (lock/condition) is introduced — with an empty snapshot a loop iteration costs
+   a branch and a `sleep`, so a dedicated wake-up mechanism would add concurrency complexity for no
+   measurable gain. The thread is stopped only in `clearAll()`.
 2. Replace `observersScopeStack.flatMap { … }` (a plain `ArrayDeque` mutated by the executor thread
    and read by the observer thread → `ConcurrentModificationException` waiting to happen) with a
    `@Volatile` immutable snapshot rebuilt in `enterScope` / `activateObserver` / `exitScope`.
@@ -235,16 +237,16 @@ must be suspended for that whole window.
 
 ## 9. Implementation checklist
 
-| # | Change | Size | Impact | Risk |
-|---|---|---|---|---|
-| 1 | `@Volatile` immutable snapshot instead of `flatMap` over `ArrayDeque` | S | correctness | Low |
-| 2 | `handlingObservers` set excluded from the snapshot (self-lock) | S | high | Low |
-| 3 | Suspend checking while a trigger is pending (match → handler start) | S | high | Low |
-| 4 | Long-lived observer thread; park instead of `interrupt()` on empty stack | S | medium | Medium |
-| 5 | Deterministic list-order match (first armed observer in tree order wins) | S | medium | Low |
-| 6 | Share one screen capture per tick across all observer conditions | M | high | Medium |
-| 7 | UI: `armed` / `handling` badges, runtime status strip | M | UX | Low |
-| 8 | Save-time validation warning for self-retriggering handlers | S | UX | Low |
+| # | Change | Size | Impact | Risk | Status |
+|---|---|---|---|---|---|
+| 1 | `@Volatile` immutable snapshot instead of `flatMap` over `ArrayDeque` | S | correctness | Low | ✅ done |
+| 2 | `handlingObservers` set excluded from the snapshot (self-lock) | S | high | Low | ✅ done |
+| 3 | Suspend checking while a trigger is pending (match → handler start) | S | high | Low | ✅ done |
+| 4 | Long-lived observer thread; idle loop instead of `interrupt()` on empty stack | S | medium | Low | ✅ done |
+| 5 | Deterministic list-order match (first armed observer in tree order wins) | S | medium | Low | next |
+| 6 | Share one screen capture per tick across all observer conditions | M | high | Medium | |
+| 7 | UI: `armed` / `handling` badges, runtime status strip | M | UX | Low | |
+| 8 | Save-time validation warning for self-retriggering handlers | S | UX | Low | |
 
 Suggested order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8.
 Items 1–5 are pure bug fixes / semantics enforcement and need no new user-facing configuration —
