@@ -14,9 +14,16 @@ internal class ObserverRegistry(
     private val logger = LoggerFactory.getLogger(ObserverRegistry::class.java)
 
     private val observersScopeStack = ArrayDeque<MutableSet<ObserverStep>>()
-    
+
     @Volatile
     private var activeObservers: List<ObserverStep> = emptyList()
+
+    /**
+     * Observers whose handler is currently running. An observer must not be able to trigger itself
+     * while it is already handling, so it is excluded from the published snapshot until its handler
+     * finishes. Mutated only by the script execution thread.
+     */
+    private val handlingObservers = linkedSetOf<ObserverStep>()
 
     private val isRunning = AtomicBoolean(false)
 
@@ -46,12 +53,29 @@ internal class ObserverRegistry(
             stopObserverThread()
         }
     }
+    /**
+     * Marks the start of [observer]'s handler. From now on the observer is not checked, which
+     * prevents it from re-triggering itself while its own steps are running.
+     */
+    fun markHandlerStarted(observer: ObserverStep) {
+        handlingObservers.add(observer)
+        publishSnapshot()
+        logger.debug("Observer self-locked while handling: ${observer.id.value}")
+    }
 
+    /** Marks the end of [observer]'s handler; the observer is armed again immediately. */
+    fun markHandlerFinished(observer: ObserverStep) {
+        handlingObservers.remove(observer)
+        publishSnapshot()
+        logger.debug("Observer re-armed after handling: ${observer.id.value}")
+    }
+
+    /** Rebuilds the snapshot read by the observer thread. Called from the execution thread only. */
     private fun publishSnapshot() {
         activeObservers = if (observersScopeStack.isEmpty()) {
             emptyList()
         } else {
-            observersScopeStack.flatMap { it }
+            observersScopeStack.flatMap { scope -> scope.filterNot { it in handlingObservers } }
         }
     }
 
@@ -62,6 +86,7 @@ internal class ObserverRegistry(
     fun clearAll() {
         logger.debug("Clearing all observers")
         observersScopeStack.clear()
+        handlingObservers.clear()
         activeObservers = emptyList()
         stopObserverThread()
     }
