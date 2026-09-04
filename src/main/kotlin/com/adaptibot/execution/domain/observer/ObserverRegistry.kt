@@ -14,6 +14,10 @@ internal class ObserverRegistry(
     private val logger = LoggerFactory.getLogger(ObserverRegistry::class.java)
 
     private val observersScopeStack = ArrayDeque<MutableSet<ObserverStep>>()
+    
+    @Volatile
+    private var activeObservers: List<ObserverStep> = emptyList()
+
     private val isRunning = AtomicBoolean(false)
 
     private var observerThread: Thread? = null
@@ -21,22 +25,33 @@ internal class ObserverRegistry(
     @Volatile
     private var onObserverTriggered: ((ObserverStep) -> Unit)? = null
 
+    /** Pushing an empty scope cannot change the flattened snapshot, so none is published here. */
     fun enterScope() {
-        observersScopeStack.addLast(mutableSetOf())
+        observersScopeStack.addLast(linkedSetOf())
     }
 
     fun activateObserver(observer: ObserverStep) {
         observersScopeStack.lastOrNull()?.add(observer)
         logger.debug("Activated observer: ${observer.id.value} in scope depth ${observersScopeStack.size}")
+        publishSnapshot()
 
         // Lazy start: ensure observer thread is running
         ensureObserverThreadRunning()
     }
 
     fun exitScope() {
-        observersScopeStack.removeLast()
+        observersScopeStack.removeLastOrNull()
+        publishSnapshot()
         if (observersScopeStack.isEmpty()) {
             stopObserverThread()
+        }
+    }
+
+    private fun publishSnapshot() {
+        activeObservers = if (observersScopeStack.isEmpty()) {
+            emptyList()
+        } else {
+            observersScopeStack.flatMap { it }
         }
     }
 
@@ -47,6 +62,7 @@ internal class ObserverRegistry(
     fun clearAll() {
         logger.debug("Clearing all observers")
         observersScopeStack.clear()
+        activeObservers = emptyList()
         stopObserverThread()
     }
 
@@ -74,7 +90,7 @@ internal class ObserverRegistry(
     }
 
     private fun checkObservers() {
-        observersScopeStack.flatMap { it.asSequence() }.forEach {
+        activeObservers.forEach {
             try {
                 if (conditionEvaluator.evaluate(it.condition)) {
                     logger.info("Observer triggered: ${it.id.value}")
