@@ -2,6 +2,7 @@ package com.adaptibot.execution.domain.observer
 
 import com.adaptibot.script.step.ObserverStep
 import com.adaptibot.infrastructure.InterruptibleSleep
+import com.adaptibot.infrastructure.SharedScreenFrame
 import com.adaptibot.execution.domain.ConditionEvaluator
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
@@ -83,7 +84,11 @@ internal class ObserverRegistry(
         logger.debug("Observer re-armed after handling: ${observer.id.value}")
     }
 
-    /** Rebuilds the snapshot read by the observer thread. Called from the execution thread only. */
+    /**
+     * Rebuilds the snapshot read by the observer thread, ordered from the outermost scope to the
+     * innermost one and, within a scope, in activation (tree) order — so the first match wins.
+     * Called from the execution thread only.
+     */
     private fun publishSnapshot() {
         activeObservers = if (observersScopeStack.isEmpty()) {
             emptyList()
@@ -128,18 +133,28 @@ internal class ObserverRegistry(
         }
     }
 
+    /**
+     * One evaluation pass over the armed observers. All captures taken during the pass are shared,
+     * so observers watching the same area pay for a single screenshot and see a consistent screen
+     * state.
+     */
     private fun checkObservers() {
         if (triggerPending.get()) return
-        activeObservers.forEach {
-            try {
-                if (conditionEvaluator.evaluate(it.condition)) {
-                    logger.info("Observer triggered: ${it.id.value}")
-                    triggerPending.set(true)
-                    onObserverTriggered?.invoke(it)
-                    return
+        val observers = activeObservers
+        if (observers.isEmpty()) return
+
+        SharedScreenFrame.shareCaptures {
+            observers.forEach {
+                try {
+                    if (conditionEvaluator.evaluate(it.condition)) {
+                        logger.info("Observer triggered: ${it.id.value}")
+                        triggerPending.set(true)
+                        onObserverTriggered?.invoke(it)
+                        return@shareCaptures
+                    }
+                } catch (e: Exception) {
+                    logger.error("Error checking observer: ${it.id.value}", e)
                 }
-            } catch (e: Exception) {
-                logger.error("Error checking observer: ${it.id.value}", e)
             }
         }
     }

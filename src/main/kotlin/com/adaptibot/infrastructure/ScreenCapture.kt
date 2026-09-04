@@ -59,10 +59,13 @@ object ScreenCapture {
     fun capture(region: ScreenRect): BufferedImage {
         require(!region.isEmpty) { "Capture region must not be empty: $region" }
 
-        return robot.createScreenCapture(
+        return SharedScreenFrame.capture(region) { captureDirect(it) }
+    }
+
+    private fun captureDirect(region: ScreenRect): BufferedImage =
+        robot.createScreenCapture(
             Rectangle(region.x, region.y, region.width, region.height)
         )
-    }
 
     fun captureRegion(x: Int, y: Int, width: Int, height: Int): BufferedImage {
         require(width > 0 && height > 0) { "Width and height must be positive" }
