@@ -27,6 +27,13 @@ internal class ObserverRegistry(
 
     private val isRunning = AtomicBoolean(false)
 
+    /**
+     * Set when an observer has matched and is waiting to be picked up by the execution thread.
+     * While it is set no condition is evaluated: a further match could not be executed anyway
+     * (only one handler runs at a time) and evaluating conditions is the expensive part.
+     */
+    private val triggerPending = AtomicBoolean(false)
+
     private var observerThread: Thread? = null
 
     @Volatile
@@ -60,6 +67,9 @@ internal class ObserverRegistry(
     fun markHandlerStarted(observer: ObserverStep) {
         handlingObservers.add(observer)
         publishSnapshot()
+        // The pending trigger has been picked up; from now on the self-lock protects the observer
+        // and the remaining observers may be checked again.
+        triggerPending.set(false)
         logger.debug("Observer self-locked while handling: ${observer.id.value}")
     }
 
@@ -88,6 +98,7 @@ internal class ObserverRegistry(
         observersScopeStack.clear()
         handlingObservers.clear()
         activeObservers = emptyList()
+        triggerPending.set(false)
         stopObserverThread()
     }
 
@@ -115,10 +126,12 @@ internal class ObserverRegistry(
     }
 
     private fun checkObservers() {
+        if (triggerPending.get()) return
         activeObservers.forEach {
             try {
                 if (conditionEvaluator.evaluate(it.condition)) {
                     logger.info("Observer triggered: ${it.id.value}")
+                    triggerPending.set(true)
                     onObserverTriggered?.invoke(it)
                     return
                 }
