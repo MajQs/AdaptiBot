@@ -107,10 +107,10 @@ Limitations: the shortcut does not reach windows running with a higher integrity
 If another application already reserved `Ctrl+Shift+F12`, AdaptiBot logs a warning at startup and
 keeps working — stopping is then only possible from the toolbar.
 
-The same shortcut also ends a **Nagrywanie** (mouse-click recording) session: after confirming the start
+The same shortcut also ends a **Recording** (mouse-click recording) session: after confirming the start
 dialog, left clicks made anywhere on screen are captured, and `Ctrl+Shift+F12` stops the recording and
-inserts the clicks as a `Nagranie` group at the chosen place in the script. If another application already
-reserved the shortcut, **Nagrywanie** is disabled and its tooltip explains why, since a recording could not
+inserts the clicks as a `Recording` group at the chosen place in the script. If another application already
+reserved the shortcut, **Recording** is disabled and its tooltip explains why, since a recording could not
 be stopped from the keyboard.
 
 ## Project Scope

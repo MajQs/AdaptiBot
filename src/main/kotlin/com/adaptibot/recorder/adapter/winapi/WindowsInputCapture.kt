@@ -4,6 +4,8 @@ import com.adaptibot.recorder.domain.InputCapture
 import com.adaptibot.recorder.domain.InputCaptureException
 import com.adaptibot.recorder.domain.RecordedEvent
 import com.adaptibot.recorder.domain.ScreenPoint
+import com.adaptibot.infrastructure.DisplayCoordinateMapper
+import com.adaptibot.infrastructure.PhysicalScreenPoint
 import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinUser
 import java.util.concurrent.CountDownLatch
@@ -19,9 +21,14 @@ internal class WindowsInputCapture(
     private var session: CaptureSession? = null
 
     override fun start(onEvent: (RecordedEvent) -> Unit, onFailure: (Throwable) -> Unit) {
+        val coordinateMapper = try {
+            DisplayCoordinateMapper.current()
+        } catch (failure: Throwable) {
+            throw InputCaptureException("Could not determine display coordinates", failure)
+        }
         val newSession = synchronized(lock) {
             if (session != null) throw InputCaptureException("Input capture is already running")
-            CaptureSession(onEvent, onFailure).also { session = it }
+            CaptureSession(onEvent, onFailure, coordinateMapper).also { session = it }
         }
 
         try {
@@ -126,7 +133,8 @@ internal class WindowsInputCapture(
 
     private inner class CaptureSession(
         val onEvent: (RecordedEvent) -> Unit,
-        val onFailure: (Throwable) -> Unit
+        val onFailure: (Throwable) -> Unit,
+        val coordinateMapper: DisplayCoordinateMapper,
     ) {
         val started = CountDownLatch(1)
         val finished = CountDownLatch(1)
@@ -158,7 +166,11 @@ internal class WindowsInputCapture(
                 if (data.flags.toInt() and injectedMask == 0) {
                     capture.onEvent(
                         RecordedEvent.MouseClick(
-                            point = ScreenPoint(data.pt.x, data.pt.y),
+                            point = data.pt.let { point ->
+                                capture.coordinateMapper.toLogical(
+                                    PhysicalScreenPoint(point.x, point.y)
+                                ).let { logical -> ScreenPoint(logical.x, logical.y) }
+                            },
                             nativeTimestampMillis = data.time.toLong() and 0xFFFF_FFFFL
                         )
                     )

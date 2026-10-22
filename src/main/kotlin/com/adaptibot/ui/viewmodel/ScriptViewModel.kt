@@ -291,6 +291,6 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
 
     companion object {
         const val RECORDING_HOTKEY_UNAVAILABLE_MESSAGE =
-            "Nagrywanie niedostępne: skrót Ctrl+Shift+F12 jest zajęty przez inną aplikację."
+            "Recording unavailable: Ctrl+Shift+F12 is already reserved by another application."
     }
 }

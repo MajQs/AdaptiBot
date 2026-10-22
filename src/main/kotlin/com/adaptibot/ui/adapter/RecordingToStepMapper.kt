@@ -11,10 +11,10 @@ import com.adaptibot.script.value.MouseButton
 import com.adaptibot.script.value.MouseClickType
 import com.adaptibot.script.value.Target
 
-/** Pure mapping from a completed recording to one "Nagranie" group of left single clicks. */
+/** Pure mapping from a completed recording to one "Recording" group of left single clicks. */
 internal object RecordingToStepMapper {
 
-    private const val GROUP_LABEL = "Nagranie"
+    private const val GROUP_LABEL = "Recording"
     private const val CLICK_HOLD_MILLIS = 100L
 
     fun toGroupStep(recording: RecordingDto): GroupStep = GroupStep(

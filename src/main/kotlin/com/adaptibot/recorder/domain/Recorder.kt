@@ -175,9 +175,9 @@ internal class Recorder(
     private fun completeAutomatically(reason: CompletionReason) {
         when (reason) {
             CompletionReason.TIME_LIMIT_REACHED ->
-                logger.warn("Nagrywanie zakończone po osiągnięciu limitu 10 minut.")
+                logger.warn("Recording stopped after reaching the 10-minute limit.")
             CompletionReason.CLICK_LIMIT_REACHED ->
-                logger.warn("Nagrywanie zakończone po osiągnięciu limitu 10 000 kliknięć.")
+                logger.warn("Recording stopped after reaching the 10,000-click limit.")
             CompletionReason.USER_STOPPED -> error("User stop is not an automatic completion reason")
         }
         finishAfterCaptureStopped { completed(reason) }

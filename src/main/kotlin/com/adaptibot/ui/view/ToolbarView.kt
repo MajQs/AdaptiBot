@@ -97,7 +97,7 @@ class ToolbarView(
     private fun refreshStatus() {
         when {
             viewModel.isRecordingProperty.get() -> {
-                statusLabel.text = stopHotkeyName?.let { "Nagrywanie… ($it)" } ?: "Nagrywanie…"
+                statusLabel.text = stopHotkeyName?.let { "Recording… ($it)" } ?: "Recording…"
                 statusLabel.styleClass.setAll("status-recording")
                 statusDot.styleClass.setAll("status-dot-recording")
             }

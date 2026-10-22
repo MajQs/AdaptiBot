@@ -34,3 +34,6 @@ desktop.ini
 # Application data
 *.json
 !**/src/main/resources/**/*.json
+
+# AI
+.omo

@@ -206,11 +206,11 @@ class MainController : Initializable {
     }
 
     private fun confirmRecordingStart(): Boolean {
-        val startButton = ButtonType("Rozpocznij nagrywanie", ButtonBar.ButtonData.OK_DONE)
-        val cancelButton = ButtonType("Anuluj", ButtonBar.ButtonData.CANCEL_CLOSE)
+        val startButton = ButtonType("Start recording", ButtonBar.ButtonData.OK_DONE)
+        val cancelButton = ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE)
         val dialog = Alert(Alert.AlertType.CONFIRMATION, RECORDING_SCOPE_MESSAGE, startButton, cancelButton)
-        dialog.title = "Nagrywanie"
-        dialog.headerText = "Nagrywanie kliknięć myszy"
+        dialog.title = "Recording"
+        dialog.headerText = "Mouse click recording"
         dialog.initOwner(window())
         dialog.dialogPane.minHeight = Region.USE_PREF_SIZE
         dialog.dialogPane.stylesheets.add(javaClass.getResource("/css/adaptibot.css")?.toExternalForm() ?: "")
@@ -251,7 +251,7 @@ class MainController : Initializable {
     /** The single user-facing recording failure: one ERROR log entry and one dialog. */
     private fun showRecordingFailure() {
         viewModel.addLog(LogMessage.error(RECORDING_FAILED_MESSAGE))
-        showError("Nagrywanie", RECORDING_FAILED_MESSAGE)
+        showError("Recording", RECORDING_FAILED_MESSAGE)
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
@@ -298,11 +298,11 @@ class MainController : Initializable {
 
     private companion object {
         const val RECORDING_SCOPE_MESSAGE =
-            "Obecnie nagrywane są tylko fizyczne pojedyncze kliknięcia lewym przyciskiem myszy wraz ze współrzędnymi ekranu.\n" +
-            "Nagrywane są również kliknięcia w oknie AdaptiBot.\n" +
-            "Pomijane są zdarzenia wstrzyknięte programowo, klawiatura, ruch myszy, pozostałe przyciski myszy oraz gesty.\n" +
-            "Nagrywanie zatrzymasz skrótem Ctrl+Shift+F12."
-        const val RECORDING_EMPTY_MESSAGE = "Nagrywanie zakończone: nie zarejestrowano kliknięć."
-        const val RECORDING_FAILED_MESSAGE = "Nie udało się zakończyć nagrywania. Spróbuj ponownie."
+            "Only physical single left mouse clicks and their screen coordinates are recorded.\n" +
+            "Clicks inside AdaptiBot are recorded as well.\n" +
+            "Injected events, keyboard input, mouse movement, other mouse buttons, and gestures are ignored.\n" +
+            "Press Ctrl+Shift+F12 to stop recording."
+        const val RECORDING_EMPTY_MESSAGE = "Recording finished: no clicks were recorded."
+        const val RECORDING_FAILED_MESSAGE = "Recording could not be completed. Please try again."
     }
 }

@@ -58,7 +58,7 @@ enum class StepType(val label: String) {
     FOR("For Loop"),
 
     /** UI-only command that records mouse clicks into a group; never a script [Step] subtype. */
-    RECORDING("Nagrywanie");
+    RECORDING("Recording");
 }
 
 // ── Base helper ──────────────────────────────────────────────────────────────
@@ -450,4 +450,3 @@ private class ForStepDialog(private val original: ForStep, owner: Window?) : Dia
         }
     }
 }
-
