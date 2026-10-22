@@ -1,6 +1,5 @@
 package com.adaptibot.recorder.domain
 
-/** Thrown by [InputCapture.start] when native capture cannot be started. */
 internal class InputCaptureException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /**

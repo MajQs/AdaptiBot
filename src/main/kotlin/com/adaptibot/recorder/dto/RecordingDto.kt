@@ -1,6 +1,5 @@
 package com.adaptibot.recorder.dto
 
-/** Ordered recorded [events] and the reason the recording ended. */
 data class RecordingDto(
     val events: List<RecordedEventDto>,
     val completionReason: CompletionReason
