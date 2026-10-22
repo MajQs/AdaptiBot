@@ -159,6 +159,12 @@
     -fx-background-color: #24273a;
 }
 
+/* The tree is disabled as a whole while recording: dim it once instead of compounding per nested node */
+.step-tree-view:disabled .tree-cell:disabled,
+.step-tree-view:disabled .tree-cell .label:disabled {
+    -fx-opacity: 1.0;
+}
+
 /* ── Step cells ─────────────────────────────────────────────────────────── */
 
 .step-cell-box {
@@ -544,6 +550,14 @@
 
 .status-dot-idle {
     -fx-fill: #45475a;
+}
+
+.status-recording {
+    -fx-text-fill: #f38ba8;
+}
+
+.status-dot-recording {
+    -fx-fill: #f38ba8;
 }
 
 /* ── Image capture overlay ──────────────────────────────────────────────── */

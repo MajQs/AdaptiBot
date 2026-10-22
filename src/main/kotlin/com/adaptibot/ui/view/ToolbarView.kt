@@ -19,6 +19,9 @@ class ToolbarView(
     val runButton = Button("▶  Run")
     val stopButton = Button("⏹  Stop")
 
+    private val statusDot = Circle(5.0).apply { styleClass.add("status-dot-idle") }
+    private val statusLabel = Label("Idle").apply { styleClass.add("status-text") }
+
     init {
         styleClass.add("toolbar-area")
         alignment = Pos.CENTER_LEFT
@@ -27,14 +30,17 @@ class ToolbarView(
         // File operations
         val newBtn = Button("New").apply {
             styleClass.add("toolbar-btn")
+            disableProperty().bind(viewModel.isRecordingProperty)
             setOnAction { onNew() }
         }
         val openBtn = Button("Open").apply {
             styleClass.add("toolbar-btn")
+            disableProperty().bind(viewModel.isRecordingProperty)
             setOnAction { onOpen() }
         }
         val saveBtn = Button("Save").apply {
             styleClass.add("toolbar-btn")
+            disableProperty().bind(viewModel.isRecordingProperty)
             setOnAction { onSave() }
         }
 
@@ -46,6 +52,7 @@ class ToolbarView(
             prefWidth = 220.0
             promptText = "Script name…"
             textProperty().bindBidirectional(viewModel.scriptNameProperty)
+            disableProperty().bind(viewModel.isRecordingProperty)
         }
 
         val sep2 = buildSeparator()
@@ -53,7 +60,7 @@ class ToolbarView(
         // Run / Stop
         runButton.apply {
             styleClass.add("toolbar-btn-primary")
-            disableProperty().bind(viewModel.isRunningProperty)
+            disableProperty().bind(viewModel.isRunningProperty.or(viewModel.isRecordingProperty))
             setOnAction { viewModel.startExecution() }
         }
         stopButton.apply {
@@ -72,28 +79,39 @@ class ToolbarView(
 
         val settingsBtn = Button("⚙  Settings").apply {
             styleClass.add("toolbar-btn")
+            disableProperty().bind(viewModel.isRecordingProperty)
             setOnAction { onSettings() }
         }
 
         val spacer = Region().apply { HBox.setHgrow(this, Priority.ALWAYS) }
 
         // Status indicator
-        val statusDot = Circle(5.0).apply {
-            styleClass.add("status-dot-idle")
-            viewModel.isRunningProperty.addListener { _, _, running ->
-                styleClass.setAll(if (running) "status-dot-running" else "status-dot-idle")
-            }
-        }
-        val statusLabel = Label("Idle").apply {
-            styleClass.add("status-text")
-            viewModel.isRunningProperty.addListener { _, _, running ->
-                text = if (running) "Running…" else "Idle"
-                styleClass.setAll(if (running) "status-running" else "status-text")
-            }
-        }
+        viewModel.isRunningProperty.addListener { _, _, _ -> refreshStatus() }
+        viewModel.isRecordingProperty.addListener { _, _, _ -> refreshStatus() }
         val statusBox = HBox(6.0, statusDot, statusLabel).apply { alignment = Pos.CENTER }
 
         children.addAll(newBtn, openBtn, saveBtn, sep1, nameField, sep2, runButton, stopButton, sep3, settingsBtn, spacer, statusBox)
+    }
+
+    /** Recording takes precedence: it can only be active while no script runs. */
+    private fun refreshStatus() {
+        when {
+            viewModel.isRecordingProperty.get() -> {
+                statusLabel.text = stopHotkeyName?.let { "Nagrywanie… ($it)" } ?: "Nagrywanie…"
+                statusLabel.styleClass.setAll("status-recording")
+                statusDot.styleClass.setAll("status-dot-recording")
+            }
+            viewModel.isRunningProperty.get() -> {
+                statusLabel.text = "Running…"
+                statusLabel.styleClass.setAll("status-running")
+                statusDot.styleClass.setAll("status-dot-running")
+            }
+            else -> {
+                statusLabel.text = "Idle"
+                statusLabel.styleClass.setAll("status-text")
+                statusDot.styleClass.setAll("status-dot-idle")
+            }
+        }
     }
 
     private fun buildSeparator(): Region = Region().apply {
@@ -103,4 +121,3 @@ class ToolbarView(
         maxHeight = 20.0
     }
 }
-

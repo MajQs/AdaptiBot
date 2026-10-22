@@ -37,6 +37,8 @@ object StepEditorDialogFactory {
             StepType.OBSERVER      -> ObserverStepDialog(ObserverStep(condition = Condition.ElementExists(Matcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
             StepType.WHILE         -> WhileStepDialog(WhileStep(condition = Condition.ElementExists(Matcher.ImagePresent(ImagePattern("", 0.7)))), owner).showAndWait().orElse(null)
             StepType.FOR           -> ForStepDialog(ForStep(), owner).showAndWait().orElse(null)
+            // UI-only command: MainController routes it to the recording flow before reaching this factory.
+            StepType.RECORDING     -> null
         }
     }
 }
@@ -53,7 +55,10 @@ enum class StepType(val label: String) {
     CONDITIONAL("Conditional Block"),
     OBSERVER("Observer Step"),
     WHILE("While Loop"),
-    FOR("For Loop");
+    FOR("For Loop"),
+
+    /** UI-only command that records mouse clicks into a group; never a script [Step] subtype. */
+    RECORDING("Nagrywanie");
 }
 
 // ── Base helper ──────────────────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import com.adaptibot.script.*
 import com.adaptibot.script.step.*
 import com.adaptibot.serialization.ScriptSerializer
 import javafx.application.Platform
+import javafx.beans.binding.BooleanBinding
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -23,6 +24,16 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
     val scriptNameProperty = SimpleStringProperty("New Script")
     val steps: ObservableList<Step> = FXCollections.observableArrayList()
     val isRunningProperty = SimpleBooleanProperty(false)
+    val isStopHotkeyAvailableProperty = SimpleBooleanProperty(false)
+
+    /** True while a mouse-click recording is active; editing, file operations and execution are locked meanwhile. */
+    val isRecordingProperty = SimpleBooleanProperty(false)
+
+    /** Recording needs an idle editor and the stop shortcut, which is its only stop control. */
+    val canStartRecordingBinding: BooleanBinding = isRunningProperty.not()
+        .and(isRecordingProperty.not())
+        .and(isStopHotkeyAvailableProperty)
+
     val logMessages: ObservableList<LogMessage> = FXCollections.observableArrayList()
     val activeStepIdProperty = SimpleObjectProperty<StepId?>(null)
 
@@ -90,7 +101,7 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
     // ── Execution ──────────────────────────────────────────────────────────────
 
     fun startExecution() {
-        if (isRunningProperty.get()) return
+        if (isRunningProperty.get() || isRecordingProperty.get()) return
         isRunningProperty.set(true)
         addLog(LogMessage.info("▶ Execution started"))
 
@@ -137,6 +148,22 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
         if (!result) script.addStep(script.rootContainerId, step)
         syncStepsFromAggregate()
         markDirty()
+        return result
+    }
+
+    /**
+     * Strict insertion with no fallback: after [afterStepId] when present (which must be a direct child of
+     * [containerId]), otherwise appended to [containerId]. Returns false, leaving tree and dirty flag
+     * untouched, when the container or step is missing.
+     */
+    fun insertStep(containerId: ContainerId, afterStepId: StepId?, step: Step): Boolean {
+        val container = StepTreeEditor.findContainer(script.getRootContainer(), containerId) ?: return false
+        val result = if (afterStepId != null) {
+            container.steps.any { it.id == afterStepId } && script.addStepAfter(afterStepId, step)
+        } else {
+            script.addStep(containerId, step)
+        }
+        if (result) { syncStepsFromAggregate(); markDirty() }
         return result
     }
 
@@ -260,5 +287,10 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
 
     private fun markDirty() {
         isDirtyProperty.set(true)
+    }
+
+    companion object {
+        const val RECORDING_HOTKEY_UNAVAILABLE_MESSAGE =
+            "Nagrywanie niedostępne: skrót Ctrl+Shift+F12 jest zajęty przez inną aplikację."
     }
 }

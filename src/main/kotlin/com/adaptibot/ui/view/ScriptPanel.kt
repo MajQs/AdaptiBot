@@ -73,10 +73,11 @@ class ScriptPanel(
             styleClass.add("step-detail-text")
         }
 
-        val picker = StepTypePickerPopup { type -> onAddStep(viewModel.rootContainerId, null, type) }
+        val picker = StepTypePickerPopup(viewModel) { type -> onAddStep(viewModel.rootContainerId, null, type) }
 
         val addFirstBtn = Button("＋  Add first step").apply {
             styleClass.add("toolbar-btn-primary")
+            disableProperty().bind(viewModel.isRecordingProperty)
             setOnAction { e ->
                 val bounds = localToScreen(boundsInLocal)
                 picker.show(scene.window, bounds.minX, bounds.maxY + 6)

@@ -3,8 +3,13 @@ package com.adaptibot.ui.controller
 import com.adaptibot.execution.ExecutionConfiguration
 import com.adaptibot.hotkey.HotkeyConfiguration
 import com.adaptibot.hotkey.HotkeyFacade
+import com.adaptibot.recorder.RecorderConfiguration
+import com.adaptibot.recorder.RecorderFacade
+import com.adaptibot.recorder.dto.RecordingDto
+import com.adaptibot.recorder.dto.RecordingResultDto
 import com.adaptibot.script.step.ContainerId
 import com.adaptibot.script.step.StepId
+import com.adaptibot.ui.adapter.RecordingToStepMapper
 import com.adaptibot.ui.adapter.UiExecutionEventPublisher
 import com.adaptibot.ui.dialog.*
 import com.adaptibot.ui.view.*
@@ -13,13 +18,20 @@ import com.adaptibot.ui.viewmodel.ScriptViewModel
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.fxml.Initializable
+import javafx.scene.control.Alert
+import javafx.scene.control.ButtonBar
+import javafx.scene.control.ButtonType
 import javafx.scene.control.SplitPane
 import javafx.scene.layout.BorderPane
+import javafx.scene.layout.Region
 import javafx.stage.FileChooser
 import javafx.stage.Stage
 import java.net.URL
 import java.nio.file.Path
 import java.util.ResourceBundle
+
+/** Where a finished recording is inserted; captured when the user picks the command, before the modal. */
+private data class RecordingInsertionContext(val containerId: ContainerId, val afterStepId: StepId?)
 
 class MainController : Initializable {
 
@@ -29,12 +41,19 @@ class MainController : Initializable {
     private lateinit var viewModel: ScriptViewModel
 
     private var hotkeyFacade: HotkeyFacade? = null
+    private var recorderFacade: RecorderFacade? = null
+
+    /** Insertion location of the current recording session; set before the start modal is shown. */
+    private var recordingInsertionContext: RecordingInsertionContext? = null
+    private var stepTreeView: StepTreeView? = null
+    private var isShuttingDown = false
 
     override fun initialize(location: URL?, resources: ResourceBundle?) {
         // Build ViewModel with event publisher
         val eventPublisher = UiExecutionEventPublisher(null) // placeholder, set below
         val facade = ExecutionConfiguration.getFacade(eventPublisher)
         viewModel = ScriptViewModel(facade)
+        recorderFacade = RecorderConfiguration.getFacade()
         // Wire publisher back to viewModel
         eventPublisher.attachViewModel(viewModel)
 
@@ -60,6 +79,8 @@ class MainController : Initializable {
                 showAddStepFlow(containerId, afterStepId, type)
             }
         )
+
+        stepTreeView = scriptPanel.treeView
 
         val logPanel = LogPanel(viewModel)
 
@@ -88,8 +109,11 @@ class MainController : Initializable {
     }
 
     fun shutdown() {
+        isShuttingDown = true
         hotkeyFacade?.close()
         hotkeyFacade = null
+        recorderFacade?.close()
+        recorderFacade = null
     }
 
     // ── File operations ────────────────────────────────────────────────────────
@@ -146,10 +170,88 @@ class MainController : Initializable {
     // ── Step add flow ──────────────────────────────────────────────────────────
 
     private fun showAddStepFlow(containerId: ContainerId, afterStepId: StepId?, type: com.adaptibot.ui.dialog.StepType) {
+        if (type == StepType.RECORDING) {
+            startRecordingFlow(RecordingInsertionContext(containerId, afterStepId))
+            return
+        }
         val defaultDelayBefore = viewModel.getScriptSettings().defaultDelayBefore
         val newStep = StepEditorDialogFactory.showNew(type, window(), defaultDelayBefore) ?: return
         if (afterStepId != null) viewModel.addStepAfter(afterStepId, newStep)
         else viewModel.addStep(containerId, newStep)
+    }
+
+    // ── Recording flow ─────────────────────────────────────────────────────────
+
+    /** Capture starts only after the modal has closed, so the click confirming it is never recorded. */
+    private fun startRecordingFlow(context: RecordingInsertionContext) {
+        if (!viewModel.canStartRecordingBinding.get()) return
+        recordingInsertionContext = context
+        if (!confirmRecordingStart()) {
+            recordingInsertionContext = null
+            return
+        }
+        val recorder = recorderFacade
+        if (recorder == null || isShuttingDown || !viewModel.canStartRecordingBinding.get()) {
+            recordingInsertionContext = null
+            return
+        }
+        viewModel.isRecordingProperty.set(true)
+        // The recorder completes on a background thread (or synchronously when capture cannot start).
+        val started = recorder.start { result -> Platform.runLater { onRecordingFinished(result) } }
+        if (!started) {
+            viewModel.isRecordingProperty.set(false)
+            recordingInsertionContext = null
+            showRecordingFailure()
+        }
+    }
+
+    private fun confirmRecordingStart(): Boolean {
+        val startButton = ButtonType("Rozpocznij nagrywanie", ButtonBar.ButtonData.OK_DONE)
+        val cancelButton = ButtonType("Anuluj", ButtonBar.ButtonData.CANCEL_CLOSE)
+        val dialog = Alert(Alert.AlertType.CONFIRMATION, RECORDING_SCOPE_MESSAGE, startButton, cancelButton)
+        dialog.title = "Nagrywanie"
+        dialog.headerText = "Nagrywanie kliknięć myszy"
+        dialog.initOwner(window())
+        dialog.dialogPane.minHeight = Region.USE_PREF_SIZE
+        dialog.dialogPane.stylesheets.add(javaClass.getResource("/css/adaptibot.css")?.toExternalForm() ?: "")
+        return dialog.showAndWait().orElse(cancelButton) == startButton
+    }
+
+    /** Runs on the JavaFX thread once per session; always restores the normal UI first. */
+    private fun onRecordingFinished(result: RecordingResultDto) {
+        viewModel.isRecordingProperty.set(false)
+        if (isShuttingDown) return
+        when (result) {
+            is RecordingResultDto.Completed -> insertRecording(result.recording)
+            RecordingResultDto.Failed -> {
+                recordingInsertionContext = null
+                showRecordingFailure()
+            }
+        }
+    }
+
+    /** Inserts a completed recording at the captured location; the context is always consumed. */
+    private fun insertRecording(recording: RecordingDto) {
+        val context = recordingInsertionContext
+        recordingInsertionContext = null
+        if (recording.events.isEmpty()) {
+            viewModel.addLog(LogMessage.info(RECORDING_EMPTY_MESSAGE))
+            return
+        }
+        val groupStep = RecordingToStepMapper.toGroupStep(recording)
+        val inserted = context != null &&
+            viewModel.insertStep(context.containerId, context.afterStepId, groupStep)
+        if (inserted) {
+            stepTreeView?.revealStep(groupStep.id)
+        } else {
+            showRecordingFailure()
+        }
+    }
+
+    /** The single user-facing recording failure: one ERROR log entry and one dialog. */
+    private fun showRecordingFailure() {
+        viewModel.addLog(LogMessage.error(RECORDING_FAILED_MESSAGE))
+        showError("Nagrywanie", RECORDING_FAILED_MESSAGE)
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
@@ -171,23 +273,36 @@ class MainController : Initializable {
 
     private fun registerStopHotkey(): String? {
         val hotkeys = HotkeyConfiguration.getFacade()
+        val recorder = checkNotNull(recorderFacade)
         hotkeyFacade = hotkeys
 
         val registered = hotkeys.registerStopHotkey {
-            Platform.runLater { viewModel.stopExecutionByHotkey(hotkeys.stopHotkeyName) }
+            if (recorder.isRecording()) {
+                recorder.stop()
+            } else {
+                Platform.runLater { viewModel.stopExecutionByHotkey(hotkeys.stopHotkeyName) }
+            }
         }
+        viewModel.isStopHotkeyAvailableProperty.set(registered)
 
         if (!registered) {
             viewModel.addLog(
-                LogMessage.error(
-                    "Shortcut ${hotkeys.stopHotkeyName} is taken by another application — " +
-                        "stopping is only possible from the toolbar"
-                )
+                LogMessage.error(ScriptViewModel.RECORDING_HOTKEY_UNAVAILABLE_MESSAGE)
             )
             return null
         }
 
         viewModel.addLog(LogMessage.info("Emergency stop shortcut: ${hotkeys.stopHotkeyName}"))
         return hotkeys.stopHotkeyName
+    }
+
+    private companion object {
+        const val RECORDING_SCOPE_MESSAGE =
+            "Obecnie nagrywane są tylko fizyczne pojedyncze kliknięcia lewym przyciskiem myszy wraz ze współrzędnymi ekranu.\n" +
+            "Nagrywane są również kliknięcia w oknie AdaptiBot.\n" +
+            "Pomijane są zdarzenia wstrzyknięte programowo, klawiatura, ruch myszy, pozostałe przyciski myszy oraz gesty.\n" +
+            "Nagrywanie zatrzymasz skrótem Ctrl+Shift+F12."
+        const val RECORDING_EMPTY_MESSAGE = "Nagrywanie zakończone: nie zarejestrowano kliknięć."
+        const val RECORDING_FAILED_MESSAGE = "Nie udało się zakończyć nagrywania. Spróbuj ponownie."
     }
 }

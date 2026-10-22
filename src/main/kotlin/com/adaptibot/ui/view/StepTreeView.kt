@@ -17,6 +17,9 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
         styleClass.add("step-tree-view")
         isShowRoot = false
         selectionModel.selectionMode = SelectionMode.SINGLE
+        // Disabling the whole tree blocks add/edit/duplicate/toggle/delete/drag-move in every cell while recording,
+        // which keeps the captured insertion location stable.
+        disableProperty().bind(viewModel.isRecordingProperty)
 
         val rootItem = TreeItem<TreeNode>()
         this.root = rootItem
@@ -39,6 +42,28 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
 
     fun setOnAddStep(handler: (containerId: ContainerId, afterStepId: StepId?, type: StepType) -> Unit) {
         onAddStep = handler
+    }
+
+    /**
+     * Expands only the ancestor chain of [stepId] (plus the step itself when it is expandable), selects it and
+     * scrolls it into view. Returns false when the step is not in the tree.
+     */
+    fun revealStep(stepId: StepId): Boolean {
+        val path = findPath(root, stepId) ?: return false
+        path.forEach { it.isExpanded = true }
+        val target = path.last()
+        selectionModel.select(target)
+        scrollTo(getRow(target))
+        return true
+    }
+
+    private fun findPath(parent: TreeItem<TreeNode>, stepId: StepId): List<TreeItem<TreeNode>>? {
+        for (child in parent.children) {
+            val node = child.value
+            if (node is TreeNode.StepNode && node.step.id == stepId) return listOf(child)
+            findPath(child, stepId)?.let { return listOf(child) + it }
+        }
+        return null
     }
 
     private fun rebuildTree() {
@@ -113,7 +138,7 @@ private class ScriptTreeCell(
 
     /** Add a step after the current step (not valid for ContainerNode). */
     private val picker by lazy {
-        StepTypePickerPopup { type ->
+        StepTypePickerPopup(viewModel) { type ->
             val node = item as? TreeNode.StepNode ?: return@StepTypePickerPopup
             onAddStep(parentContainerId(), node.step.id, type)
         }
@@ -121,7 +146,7 @@ private class ScriptTreeCell(
 
     /** Add a step inside a single-container step (GroupStep, ObserverStep, loop steps). */
     private val pickerInside by lazy {
-        StepTypePickerPopup { type ->
+        StepTypePickerPopup(viewModel) { type ->
             val node = item as? TreeNode.StepNode ?: return@StepTypePickerPopup
             val containerId = node.step.containers().firstOrNull()?.id ?: return@StepTypePickerPopup
             onAddStep(containerId, null, type)
@@ -130,7 +155,7 @@ private class ScriptTreeCell(
 
     /** Add a step inside a ContainerNode (e.g. IF TRUE / IF ELSE). */
     private val pickerInsideContainer by lazy {
-        StepTypePickerPopup { type ->
+        StepTypePickerPopup(viewModel) { type ->
             val node = item as? TreeNode.ContainerNode ?: return@StepTypePickerPopup
             onAddStep(node.container.id, null, type)
         }
