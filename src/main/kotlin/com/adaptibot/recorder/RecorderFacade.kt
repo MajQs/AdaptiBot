@@ -11,7 +11,8 @@ import com.adaptibot.recorder.dto.RecordingResultDto
  * @see RecorderConfiguration
  */
 class RecorderFacade internal constructor(
-    private val recorder: Recorder
+    private val recorder: Recorder,
+    private val recordingAvailable: Boolean
 ) : AutoCloseable {
 
     /**
@@ -19,9 +20,10 @@ class RecorderFacade internal constructor(
      *
      * @param onCompleted invoked exactly once, on a background thread, with the session outcome;
      *        dispatching to the UI thread is the caller's responsibility
-     * @return `false` when a session is already active
+     * @return `false` when recording is unavailable or a session is already active
      */
-    fun start(onCompleted: (RecordingResultDto) -> Unit): Boolean = recorder.start(onCompleted)
+    fun start(onCompleted: (RecordingResultDto) -> Unit): Boolean =
+        recordingAvailable && recorder.start(onCompleted)
 
     /** Requests the active session to finish with the recorded data. No-op when not recording. */
     fun stop() = recorder.stop()

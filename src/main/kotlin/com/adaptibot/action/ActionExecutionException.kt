@@ -4,6 +4,8 @@ import com.adaptibot.script.value.ScreenRect
 
 sealed class ActionExecutionException(message: String) : Exception(message) {
 
+    class UnsupportedPlatform(message: String) : ActionExecutionException(message)
+
     class ImageNotFound(
         bestConfidence: Double,
         threshold: Double
@@ -29,6 +31,11 @@ sealed class ActionExecutionException(message: String) : Exception(message) {
     class EmptyKeyList : ActionExecutionException(
         "Key list must not be empty. Provide at least one key to press."
     )
+
+    companion object {
+        const val NATIVE_ACTIONS_UNSUPPORTED_MESSAGE: String =
+            "Mouse and keyboard actions are unavailable on this platform."
+    }
 }
 
 private fun formatPercent(value: Double) = "%.1f%%".format(value * 100)

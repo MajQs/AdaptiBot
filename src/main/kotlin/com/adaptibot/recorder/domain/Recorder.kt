@@ -120,7 +120,7 @@ internal class Recorder(
         var previous: Long? = null
         val dtos = snapshot.map { click ->
             val delay = previous?.let { previousTimestamp ->
-                val difference = (click.nativeTimestampMillis - previousTimestamp) and WINDOWS_TIMESTAMP_MASK
+                val difference = (click.nativeTimestampMillis - previousTimestamp) and TIMESTAMP_MASK
                 if (difference >= INVALID_TIMESTAMP_DIFFERENCE) 0L else difference
             } ?: 0L
             previous = click.nativeTimestampMillis
@@ -191,7 +191,7 @@ internal class Recorder(
     private companion object {
         const val MAX_RECORDING_DURATION_MILLIS = 10L * 60L * 1_000L
         const val MAX_ACCEPTED_CLICKS = 10_000
-        const val WINDOWS_TIMESTAMP_MASK = 0xFFFF_FFFFL
+        const val TIMESTAMP_MASK = 0xFFFF_FFFFL
         const val INVALID_TIMESTAMP_DIFFERENCE = 0x8000_0000L
     }
 }

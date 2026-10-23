@@ -3,6 +3,8 @@ package com.adaptibot.ui.controller
 import com.adaptibot.execution.ExecutionConfiguration
 import com.adaptibot.hotkey.HotkeyConfiguration
 import com.adaptibot.hotkey.HotkeyFacade
+import com.adaptibot.infrastructure.PlatformCapabilities
+import com.adaptibot.infrastructure.PlatformCapabilityDetector
 import com.adaptibot.recorder.RecorderConfiguration
 import com.adaptibot.recorder.RecorderFacade
 import com.adaptibot.recorder.dto.RecordingDto
@@ -51,13 +53,14 @@ class MainController : Initializable {
     override fun initialize(location: URL?, resources: ResourceBundle?) {
         // Build ViewModel with event publisher
         val eventPublisher = UiExecutionEventPublisher(null) // placeholder, set below
-        val facade = ExecutionConfiguration.getFacade(eventPublisher)
-        viewModel = ScriptViewModel(facade)
-        recorderFacade = RecorderConfiguration.getFacade()
+        val capabilities = PlatformCapabilityDetector.detect()
+        val facade = ExecutionConfiguration.getFacade(eventPublisher, capabilities)
+        viewModel = ScriptViewModel(facade, capabilities)
+        recorderFacade = RecorderConfiguration.getFacade(capabilities)
         // Wire publisher back to viewModel
         eventPublisher.attachViewModel(viewModel)
 
-        val stopHotkeyName = registerStopHotkey()
+        val stopHotkeyName = registerStopHotkey(capabilities)
 
         // Build UI
         val toolbar = ToolbarView(
@@ -105,7 +108,19 @@ class MainController : Initializable {
             )
         }
 
+        viewModel.addLog(LogMessage.info(capabilitySummary(capabilities)))
         viewModel.addLog(LogMessage.info("AdaptiBot ready."))
+    }
+
+    /** One startup line: names every disabled feature, or confirms all are available. */
+    private fun capabilitySummary(capabilities: PlatformCapabilities): String {
+        val disabled = buildList {
+            if (!capabilities.actionSupported) add("script execution of mouse/keyboard actions")
+            if (!capabilities.recordingSupported) add("recording")
+            if (!capabilities.globalHotkeySupported) add("global emergency-stop hotkey")
+        }
+        return if (disabled.isEmpty()) "Platform capabilities: all automation features available."
+        else "Platform capabilities: editor only. Disabled features: ${disabled.joinToString(", ")}."
     }
 
     fun shutdown() {
@@ -271,8 +286,8 @@ class MainController : Initializable {
         alert.showAndWait()
     }
 
-    private fun registerStopHotkey(): String? {
-        val hotkeys = HotkeyConfiguration.getFacade()
+    private fun registerStopHotkey(capabilities: PlatformCapabilities): String? {
+        val hotkeys = HotkeyConfiguration.getFacade(capabilities)
         val recorder = checkNotNull(recorderFacade)
         hotkeyFacade = hotkeys
 
@@ -286,9 +301,12 @@ class MainController : Initializable {
         viewModel.isStopHotkeyAvailableProperty.set(registered)
 
         if (!registered) {
-            viewModel.addLog(
-                LogMessage.error(ScriptViewModel.RECORDING_HOTKEY_UNAVAILABLE_MESSAGE)
-            )
+            // On unsupported platforms the startup capability summary already explains this.
+            if (capabilities.globalHotkeySupported) {
+                viewModel.addLog(
+                    LogMessage.error(ScriptViewModel.RECORDING_HOTKEY_UNAVAILABLE_MESSAGE)
+                )
+            }
             return null
         }
 

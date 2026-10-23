@@ -4,10 +4,18 @@ import com.adaptibot.action.ActionConfiguration
 import com.adaptibot.execution.domain.*
 import com.adaptibot.execution.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.execution.domain.observer.ObserverRegistry
+import com.adaptibot.infrastructure.PlatformCapabilities
+import com.adaptibot.infrastructure.PlatformCapabilityDetector
 import com.adaptibot.vision.VisionConfiguration
 
 object ExecutionConfiguration {
-    fun getFacade(eventPublisher: ExecutionEventPublisher): ExecutionFacade {
+    fun getFacade(eventPublisher: ExecutionEventPublisher): ExecutionFacade =
+        getFacade(eventPublisher, PlatformCapabilityDetector.detect())
+
+    internal fun getFacade(
+        eventPublisher: ExecutionEventPublisher,
+        capabilities: PlatformCapabilities
+    ): ExecutionFacade {
         val conditionEvaluator = ConditionEvaluator(VisionConfiguration.visionFacade)
         val scriptExecutionState = ScriptExecutionState(eventPublisher)
         val observerRegistry = ObserverRegistry(conditionEvaluator, 1000, eventPublisher)
@@ -17,7 +25,7 @@ object ExecutionConfiguration {
                 scriptExecutionState = scriptExecutionState,
                 scriptInterpreter = ScriptInterpreter(
                     actionStepHandler = ActionStepHandler(
-                        actionFacade = ActionConfiguration.getActionFacade(),
+                        actionFacade = ActionConfiguration.getActionFacade(capabilities),
                         eventPublisher = eventPublisher
                     ),
                     conditionEvaluator = conditionEvaluator,

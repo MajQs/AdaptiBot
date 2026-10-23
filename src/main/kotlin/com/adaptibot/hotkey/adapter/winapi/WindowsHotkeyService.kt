@@ -1,5 +1,6 @@
 package com.adaptibot.hotkey.adapter.winapi
 
+import com.adaptibot.hotkey.HotkeyRegistrationResult
 import com.adaptibot.hotkey.domain.GlobalHotkeyService
 import com.adaptibot.hotkey.model.HotkeyCombination
 import org.slf4j.LoggerFactory
@@ -18,10 +19,13 @@ internal class WindowsHotkeyService(
     private val idGenerator = AtomicInteger(1)
     private val registrations = ConcurrentHashMap<HotkeyCombination, Registration>()
 
-    override fun register(combination: HotkeyCombination, onTriggered: () -> Unit): Boolean {
+    override fun register(
+        combination: HotkeyCombination,
+        onTriggered: () -> Unit
+    ): HotkeyRegistrationResult {
         if (registrations.containsKey(combination)) {
             logger.warn("Hotkey $combination is already registered")
-            return true
+            return HotkeyRegistrationResult.Registered
         }
 
         val registration = Registration(idGenerator.getAndIncrement())
@@ -35,16 +39,16 @@ internal class WindowsHotkeyService(
 
         if (!registered.await(loopTimeoutMs, TimeUnit.MILLISECONDS)) {
             logger.warn("Timed out while registering hotkey $combination")
-            return false
+            return HotkeyRegistrationResult.Unavailable(REGISTRATION_UNAVAILABLE_REASON)
         }
         if (!registration.successful) {
             logger.warn("Hotkey $combination is unavailable, probably taken by another application")
-            return false
+            return HotkeyRegistrationResult.Unavailable(REGISTRATION_UNAVAILABLE_REASON)
         }
 
         registrations[combination] = registration
         logger.info("Global hotkey registered: $combination")
-        return true
+        return HotkeyRegistrationResult.Registered
     }
 
     override fun unregister(combination: HotkeyCombination) {
@@ -91,5 +95,9 @@ internal class WindowsHotkeyService(
         @Volatile var successful: Boolean = false
         @Volatile var thread: Thread? = null
     }
-}
 
+    private companion object {
+        const val REGISTRATION_UNAVAILABLE_REASON =
+            "The global hotkey could not be registered because it is already reserved or the native service did not respond."
+    }
+}

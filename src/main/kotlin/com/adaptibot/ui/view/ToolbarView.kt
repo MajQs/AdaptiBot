@@ -3,6 +3,7 @@ package com.adaptibot.ui.view
 import com.adaptibot.ui.viewmodel.ScriptViewModel
 import javafx.beans.binding.Bindings
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.layout.*
 import javafx.scene.shape.Circle
@@ -60,7 +61,7 @@ class ToolbarView(
         // Run / Stop
         runButton.apply {
             styleClass.add("toolbar-btn-primary")
-            disableProperty().bind(viewModel.isRunningProperty.or(viewModel.isRecordingProperty))
+            disableProperty().bind(viewModel.isRunningProperty.or(viewModel.isRecordingProperty).or(viewModel.runAvailableProperty.not()))
             setOnAction { viewModel.startExecution() }
         }
         stopButton.apply {
@@ -90,8 +91,16 @@ class ToolbarView(
         viewModel.isRecordingProperty.addListener { _, _, _ -> refreshStatus() }
         val statusBox = HBox(6.0, statusDot, statusLabel).apply { alignment = Pos.CENTER }
 
-        children.addAll(newBtn, openBtn, saveBtn, sep1, nameField, sep2, runButton, stopButton, sep3, settingsBtn, spacer, statusBox)
+        children.addAll(newBtn, openBtn, saveBtn, sep1, nameField, sep2, runEntry(), stopButton, sep3, settingsBtn, spacer, statusBox)
     }
+
+    /**
+     * Disabled controls receive no mouse events, so the unavailable-platform tooltip sits on a wrapper.
+     * Platform capabilities are fixed at startup, so a static tooltip suffices; supported platforms keep the bare button.
+     */
+    private fun runEntry(): Node =
+        if (viewModel.runAvailableProperty.get()) runButton
+        else StackPane(runButton).apply { Tooltip.install(this, Tooltip(RUN_UNAVAILABLE_MESSAGE)) }
 
     /** Recording takes precedence: it can only be active while no script runs. */
     private fun refreshStatus() {
@@ -119,5 +128,9 @@ class ToolbarView(
         prefWidth = 1.0
         minHeight = 20.0
         maxHeight = 20.0
+    }
+
+    private companion object {
+        const val RUN_UNAVAILABLE_MESSAGE = "Running mouse and keyboard actions is unavailable on this platform."
     }
 }

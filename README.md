@@ -56,7 +56,35 @@ cd AdaptiBot
 ./gradlew run
 ```
 
+### Platform Support
+
+| Platform | Mode | Notes |
+|----------|------|-------|
+| Windows | Full automation | Robot actions plus WinAPI recording and global shortcut; portable package available |
+| macOS | Action automation | Mouse and keyboard actions use AWT Robot; recording and global shortcut are unavailable |
+| Linux | Action automation | Mouse and keyboard actions use AWT Robot; recording and global shortcut are unavailable; desktop permissions may apply |
+
+On macOS and Linux AdaptiBot starts with **action automation** through AWT Robot. The following Windows-only features are disabled:
+
+- **Recording**: capturing mouse clicks into a script.
+- The global emergency-stop shortcut `Ctrl+Shift+F12`.
+
+Everything else stays available, including running scripts with mouse and keyboard actions: creating, opening and saving scripts, and editing Wait, System, Group,
+Conditional, Observer, While and For steps. At startup the application logs one INFO line
+listing the disabled features (or confirming that all features are available).
+
+Screen-capture features (image template matching, pixel color sampling, text lookup) use AWT. On macOS they
+may need **Screen Recording** permission for the Java process or terminal that launched it
+(System Settings → Privacy & Security → Screen Recording). Without it, captures can fail or come back empty.
+
+`./gradlew run` on macOS needs no extra setup: the JavaFX Gradle plugin picks the JavaFX 21 artifacts for the
+host (verified on Apple Silicon, `mac-aarch64`), and JNA 5.14 stays on the classpath without loading any
+Windows library. AWT Robot may require desktop accessibility/input permissions, and screen capture may require
+Screen Recording permission on macOS. Linux support depends on the active desktop session and its input-control permissions.
+
 ### Portable Windows Package (for end users)
+
+Windows only. On macOS and Linux use `./gradlew run` (the portable package is not available there).
 
 ```bash
 # builds build/portable/AdaptiBot-<version>-portable-win.zip
@@ -92,6 +120,8 @@ Instructions for the recipient:
 | `./gradlew portableZip` | Build the portable Windows package (unzip & run) |
 
 ## Keyboard Shortcuts
+
+Windows only. On macOS and Linux the global shortcut and **Recording** are unavailable (see [Platform Support](#platform-support)).
 
 | Shortcut | Action |
 |----------|--------|
@@ -148,7 +178,7 @@ Items not yet implemented (marked TODO in source): launching and terminating ext
 
 ## Project Status
 
-The project is at version `0.1.0-SNAPSHOT` and is under active development.
+The project is at version `0.1.0-SNAPSHOT` and is under active development. Windows has full automation support; macOS and Linux support mouse and keyboard actions through AWT Robot.
 
 ## License
 

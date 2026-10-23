@@ -3,11 +3,14 @@ package com.adaptibot.ui.viewmodel
 import com.adaptibot.execution.ExecutionFacade
 import com.adaptibot.execution.dto.ExecutionStateDto
 import com.adaptibot.execution.dto.ObserverStatusDto
+import com.adaptibot.infrastructure.PlatformCapabilities
 import com.adaptibot.script.*
 import com.adaptibot.script.step.*
 import com.adaptibot.serialization.ScriptSerializer
 import javafx.application.Platform
 import javafx.beans.binding.BooleanBinding
+import javafx.beans.property.ReadOnlyBooleanProperty
+import javafx.beans.property.ReadOnlyBooleanWrapper
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -15,7 +18,10 @@ import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import java.nio.file.Path
 
-class ScriptViewModel(private val executionFacade: ExecutionFacade) {
+class ScriptViewModel internal constructor(
+    private val executionFacade: ExecutionFacade,
+    capabilities: PlatformCapabilities
+) {
 
     // Domain aggregate
     private var script: Script = Script.create("New Script")
@@ -26,6 +32,16 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
     val isRunningProperty = SimpleBooleanProperty(false)
     val isStopHotkeyAvailableProperty = SimpleBooleanProperty(false)
 
+    // Platform capabilities: fixed for the lifetime of the ViewModel, exposed read-only for UI gating.
+    val runAvailableProperty: ReadOnlyBooleanProperty =
+        ReadOnlyBooleanWrapper(capabilities.actionSupported).readOnlyProperty
+    val recordingAvailableProperty: ReadOnlyBooleanProperty =
+        ReadOnlyBooleanWrapper(capabilities.recordingSupported).readOnlyProperty
+    val globalHotkeyAvailableProperty: ReadOnlyBooleanProperty =
+        ReadOnlyBooleanWrapper(capabilities.globalHotkeySupported).readOnlyProperty
+    val nativeStepCreationAvailableProperty: ReadOnlyBooleanProperty =
+        ReadOnlyBooleanWrapper(capabilities.actionSupported).readOnlyProperty
+
     /** True while a mouse-click recording is active; editing, file operations and execution are locked meanwhile. */
     val isRecordingProperty = SimpleBooleanProperty(false)
 
@@ -33,6 +49,7 @@ class ScriptViewModel(private val executionFacade: ExecutionFacade) {
     val canStartRecordingBinding: BooleanBinding = isRunningProperty.not()
         .and(isRecordingProperty.not())
         .and(isStopHotkeyAvailableProperty)
+        .and(recordingAvailableProperty)
 
     val logMessages: ObservableList<LogMessage> = FXCollections.observableArrayList()
     val activeStepIdProperty = SimpleObjectProperty<StepId?>(null)

@@ -3,6 +3,16 @@ package com.adaptibot.hotkey
 import com.adaptibot.hotkey.domain.GlobalHotkeyService
 import com.adaptibot.hotkey.model.HotkeyCombination
 
+sealed interface HotkeyRegistrationResult {
+    data object Registered : HotkeyRegistrationResult
+    data class Unavailable(val reason: String) : HotkeyRegistrationResult
+
+    companion object {
+        const val PLATFORM_UNSUPPORTED_REASON =
+            "Global hotkeys are unavailable on this platform."
+    }
+}
+
 /**
  * The module is responsible for **system-wide keyboard shortcuts**.
  *
@@ -31,9 +41,12 @@ class HotkeyFacade internal constructor(
      *         stays fully usable, only the shortcut is unavailable
      */
     fun registerStopHotkey(onStopRequested: () -> Unit): Boolean =
+        registerStopHotkeyWithStatus(onStopRequested) == HotkeyRegistrationResult.Registered
+
+    /** Registers the emergency shortcut and exposes a stable reason when registration is unavailable. */
+    fun registerStopHotkeyWithStatus(onStopRequested: () -> Unit): HotkeyRegistrationResult =
         globalHotkeyService.register(stopCombination, onStopRequested)
 
     /** Releases every registered shortcut. Idempotent. */
     override fun close() = globalHotkeyService.close()
 }
-

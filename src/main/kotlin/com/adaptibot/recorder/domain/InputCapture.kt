@@ -3,8 +3,7 @@ package com.adaptibot.recorder.domain
 internal class InputCaptureException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /**
- * Outbound port: a source of global physical input events. Implemented by a platform adapter
- * (Windows low-level mouse hook).
+ * Outbound port: a source of global physical input events. Implemented by an external input adapter.
  *
  * Contract:
  * - [start] begins capture and returns once capture is active; throws [InputCaptureException] on failure.

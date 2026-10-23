@@ -1,6 +1,5 @@
 package com.adaptibot.action
 
-import com.adaptibot.action.adapter.InputStateTracker
 import com.adaptibot.action.domain.ActionHandler
 import com.adaptibot.infrastructure.InterruptibleSleep
 import com.adaptibot.script.value.Action
@@ -20,6 +19,7 @@ import com.adaptibot.script.value.Action
  */
 class ActionFacade internal constructor(
     private val actionHandlerPerType: Map<Class<out Action>, ActionHandler<in Action>>,
+    private val releaseAllInputs: () -> Unit,
 ) {
 
     /**
@@ -41,10 +41,9 @@ class ActionFacade internal constructor(
      * Meant to be called when a script session ends — especially after an abrupt stop — so the user
      * is never left with a stuck modifier key or mouse button.
      */
-    fun releaseAllInputs() = InputStateTracker.releaseAll()
+    fun releaseAllInputs() = releaseAllInputs.invoke()
 
     private fun waitForDelay(delayMs: Long) {
         InterruptibleSleep.sleep(delayMs)
     }
 }
-
