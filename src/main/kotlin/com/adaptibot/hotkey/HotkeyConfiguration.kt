@@ -10,8 +10,6 @@ import com.adaptibot.infrastructure.PlatformCapabilityDetector
 
 object HotkeyConfiguration {
 
-    fun getFacade(): HotkeyFacade = getFacade(PlatformCapabilityDetector.detect())
-
     internal fun getFacade(capabilities: PlatformCapabilities): HotkeyFacade = create(
         globalHotkeyService = if (capabilities.globalHotkeySupported) {
             WindowsHotkeyService(WinApiHotkeyNativeApi())

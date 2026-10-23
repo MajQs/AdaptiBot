@@ -10,13 +10,10 @@ import com.adaptibot.action.domain.MouseActionHandler
 import com.adaptibot.action.domain.SystemActionHandler
 import com.adaptibot.action.domain.TargetCoordinateResolver
 import com.adaptibot.infrastructure.PlatformCapabilities
-import com.adaptibot.infrastructure.PlatformCapabilityDetector
 import com.adaptibot.script.value.Action
 import com.adaptibot.vision.VisionConfiguration
 
 object ActionConfiguration {
-
-    fun getActionFacade(): ActionFacade = getActionFacade(PlatformCapabilityDetector.detect())
 
     @Suppress("UNCHECKED_CAST")
     internal fun getActionFacade(capabilities: PlatformCapabilities): ActionFacade {

@@ -5,12 +5,9 @@ import com.adaptibot.execution.domain.*
 import com.adaptibot.execution.domain.observer.ObserverInterruptCoordinator
 import com.adaptibot.execution.domain.observer.ObserverRegistry
 import com.adaptibot.infrastructure.PlatformCapabilities
-import com.adaptibot.infrastructure.PlatformCapabilityDetector
 import com.adaptibot.vision.VisionConfiguration
 
 object ExecutionConfiguration {
-    fun getFacade(eventPublisher: ExecutionEventPublisher): ExecutionFacade =
-        getFacade(eventPublisher, PlatformCapabilityDetector.detect())
 
     internal fun getFacade(
         eventPublisher: ExecutionEventPublisher,
