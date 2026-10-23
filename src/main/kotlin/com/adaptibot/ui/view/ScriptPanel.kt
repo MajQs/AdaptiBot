@@ -49,6 +49,19 @@ class ScriptPanel(
 
     private fun buildHeader(): HBox {
         val title = Label("SCRIPT STEPS").apply { styleClass.add("panel-title") }
+        val addStepPicker = StepTypePickerPopup(viewModel) { type ->
+            onAddStep(viewModel.rootContainerId, null, type)
+        }
+        val addStepButton = Button("＋  Add step").apply {
+            styleClass.add("toolbar-btn-primary")
+            disableProperty().bind(viewModel.isRecordingProperty)
+            setOnAction { event ->
+                val source = event.source as? Button ?: return@setOnAction
+                val bounds = source.localToScreen(source.boundsInLocal)
+                if (bounds != null) addStepPicker.show(source.scene.window, bounds.minX, bounds.maxY + 6)
+                event.consume()
+            }
+        }
         val spacer = Region().apply { HBox.setHgrow(this, Priority.ALWAYS) }
 
         // Observers keep watching independently of the step being executed, so their state gets a
@@ -60,7 +73,7 @@ class ScriptPanel(
             managedProperty().bind(visibleProperty())
         }
 
-        return HBox(8.0, title, spacer, observerStatus).apply {
+        return HBox(8.0, title, spacer, observerStatus, addStepButton).apply {
             styleClass.add("panel-header")
             alignment = Pos.CENTER_LEFT
         }
@@ -69,23 +82,11 @@ class ScriptPanel(
     private fun buildEmptyState(): VBox {
         val icon   = Label("📜").apply { style = "-fx-font-size: 36px;" }
         val title  = Label("No steps yet").apply { styleClass.add("panel-title") }
-        val hint   = Label("Choose a step type below to get started").apply {
+        val hint   = Label("Use Add step above to get started").apply {
             styleClass.add("step-detail-text")
         }
 
-        val picker = StepTypePickerPopup(viewModel) { type -> onAddStep(viewModel.rootContainerId, null, type) }
-
-        val addFirstBtn = Button("＋  Add first step").apply {
-            styleClass.add("toolbar-btn-primary")
-            disableProperty().bind(viewModel.isRecordingProperty)
-            setOnAction { e ->
-                val bounds = localToScreen(boundsInLocal)
-                picker.show(scene.window, bounds.minX, bounds.maxY + 6)
-                e.consume()
-            }
-        }
-
-        return VBox(12.0, icon, title, hint, addFirstBtn).apply {
+        return VBox(12.0, icon, title, hint).apply {
             styleClass.add("empty-state")
             alignment = Pos.CENTER
         }

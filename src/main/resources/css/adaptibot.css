@@ -27,8 +27,8 @@
 
 .toolbar-area {
     -fx-background-color: #13131f;
-    -fx-padding: 8 12 8 12;
-    -fx-spacing: 8;
+    -fx-padding: 6 8 6 8;
+    -fx-spacing: 6;
     -fx-border-color: #313244;
     -fx-border-width: 0 0 1 0;
 }
@@ -45,7 +45,7 @@
 
 .panel-header {
     -fx-background-color: #181825;
-    -fx-padding: 8 12 8 12;
+    -fx-padding: 6 8 6 8;
     -fx-border-color: #313244;
     -fx-border-width: 0 0 1 0;
 }
@@ -63,7 +63,7 @@
     -fx-background-color: #313244;
     -fx-text-fill: #cdd6f4;
     -fx-background-radius: 6;
-    -fx-padding: 6 14 6 14;
+    -fx-padding: 5 10 5 10;
     -fx-cursor: hand;
     -fx-font-size: 12px;
 }
@@ -81,7 +81,7 @@
     -fx-text-fill: #1e1e2e;
     -fx-font-weight: bold;
     -fx-background-radius: 6;
-    -fx-padding: 6 18 6 18;
+    -fx-padding: 5 12 5 12;
     -fx-cursor: hand;
 }
 
@@ -94,7 +94,7 @@
     -fx-text-fill: #1e1e2e;
     -fx-font-weight: bold;
     -fx-background-radius: 6;
-    -fx-padding: 3 16 4 16;
+    -fx-padding: 3 12 4 12;
     -fx-cursor: hand;
 }
 
@@ -131,7 +131,7 @@
     -fx-background-radius: 4;
     -fx-border-color: #45475a;
     -fx-border-radius: 4;
-    -fx-padding: 4 8 4 8;
+    -fx-padding: 3 8 3 8;
 }
 
 .script-name-field:focused {
@@ -148,7 +148,7 @@
 .step-tree-view .tree-cell {
     -fx-background-color: transparent;
     -fx-text-fill: #cdd6f4;
-    -fx-padding: 1 4 1 4;
+    -fx-padding: 0 3 0 3;
 }
 
 .step-tree-view .tree-cell:selected {
@@ -169,11 +169,11 @@
 
 .step-cell-box {
     -fx-background-color: #24273a;
-    -fx-background-radius: 6;
-    -fx-padding: 3 10 3 10;
-    -fx-spacing: 6;
+    -fx-background-radius: 4;
+    -fx-padding: 2 6 2 6;
+    -fx-spacing: 5;
     -fx-border-color: #313244;
-    -fx-border-radius: 6;
+    -fx-border-radius: 4;
     -fx-border-width: 1;
 }
 
@@ -204,8 +204,8 @@
 /* Step type icons / badges */
 .step-badge {
     -fx-background-radius: 4;
-    -fx-padding: 2 6 2 6;
-    -fx-font-size: 10px;
+    -fx-padding: 1 5 1 5;
+    -fx-font-size: 9px;
     -fx-font-weight: bold;
 }
 
@@ -235,8 +235,8 @@
 .branch-header-cell {
     -fx-background-color: #1e1e2e;
     -fx-background-radius: 4;
-    -fx-padding: 2 10 2 10;
-    -fx-spacing: 6;
+    -fx-padding: 1 6 1 6;
+    -fx-spacing: 5;
     -fx-border-color: #313244;
     -fx-border-radius: 4;
     -fx-border-width: 1;
@@ -263,6 +263,25 @@
 .step-label-text {
     -fx-text-fill: #cdd6f4;
     -fx-font-size: 12px;
+}
+
+.step-number {
+    -fx-text-fill: #6c7086;
+    -fx-font-family: "JetBrains Mono", "Consolas", monospace;
+    -fx-font-size: 10px;
+    -fx-min-width: 22px;
+    -fx-alignment: center-right;
+}
+
+.step-drag-handle {
+    -fx-text-fill: #6c7086;
+    -fx-padding: 0 2 0 0;
+    -fx-cursor: open-hand;
+}
+
+.step-inline-detail {
+    -fx-font-size: 10px;
+    -fx-max-width: 240px;
 }
 
 .step-detail-text {
@@ -585,7 +604,7 @@
 
 .insert-strip {
     -fx-cursor: hand;
-    -fx-padding: 2 10 2 10;
+    -fx-padding: 0 6 0 6;
     -fx-background-color: transparent;
 }
 
@@ -705,6 +724,4 @@
     -fx-background-color: #313244;
     -fx-background-radius: 8;
 }
-
-
 

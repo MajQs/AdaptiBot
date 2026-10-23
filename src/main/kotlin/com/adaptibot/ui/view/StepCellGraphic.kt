@@ -9,6 +9,7 @@ import javafx.animation.PauseTransition
 import javafx.animation.Timeline
 import javafx.geometry.Pos
 import javafx.scene.control.Label
+import javafx.scene.control.Tooltip
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
@@ -18,8 +19,8 @@ import javafx.util.Duration
 
 object StepCellGraphic {
 
-    private const val STRIP_HEIGHT = 18.0
-    private const val ANIM_MS      = 150.0
+    private const val STRIP_HEIGHT = 12.0
+    private const val ANIM_MS      = 120.0
 
     /**
      * Builds the full cell graphic as a [VBox]:
@@ -35,6 +36,7 @@ object StepCellGraphic {
      */
     fun build(
         step: Step,
+        stepNumber: Int,
         isActive: Boolean,
         isEnabled: Boolean = true,
         parentDisabled: Boolean = false,
@@ -49,16 +51,28 @@ object StepCellGraphic {
         val badge = badge(step)
         val labelText = Label(step.label ?: defaultLabel(step)).apply {
             styleClass.add("step-label-text")
+            minWidth = 0.0
+            isWrapText = false
+            textOverrun = javafx.scene.control.OverrunStyle.ELLIPSIS
+            HBox.setHgrow(this, Priority.ALWAYS)
         }
-        val detail = Label(detail(step)).apply {
-            styleClass.add("step-detail-text")
+        val fullDetail = detail(step)
+        val detail = Label(compactDetail(fullDetail)).apply {
+            styleClass.addAll("step-detail-text", "step-inline-detail")
+            minWidth = 0.0
+            maxWidth = 240.0
+            isWrapText = false
+            textOverrun = javafx.scene.control.OverrunStyle.ELLIPSIS
         }
-        val textBox = VBox(0.0, labelText, detail).apply {
-            alignment = Pos.CENTER_LEFT
+        val number = Label("%02d".format(stepNumber)).apply {
+            styleClass.add("step-number")
+        }
+        val fullLabel = step.label ?: defaultLabel(step)
+        val stepTooltip = Tooltip("$fullLabel\n$fullDetail").apply {
+            showDelay = Duration.millis(300.0)
         }
         val dragHandle = Label("⠿").apply {
-            styleClass.add("step-detail-text")
-            style = "-fx-padding: 0 6 0 0; -fx-cursor: open-hand;"
+            styleClass.add("step-drag-handle")
         }
         val spacer = Region().apply { HBox.setHgrow(this, Priority.ALWAYS) }
 
@@ -70,12 +84,13 @@ object StepCellGraphic {
             else -> null
         }
 
-        val contentRow = HBox(4.0, dragHandle, badge, textBox, spacer).apply {
+        val contentRow = HBox(5.0, dragHandle, number, badge, labelText, detail, spacer).apply {
             alignment = Pos.CENTER_LEFT
             styleClass.add("step-cell-box")
             if (stateBadge != null) children.add(stateBadge)
             if (isActive) styleClass.add("step-cell-active")
             if (!isEnabled || parentDisabled) styleClass.add("step-cell-disabled")
+            Tooltip.install(this, stepTooltip)
         }
 
         // ── insert strips ─────────────────────────────────────────────────────
@@ -276,17 +291,22 @@ object StepCellGraphic {
         is Action.Mouse.Drag               -> "from ${targetShort(action.from)} → ${targetShort(action.to)}"
         is Action.Mouse.MoveTo             -> "→ ${targetShort(action.target)}"
         is Action.Mouse.Scroll             -> "${action.direction.name.lowercase()} ×${action.amount}"
-        is Action.Keyboard.TypeText        -> "\"${action.text.take(30)}${if (action.text.length > 30) "…" else ""}\""
+        is Action.Keyboard.TypeText        -> "\"${action.text}\""
         is Action.Keyboard.PressKeys       -> action.keys.joinToString("+") { it.name }
         is Action.System.Wait              -> "${action.milliseconds} ms"
         is Action.System.LaunchApplication -> action.path
         is Action.System.CloseApplication  -> action.processName
     }
 
+    private fun compactDetail(fullDetail: String): String =
+        if (fullDetail.length > 44) fullDetail.take(41) + "…" else fullDetail
+
+    fun accessibilitySummary(step: Step): String = detail(step)
+
     private fun targetShort(target: ScriptTarget?): String = when (target) {
         is ScriptTarget.AtCoordinate -> "(${target.coordinate.x}, ${target.coordinate.y})"
         is ScriptTarget.AtImage      -> "[image]"
-        is ScriptTarget.AtText       -> "[text: \"${target.text.take(20)}${if (target.text.length > 20) "…" else ""}\"]"
+        is ScriptTarget.AtText       -> "[text: \"${target.text}\"]"
         null                         -> "?"
     }
 }

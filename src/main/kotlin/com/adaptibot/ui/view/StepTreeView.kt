@@ -69,7 +69,7 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
     private fun rebuildTree() {
         val expandedKeys = mutableSetOf<String>()
         collectExpandedKeys(root.children, expandedKeys)
-        root.children.setAll(viewModel.steps.map { buildItem(it, expandedKeys) })
+        root.children.setAll(viewModel.steps.map { step -> buildItem(step, expandedKeys) })
     }
 
     private fun collectExpandedKeys(items: Iterable<TreeItem<TreeNode>>, out: MutableSet<String>) {
@@ -85,16 +85,14 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
         }
     }
 
-    private fun buildItem(step: Step, expandedKeys: Set<String> = emptySet(), parentDisabled: Boolean = false): TreeItem<TreeNode> {
-        val isNew = expandedKeys.isEmpty()
+    private fun buildItem(
+        step: Step,
+        expandedKeys: Set<String> = emptySet(),
+        parentDisabled: Boolean = false
+    ): TreeItem<TreeNode> {
         val item = TreeItem<TreeNode>(TreeNode.StepNode(step, parentDisabled))
         val stepKey = step.id.value
-        item.isExpanded = when {
-            isNew -> true
-            step is ConditionalStep || step is GroupStep || step is ObserverStep
-                || step is WhileStep || step is ForStep -> stepKey in expandedKeys
-            else -> false
-        }
+        item.isExpanded = stepKey in expandedKeys
 
         val childDisabled = parentDisabled || !step.enabled
         when (step) {
@@ -102,10 +100,10 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
                 item.children.add(buildContainerItem(step.trueContainer, step.id, "IF TRUE", expandedKeys, childDisabled))
                 item.children.add(buildContainerItem(step.elseContainer, step.id, "IF ELSE", expandedKeys, childDisabled))
             }
-            is GroupStep    -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys, childDisabled)) }
-            is ObserverStep -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys, childDisabled)) }
-            is WhileStep    -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys, childDisabled)) }
-            is ForStep      -> step.container.steps.forEach { item.children.add(buildItem(it, expandedKeys, childDisabled)) }
+            is GroupStep    -> step.container.steps.forEach { child -> item.children.add(buildItem(child, expandedKeys, childDisabled)) }
+            is ObserverStep -> step.container.steps.forEach { child -> item.children.add(buildItem(child, expandedKeys, childDisabled)) }
+            is WhileStep    -> step.container.steps.forEach { child -> item.children.add(buildItem(child, expandedKeys, childDisabled)) }
+            is ForStep      -> step.container.steps.forEach { child -> item.children.add(buildItem(child, expandedKeys, childDisabled)) }
             is ActionStep   -> {}
         }
         return item
@@ -118,10 +116,9 @@ class StepTreeView(private val viewModel: ScriptViewModel) : TreeView<TreeNode>(
         expandedKeys: Set<String>,
         parentDisabled: Boolean = false
     ): TreeItem<TreeNode> {
-        val isNew = expandedKeys.isEmpty()
         val item = TreeItem<TreeNode>(TreeNode.ContainerNode(container, parentStepId, label, parentDisabled))
-        item.isExpanded = if (isNew) true else container.id.value in expandedKeys
-        container.steps.forEach { item.children.add(buildItem(it, expandedKeys, parentDisabled)) }
+        item.isExpanded = container.id.value in expandedKeys
+        container.steps.forEach { step -> item.children.add(buildItem(step, expandedKeys, parentDisabled)) }
         return item
     }
 }
@@ -176,7 +173,7 @@ private class ScriptTreeCell(
     override fun updateItem(node: TreeNode?, empty: Boolean) {
         super.updateItem(node, empty)
         if (empty || node == null) {
-            graphic = null; text = null; contextMenu = null
+            graphic = null; text = null; accessibleText = null; contextMenu = null
             styleClass.removeAll("step-cell-active")
             return
         }
@@ -189,6 +186,7 @@ private class ScriptTreeCell(
                     onAddInside    = { ax, ay -> pickerInsideContainer.show(scene.window, ax, ay) }
                 )
                 text = null
+                accessibleText = "${node.label}, ${node.container.steps.size} steps"
                 contextMenu = buildContainerContextMenu(node)
             }
             is TreeNode.StepNode -> {
@@ -199,6 +197,7 @@ private class ScriptTreeCell(
                 val stepKey = node.step.id.value
                 graphic = StepCellGraphic.build(
                     step           = node.step,
+                    stepNumber     = stepNumber(treeItem),
                     isActive       = isActive,
                     isEnabled      = node.step.enabled,
                     parentDisabled = node.parentDisabled,
@@ -208,6 +207,7 @@ private class ScriptTreeCell(
                     onAddInside    = if (isSingleContainer) ({ ax, ay -> pickerInside.show(scene.window, ax, ay) }) else null
                 )
                 text = null
+                accessibleText = "${node.step.label ?: node.step.javaClass.simpleName}, ${StepCellGraphic.accessibilitySummary(node.step)}"
                 contextMenu = buildStepContextMenu(node.step)
             }
         }
@@ -259,6 +259,11 @@ private class ScriptTreeCell(
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private fun stepNumber(item: TreeItem<TreeNode>?): Int {
+        val parent = item?.parent ?: return 1
+        return parent.children.indexOf(item) + 1
+    }
 
     /**
      * Walks up the tree to find the [ContainerId] of the nearest ancestor container.
