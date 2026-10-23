@@ -21,11 +21,11 @@ It lets you **define, save and execute automation scripts** that emulate mouse, 
 
 | Layer / Concern | Technology | Purpose |
 |-----------------|------------|---------|
-| Core Language & Runtime | Kotlin 1.9 on JVM 21 LTS | Single language for all modules; modern syntax |
+| Core Language & Runtime | Kotlin 2.2 on JVM 21 LTS | Single language for all modules; modern syntax |
 | Build / Dependency | Gradle Kotlin DSL | Compilation, testing, packaging |
-| UI Layer | JavaFX 21, ControlsFX | Native-style desktop UI + extra controls |
-| Automation Layer | JNA 5.14 / WinAPI | Mouse & keyboard simulation via native OS calls |
-| Vision Layer | OpenCV 4.7 (opencv-java) | Template matching & pixel color sampling |
+| UI Layer | JavaFX 21.0.8, ControlsFX 11.2.6 | Native-style desktop UI + extra controls |
+| Automation Layer | JNA 5.19 / WinAPI | Mouse & keyboard simulation via native OS calls |
+| Vision Layer | OpenCV 4.9 (opencv-java) | Template matching & pixel color sampling |
 | Data / Serialization | kotlinx.serialization (JSON) | Persist scripts as JSON files with embedded Base64 screenshots |
 | Concurrency | Java Virtual Threads (`Thread.ofVirtual()`) | Dedicated script-execution and observer threads |
 | Logging & Diagnostics | SLF4J + Logback, in-app log panel | Structured runtime logging & live execution log |
@@ -77,8 +77,8 @@ Screen-capture features (image template matching, pixel color sampling, text loo
 may need **Screen Recording** permission for the Java process or terminal that launched it
 (System Settings → Privacy & Security → Screen Recording). Without it, captures can fail or come back empty.
 
-`./gradlew run` on macOS needs no extra setup: the JavaFX Gradle plugin picks the JavaFX 21 artifacts for the
-host (verified on Apple Silicon, `mac-aarch64`), and JNA 5.14 stays on the classpath without loading any
+`./gradlew run` on macOS needs no extra setup: the JavaFX Gradle plugin picks the JavaFX 21.0.8 artifacts for the
+host (verified on Apple Silicon, `mac-aarch64`), and JNA 5.19 stays on the classpath without loading any
 Windows library. AWT Robot may require desktop accessibility/input permissions, and screen capture may require
 Screen Recording permission on macOS. Linux support depends on the active desktop session and its input-control permissions.
 
